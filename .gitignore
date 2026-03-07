@@ -1,0 +1,58 @@
+# .gitignore for combined .NET and Node.js project
+
+# .NET / Visual Studio
+bin/
+obj/
+out/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Node.js
+node_modules/
+dist/
+dist-ssr/
+*.local
+.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# React / Vite
+build/
+.vite/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Database
+*.mdf
+*.ldf
+*.sdf
+App_Data/
+
+# Project Specific
+uploads/
+my-react-app/node_modules/
+LostAndFoundReactapp/my-react-app/node_modules/
+GAC/GAC/bin/
+GAC/GAC/obj/
+GAC/GAC.Application/bin/
+GAC/GAC.Application/obj/
+GAC/GAC.Core/bin/
+GAC/GAC.Core/obj/
+GAC/GAC.Presistance/bin/
+GAC/GAC.Presistance/obj/
+GAC/GAC.Infrastructure/bin/
+GAC/GAC.Infrastructure/obj/
