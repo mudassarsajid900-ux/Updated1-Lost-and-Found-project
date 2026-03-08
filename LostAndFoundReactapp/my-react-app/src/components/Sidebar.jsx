@@ -95,8 +95,8 @@ const Sidebar = ({ isAdmin = false }) => {
                             <span>Manage Auctions</span>
                         </button>
                         <button
-                            className={`nav-item ${isActive('/settings') ? 'active' : ''}`}
-                            onClick={() => navigate('/settings')}
+                            className={`nav-item ${isActive('/admin-settings') ? 'active' : ''}`}
+                            onClick={() => navigate('/admin-settings')}
                         >
                             <Settings size={20} />
                             <span>System Settings</span>

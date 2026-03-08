@@ -15,6 +15,7 @@ import ClaimStatus from './pages/ClaimStatus';
 import ReviewClaim from './pages/ReviewClaim';
 import AdminDashboard from './admin/AdminDashboard';
 import AdminManageUsers from './admin/AdminManageUsers';
+import AdminSettings from './admin/AdminSettings';
 import ReportDetails from './pages/ReportDetails';
 
 
@@ -27,6 +28,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/admin-users" element={<AdminManageUsers />} />
+        <Route path="/admin-settings" element={<AdminSettings />} />
         <Route path="/report-found" element={<ReportFound />} />
         <Route path="/report-lost" element={<ReportLost />} />
         <Route path="/my-items" element={<MyItems />} />
