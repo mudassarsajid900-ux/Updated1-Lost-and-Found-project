@@ -37,10 +37,10 @@ const Dashboard = () => {
             {/* ------------------------------------------- */}
             <main className="main-content">
 
-                {/* 4A. Top Header showing User Name and Subtitle */}
+                {/* 4A. Top Header showing Dashboard Overview */}
                 <Header
-                    title="Welcome, Mudassar!"
-                    subtitle="Access your quick actions below."
+                    title="Dashboard Overview"
+                    subtitle="Manage lost and found items using the quick actions below."
                 />
 
                 <div className="content-wrapper">

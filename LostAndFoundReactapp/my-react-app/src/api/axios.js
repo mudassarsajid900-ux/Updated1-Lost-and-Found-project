@@ -23,7 +23,7 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         // If the server returns 401 (Unauthorized), it means the token is invalid or expired
-        if (error.response && error.response.status === 401) {
+        if (error.response && error.response.status === 401 && !window.location.pathname.includes('/login')) {
             console.warn("Unauthorized! Redirecting to login...");
             localStorage.removeItem('token'); // Clear the invalid token
             window.location.href = '/login';   // Redirect to login page

@@ -52,7 +52,7 @@ const Sidebar = ({ isAdmin = false }) => {
                 }}>
                     <User size={18} color="#319795" />
                 </div>
-                <span className="brand-text">L&F Hub</span>
+                <span className="brand-text">Lost & Found </span>
             </div>
 
             {/* ------------------------------------------- */}
@@ -152,7 +152,12 @@ const Sidebar = ({ isAdmin = false }) => {
             {/* Returns user to the login screen */}
             {/* ------------------------------------------- */}
             <div className="sidebar-footer">
-                <button className="nav-item logout" onClick={() => navigate('/login')}>
+                <button className="nav-item logout" onClick={() => {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('username');
+                    localStorage.removeItem('userEmail');
+                    navigate('/login');
+                }}>
                     <LogOut size={20} />
                     <span>Logout</span>
                 </button>

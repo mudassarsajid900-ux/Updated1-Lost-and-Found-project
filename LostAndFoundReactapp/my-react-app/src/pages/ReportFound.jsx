@@ -93,10 +93,16 @@ const ReportFound = () => {
                 options: mobileModels.map(m => m.name),
                 placeholder: loadingModels ? "Loading models..." : "Select model"
             },
+            ramRom: {
+                type: "row",
+                fields: {
+                    ram: { type: "text", label: "RAM", placeholder: "RAM" },
+                    rom: { type: "text", label: "ROM", placeholder: "ROM" }
+                }
+            },
             colorOptions: { type: "radio", options: ["Black", "Blue", "Red", "Gold", "White", "Other"] },
             approximateSize: { type: "radio", options: ["Small (Mini)", "Medium (Standard)", "Large (Pro Max/Plus)"] },
             isLocked: { type: "radio", options: ["Yes (Locked)", "No (Unlocked)", "Unknown"] },
-            storageVisible: { type: "radio", options: ["64GB", "128GB", "256GB+", "Not Visible"] },
             simCardPresent: { type: "radio", options: ["Yes", "No", "Unknown"] },
             condition: { type: "dropdown", options: ["Good Condition", "Cracked Screen", "Scratched Body", "Heavy Wear"] },
             imeiVisible: { type: "radio", options: ["Yes (on back/tray)", "No", "Unknown"] }
@@ -105,6 +111,13 @@ const ReportFound = () => {
         "Laptop": {
             brand: { type: "dropdown", options: ["Apple", "Dell", "HP", "Lenovo", "Asus", "Other"] },
             screenSize: { type: "radio", options: ["13 inch", "14 inch", "15-16 inch", "Unknown"] },
+            ramRom: {
+                type: "row",
+                fields: {
+                    ram: { type: "text", label: "RAM", placeholder: "RAM" },
+                    rom: { type: "text", label: "ROM", placeholder: "ROM" }
+                }
+            },
             colorOptions: { type: "radio", options: ["Black", "Blue", "Red", "Gold", "White", "Other"] },
             passwordLocked: { type: "radio", options: ["Yes", "No", "Unknown"] },
             stickersOrMarks: { type: "text", placeholder: "e.g. Apple sticker, Blue ink mark on corner" },
@@ -486,12 +499,29 @@ const ReportFound = () => {
             );
         }
 
-        return Object.entries(config).map(([name, attrConfig]) => (
-            <div key={name} className="input-card mt-3">
-                <label className="field-label">{name.toUpperCase()}</label>
-                {renderAttribute(name, attrConfig)}
-            </div>
-        ));
+        return Object.entries(config).map(([name, attrConfig]) => {
+            // --- SPECIAL CASE: 'row' type renders multiple fields side by side ---
+            if (attrConfig.type === "row") {
+                return (
+                    <div key={name} style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                        {Object.entries(attrConfig.fields).map(([fieldName, fieldConfig]) => (
+                            <div key={fieldName} className="input-card" style={{ flex: 1, marginTop: 0 }}>
+                                <label className="field-label">{fieldConfig.label || fieldName.toUpperCase()}</label>
+                                {renderAttribute(fieldName, fieldConfig)}
+                            </div>
+                        ))}
+                    </div>
+                );
+            }
+
+            // --- DEFAULT CASE: render a single full-width input card ---
+            return (
+                <div key={name} className="input-card mt-3">
+                    <label className="field-label">{name.toUpperCase()}</label>
+                    {renderAttribute(name, attrConfig)}
+                </div>
+            );
+        });
     };
 
     // ========================================== //

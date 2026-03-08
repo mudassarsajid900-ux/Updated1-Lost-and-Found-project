@@ -25,14 +25,14 @@ const Header = ({ title, subtitle, showBack = false, onBack, showSearch = true }
     const dropdownRef = useRef(null);
 
     // ========================================== //
-    // FAKE USER DATA
-    // Replace this with real logged-in user details
+    // REAL USER DATA FROM LOCAL STORAGE
     // ========================================== //
     const user = {
-        name: "Ali Haider",
-        email: "Mudassar@example.com",
-        initials: "AL",
-        avatar: "https://ui-avatars.com/api/?name=Ali&background=ef4444&color=fff"
+        name: localStorage.getItem('username') || "User",
+        email: localStorage.getItem('userEmail') || "user@university.edu",
+        get initials() {
+            return this.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        }
     };
 
     // ========================================== //
@@ -54,6 +54,9 @@ const Header = ({ title, subtitle, showBack = false, onBack, showSearch = true }
     // ========================================== //
     const handleLogout = () => {
         if (window.confirm("Are you sure you want to log out?")) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            localStorage.removeItem('userEmail');
             navigate('/login');
         }
     };

@@ -116,6 +116,7 @@ const LoginForm = ({ navigate }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const successMessage = location.state?.message;
 
     // Function triggered when the user clicks 'Log In'
     const handleLogin = async (e) => {
@@ -140,6 +141,12 @@ const LoginForm = ({ navigate }) => {
                 // Save the JWT token to local storage so the axios interceptor can use it
                 localStorage.setItem('token', token);
 
+                // Save additional user info for UI display
+                const username = response.data.username || response.data.Username;
+                const userEmail = response.data.email || response.data.Email;
+                if (username) localStorage.setItem('username', username);
+                if (userEmail) localStorage.setItem('userEmail', userEmail);
+
                 // Route user based on their Role
                 if (roles && roles.includes('Admin')) {
                     navigate('/admin-dashboard');
@@ -154,7 +161,7 @@ const LoginForm = ({ navigate }) => {
             if (err.response && err.response.status === 401) {
                 setError('Invalid credentials.');
             } else {
-                setError(err.response?.data?.message || 'Connection to server failed.');
+                setError(err.response?.data?.message || err.response?.data?.Message || 'Connection to server failed.');
             }
         }
     };
@@ -163,7 +170,8 @@ const LoginForm = ({ navigate }) => {
         <form className="auth-form" onSubmit={handleLogin}>
 
             {/* Display error message dynamically if login fails */}
-            {error && <div style={{ color: '#e53e3e', fontSize: '0.85rem', marginBottom: '1rem', textAlign: 'center' }}>{error}</div>}
+            {error && <div style={{ color: '#e53e3e', fontSize: '0.85rem', marginBottom: '1rem', textAlign: 'center', background: '#fff5f5', padding: '8px', borderRadius: '8px' }}>{error}</div>}
+            {successMessage && <div style={{ color: '#319795', fontSize: '0.85rem', marginBottom: '1rem', textAlign: 'center', background: '#f0fff4', padding: '8px', borderRadius: '8px' }}>{successMessage}</div>}
 
             {/* Email Input Field */}
             <div className="floating-group">
