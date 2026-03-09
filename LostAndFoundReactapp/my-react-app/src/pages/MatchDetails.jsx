@@ -1,239 +1,551 @@
-// ========================================== //
-// SECTION 1: IMPORTS
-// React and UI layout icons
-// ========================================== //
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
-    ChevronLeft, Wallet, Calendar, MapPin,
-    CheckCircle, XCircle, Clock, Info
+    Folder, Wallet, Laptop, Smartphone, Calendar,
+    MapPin, CheckCircle, XCircle, Tag, ArrowRight, Sparkles, ShieldAlert, ShieldCheck
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
+import api from '../api/axios';
 
-// ========================================== //
-// SECTION 2: MAIN MATCH DETAILS COMPONENT
-// This page shows a side-by-side comparison of an item you lost 
-// and a similar item that someone else found.
-// Used to verify if the found item is actually yours.
-// ========================================== //
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+// ============================================================================
+// HELPER FUNCTIONS
+// Here we define small utilities used to keep the main component clean.
+// ============================================================================
+
+/**
+ * Gets a Lucide React icon based on the string category/type name.
+ * If the type name includes keywords like "wallet", it returns the Wallet icon.
+ */
+const getCategoryIcon = (itemType, size = 36) => {
+    if (!itemType) return <Folder size={size} />;
+
+    // Convert to lowercase to make checking easier
+    const typeLabel = itemType.toLowerCase();
+
+    // Check for specific keywords and return the corresponding icon
+    if (typeLabel.includes('wallet')) return <Wallet size={size} />;
+    if (typeLabel.includes('laptop')) return <Laptop size={size} />;
+    if (typeLabel.includes('phone') || typeLabel.includes('mobile') ||
+        typeLabel.includes('earphone') || typeLabel.includes('headphone')) {
+        return <Smartphone size={size} />;
+    }
+
+    // Default folder icon if no matches found
+    return <Folder size={size} />;
+};
+
+/**
+ * Formats a given date string into a highly readable format (e.g., "Mar 10, 2026").
+ * Returns "—" if the date string is null or undefined.
+ */
+const formatReadableDate = (dateString) => {
+    if (!dateString) return '—';
+    return new Date(dateString).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    });
+};
+
+/**
+ * Extracts a value from an object using a list of possible property names.
+ * This is incredibly useful for connecting to a C# API where JSON property names 
+ * might be PascalCase (e.g., 'ImageUrl') or camelCase (e.g., 'imageUrl').
+ * It checks 'keys' one by one and returns the first matching value.
+ */
+const extractValue = (itemObject, ...possibleKeys) => {
+    for (const key of possibleKeys) {
+        // Ensure the value exists and is not null or an empty string
+        if (itemObject?.[key] !== undefined && itemObject?.[key] !== null && itemObject?.[key] !== '') {
+            return itemObject[key];
+        }
+    }
+
+    // Return null if none of the possible keys had a valid value
+    return null;
+};
+
+// ============================================================================
+// MAIN COMPONENT: MatchDetails
+// This page acts as a secure "Comparison Screen" for users holding a 
+// potential match notification. It fetches both the Lost and Found item
+// reports and displays them side-by-side. 
+// ============================================================================
 const MatchDetails = () => {
-    // Allows us to navigate between pages
     const navigate = useNavigate();
 
-    // ========================================== //
-    // FAKE DATA
-    // Contains info on what was lost vs what was found.
-    // ========================================== //
-    const matchData = {
-        lostItem: {
-            title: "Brown Leather Wallet",
-            date: "Nov 5, 2023",
-            icon: <Wallet size={24} />,
-            color: "#319795"
-        },
-        foundItem: {
-            title: "Brown Wallet",
-            dateFound: "Nov 5, 2023",
-            location: "Central Park Cafe",
-            imageUrl: "https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&q=80&w=800", // High quality brown wallet image
-            description: "Genuine brown leather bifold wallet with some cards inside. Found near the corner table."
-        }
-    };
+    // Extracts item IDs from the URL Route (e.g., /match-details/2/5)
+    const { lostItemId, foundItemId } = useParams();
 
-    // ========================================== //
-    // LAYOUT RENDERING
-    // ========================================== //
+    // -- Component State variables --
+    const [lostItemData, setLostItemData] = useState(null);
+    const [foundItemData, setFoundItemData] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState(null);
+
+    // Fetch the detailed data of both items from the backend API on initial load.
+    useEffect(() => {
+        const fetchMatchInformation = async () => {
+            try {
+                // If both parameters are accessible from the URL
+                if (lostItemId && foundItemId) {
+
+                    // Fetch both items simultaneously using Promise.all to save time
+                    const [lostResponse, foundResponse] = await Promise.all([
+                        api.get(`Item/get-by-id/${lostItemId}`),
+                        api.get(`Item/get-by-id/${foundItemId}`)
+                    ]);
+
+                    // Store results securely into state, checking for casing differences
+                    setLostItemData(lostResponse.data?.data || lostResponse.data?.Data);
+                    setFoundItemData(foundResponse.data?.data || foundResponse.data?.Data);
+
+                } else {
+                    // Fallback Routine: If specific URL params missing, find the 
+                    // first item this user has that possesses a "match flag".
+                    const myItemsResponse = await api.get('Item/my-items');
+
+                    const userItems = myItemsResponse.data?.data || myItemsResponse.data?.Data || [];
+                    const matchedItem = userItems.find(item => item.hasPotentialMatch || item.HasPotentialMatch);
+
+                    // If the user has zero matched items, stop immediately.
+                    if (!matchedItem) {
+                        setErrorMessage('No potential match found.');
+                        setIsLoading(false);
+                        return;
+                    }
+
+                    // Proceed: grab the match ID and explicitly fetch the found item
+                    const targetFoundItemId = matchedItem.matchFoundItemId || matchedItem.MatchFoundItemId;
+                    const foundSpecificResponse = await api.get(`Item/get-by-id/${targetFoundItemId}`);
+
+                    setLostItemData(matchedItem);
+                    setFoundItemData(foundSpecificResponse.data?.data || foundSpecificResponse.data?.Data);
+                }
+            } catch (backendError) {
+                console.error('MatchDetails fetch error:', backendError);
+                setErrorMessage('Could not load match information. Please try again.');
+            } finally {
+                // Always hide loading spinner regardless of success or failure.
+                setIsLoading(false);
+            }
+        };
+
+        // Trigger the asynchronous fetch task
+        fetchMatchInformation();
+    }, [lostItemId, foundItemId]);
+
+    // ========================================================================
+    // Conditional Rendering - If Loading
+    // ========================================================================
+    if (isLoading) return (
+        <div className="dashboard-container">
+            <Sidebar />
+            <main className="main-content md-main">
+                <div className="md-fullcenter">
+                    <div className="md-spinner" />
+                    <p>Loading match details…</p>
+                </div>
+            </main>
+        </div>
+    );
+
+    // ========================================================================
+    // Conditional Rendering - If Backend Returns an Error
+    // ========================================================================
+    if (errorMessage) return (
+        <div className="dashboard-container">
+            <Sidebar />
+            <main className="main-content md-main">
+                <div className="md-fullcenter">
+                    <ShieldAlert size={44} color="#ef4444" />
+                    <p style={{ color: '#ef4444', fontWeight: 700 }}>{errorMessage}</p>
+                    <button className="md-pill-btn" onClick={() => navigate('/my-items')}>
+                        Back to My Items
+                    </button>
+                </div>
+            </main>
+        </div>
+    );
+
+    // ========================================================================
+    // Data Preparation
+    // At this stage, data exists. 
+    // We utilize `extractValue()` to confidently grab correct data keys.
+    // ========================================================================
+    const typeLost = extractValue(lostItemData, 'type', 'Type') || 'Item';
+    const typeFound = extractValue(foundItemData, 'type', 'Type') || 'Item';
+
+    const imgLost = extractValue(lostItemData, 'imageUrl', 'ImageUrl');
+    const imgFound = extractValue(foundItemData, 'imageUrl', 'ImageUrl');
+
+    const locLost = extractValue(lostItemData, 'locationName', 'LocationName');
+    const locFound = extractValue(foundItemData, 'locationName', 'LocationName');
+
+    const dateLost = formatReadableDate(extractValue(lostItemData, 'eventTime', 'EventTime'));
+    const dateFound = formatReadableDate(extractValue(foundItemData, 'eventTime', 'EventTime'));
+
+    // Dynamic Attribute Arrays (Brand, Color, Memory Size, etc.)
+    const attributesLost = lostItemData?.attributes || lostItemData?.Attributes || [];
+    const attributesFound = foundItemData?.attributes || foundItemData?.Attributes || [];
+
+    // Finds the brand specifically to append to the lost item title (e.g. "Apple Laptop")
+    const brandNameLost = attributesLost.find(attr =>
+        (attr.fieldName || attr.FieldName || '').toLowerCase().includes('brand')
+    )?.fieldValue || '';
+
+    // ------------------------------------------------------------------------
+    // ** SECURITY FEATURE **
+    // The found item limits exposure of detailed descriptors to prevent users 
+    // from initiating fraudulent claims based on visible data.
+    // ------------------------------------------------------------------------
+    const securedAttributesFound = attributesFound.filter(attr => {
+        const attributeName = (attr.fieldName || attr.FieldName || '').toLowerCase();
+        // Allow color and type explicitly, exclude highly specific markers 
+        // like Brand, Serial Number, Marks, etc.
+        return attributeName.includes('color') || attributeName.includes('colour') || attributeName.includes('type');
+    });
+
+    // ========================================================================
+    // Reusable UI Component -> "Item Card"
+    // Displays exactly one item logic (handles either Lost OR Found display)
+    // ========================================================================
+    const ItemCard = ({ labelText, cardAccent, itemCategoryString, imageFileUrl, attributeDate, attributeLocation, attributeList, specificBrand, hideSensitiveInfo }) => (
+        <div className={`md-card md-card-${cardAccent}`}>
+
+            {/* Top Label Banner (Red for lost, Green/Teal for found) */}
+            <div className="md-card-label">
+                <span className={`md-dot md-dot-${cardAccent}`} />
+                <span className={`md-label-text md-label-${cardAccent}`}>{labelText}</span>
+            </div>
+
+            {/* Image Preview Box */}
+            <div className="md-img-area">
+                {imageFileUrl && !hideSensitiveInfo ? (
+                    <img
+                        src={`${API_BASE_URL}${imageFileUrl}`}
+                        alt={itemCategoryString}
+                        className="md-img"
+                        // Fallback hiding behavior if image file fails to load
+                        onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                    />
+                ) : null}
+
+                {/* Fallback View if no image exists or if security hides it */}
+                <div className="md-img-fallback" style={{ display: (imageFileUrl && !hideSensitiveInfo) ? 'none' : 'flex', color: cardAccent === 'lost' ? '#dc2626' : '#0d9488' }}>
+
+                    {/* Shows a shield if hidden, or a folder/device icon if genuinely missing */}
+                    {hideSensitiveInfo ? <ShieldCheck size={48} /> : getCategoryIcon(itemCategoryString, 48)}
+                    <span>{hideSensitiveInfo ? 'Image hidden for security' : 'No photo uploaded'}</span>
+                </div>
+            </div>
+
+            {/* Item Details Box */}
+            <div className="md-card-info">
+
+                {/* Title */}
+                <h3 className="md-card-title">
+                    {hideSensitiveInfo ? itemCategoryString : `${specificBrand ? specificBrand + ' ' : ''}${itemCategoryString}`}
+                </h3>
+
+                {/* Date & Location (Only display if not hidden by security rules) */}
+                {!hideSensitiveInfo && (
+                    <div className="md-meta-row">
+                        <Calendar size={14} />
+                        <span>{cardAccent === 'lost' ? 'Reported' : 'Found'}: <strong>{attributeDate}</strong></span>
+                    </div>
+                )}
+                {!hideSensitiveInfo && attributeLocation && (
+                    <div className="md-meta-row">
+                        <MapPin size={14} />
+                        <span>Location: <strong>{attributeLocation}</strong></span>
+                    </div>
+                )}
+
+                {/* Chips for dynamically rendering array of attributes (Size, RAM, Color, etc) */}
+                {attributeList.length > 0 && (
+                    <div className="md-chips">
+                        {attributeList.map((attr, index) => (
+                            <span key={index} className="md-chip">
+                                <Tag size={10} />
+                                {attr.fieldName || attr.FieldName}: <strong>{attr.fieldValue || attr.FieldValue}</strong>
+                            </span>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+
+    // ========================================================================
+    // Master Rendering Return (The Actual Interface Structure)
+    // ========================================================================
     return (
         <div className="dashboard-container">
-            {/* Left Sidebar Menu */}
             <Sidebar />
 
-            <main className="main-content" style={{
-                background: 'linear-gradient(135deg, #f0fdfa 0%, #f1f5f9 100%)',
-                minHeight: '100vh', padding: '3rem'
-            }}>
-                <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <main className="main-content md-main">
+                <Header
+                    title="Potential Match Found"
+                    subtitle="Compare your lost item with the found report — if it's yours, click Claim below."
+                    showBack
+                    onBack={() => navigate('/my-items')}
+                />
 
-                    {/* ------------------------------------------- */}
-                    {/* SECTION 3: TOP HEADER */}
-                    {/* Shows the back button and title */}
-                    {/* ------------------------------------------- */}
-                    <Header
-                        title="Potential Match Details"
-                        subtitle="Review the found item's information"
-                        showBack={true}
-                        onBack={() => navigate('/my-items')}
+                {/* ── Match Status Banner ── */}
+                <div className="md-banner">
+                    <div className="md-banner-inner">
+                        <div className="md-banner-icon"><Sparkles size={20} color="#0d9488" /></div>
+                        <div>
+                            <h2>System Match Detected</h2>
+                            <p>Our algorithm matched your lost item with a found report. Full details are hidden for security until Admin verification.</p>
+                        </div>
+                    </div>
+                    <span className="md-matched-pill">✓ MATCHED</span>
+                </div>
+
+                {/* ── Side-by-Side Cards Area ── */}
+                <div className="md-cards-grid">
+
+                    {/* Left Card => Users Original Lost Item */}
+                    <ItemCard
+                        labelText="Your Lost Item"
+                        cardAccent="lost"
+                        itemCategoryString={typeLost}
+                        imageFileUrl={imgLost}
+                        attributeDate={dateLost}
+                        attributeLocation={locLost}
+                        attributeList={attributesLost}
+                        specificBrand={brandNameLost}
+                        hideSensitiveInfo={false}      // NEVER hide user's own details
                     />
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                    {/* Center Column => Stylish "Approximately Equal" Visualizer */}
+                    <div className="md-vs-col">
+                        <div className="md-vs-line" />
+                        <div className="md-vs-circle">≈</div>
+                        <div className="md-vs-line" />
+                    </div>
 
-                        {/* ------------------------------------------- */}
-                        {/* SECTION 4: YOUR LOST ITEM CARD */}
-                        {/* Highlights the item the user is looking for */}
-                        {/* ------------------------------------------- */}
-                        <div style={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                            backdropFilter: 'blur(10px)', borderRadius: '24px', padding: '1.75rem',
-                            border: '1px solid rgba(255, 255, 255, 0.8)',
-                            boxShadow: '0 10px 30px -10px rgba(0,0,0,0.05)',
-                            animation: 'fadeInUp 0.6s ease-out'
-                        }}>
-                            <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
-                                <div style={{
-                                    width: '56px', height: '56px', backgroundColor: '#f0fdfa',
-                                    borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    color: matchData.lostItem.color, border: '1px solid #ccfbf1'
-                                }}>
-                                    {matchData.lostItem.icon}
-                                </div>
-                                <div>
-                                    <h2 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0d9488', margin: '0 0 2px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                        Your Lost Item
-                                    </h2>
-                                    <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#2d3748', margin: '0 0 6px 0' }}>
-                                        Lost: {matchData.lostItem.title}
-                                    </h3>
-                                    <div style={{ display: 'flex', gap: '1rem', color: '#718096', fontSize: '0.9rem' }}>
-                                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <Calendar size={14} /> Reported: {matchData.lostItem.date}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    {/* Right Card => The specific Found Item (Filtered for security) */}
+                    <ItemCard
+                        labelText="Found Item Report"
+                        cardAccent="found"
+                        itemCategoryString={typeFound}
+                        imageFileUrl={imgFound}
+                        attributeDate={dateFound}
+                        attributeLocation={locFound}
+                        attributeList={securedAttributesFound}
+                        specificBrand={null}
+                        hideSensitiveInfo={true}       // ALWAYS restrict found properties
+                    />
+                </div>
 
-                        {/* ------------------------------------------- */}
-                        {/* SECTION 5: THE FOUND ITEM CARD */}
-                        {/* Displays picture and details of what was found */}
-                        {/* ------------------------------------------- */}
-                        <div style={{
-                            backgroundColor: 'white', borderRadius: '28px', padding: '2rem',
-                            boxShadow: '0 20px 40px -20px rgba(0,0,0,0.1)', border: '1px solid #edf2f7',
-                            animation: 'fadeInUp 0.7s ease-out'
-                        }}>
-                            <h2 style={{ fontSize: '1.5rem', fontWeight: '900', color: '#1a202c', marginBottom: '1.5rem' }}>
-                                Found Item Details
-                            </h2>
+                {/* ── Bottom Action Strip ── */}
+                <div className="md-action-bar">
+                    <p className="md-action-note">
+                        Is this your item? Click <strong>Claim This Item</strong> — your request goes directly to the Admin for manual verification and handover.
+                    </p>
+                    <div className="md-btn-row">
 
-                            {/* Big Image Frame */}
-                            <div style={{
-                                width: '100%', height: '280px', borderRadius: '20px', overflow: 'hidden',
-                                marginBottom: '1.5rem', border: '1px solid #f1f5f9'
-                            }}>
-                                <img
-                                    src={matchData.foundItem.imageUrl}
-                                    alt="Found Item"
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                />
-                            </div>
+                        {/* Cancel Button */}
+                        <button className="md-btn-outline" onClick={() => navigate('/my-items')}>
+                            <XCircle size={16} /> Not a Match
+                        </button>
 
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-
-                                {/* Info text */}
-                                <div>
-                                    <h3 style={{ fontSize: '1.3rem', fontWeight: '800', color: '#2d3748', margin: '0 0 8px 0' }}>
-                                        Found: {matchData.foundItem.title}
-                                    </h3>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#718096', fontSize: '1rem' }}>
-                                            <Calendar size={18} color="#319795" />
-                                            <span>Date Found: {matchData.foundItem.dateFound}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#718096', fontSize: '1rem' }}>
-                                            <MapPin size={18} color="#319795" />
-                                            <span>Location: {matchData.foundItem.location}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Description Box */}
-                                <div style={{
-                                    backgroundColor: '#f8fafc', padding: '1.25rem',
-                                    borderRadius: '16px', border: '1px solid #f1f5f9'
-                                }}>
-                                    <p style={{ margin: 0, color: '#4a5568', lineHeight: '1.6', fontSize: '1rem' }}>
-                                        {matchData.foundItem.description}
-                                    </p>
-                                </div>
-
-                                {/* ------------------------------------------- */}
-                                {/* SECTION 6: ACTION BUTTONS (CLAIM / REJECT) */}
-                                {/* ------------------------------------------- */}
-                                <div style={{ display: 'flex', gap: '1.25rem', marginTop: '1rem' }}>
-
-                                    {/* Claim Item Button (Green) */}
-                                    <button
-                                        className="submit-action-btn"
-                                        style={{
-                                            flex: 2, display: 'flex', alignItems: 'center',
-                                            justifyContent: 'center', gap: '10px'
-                                        }}
-                                        onClick={() => navigate('/claim-item')}
-                                    >
-                                        <CheckCircle size={20} />
-                                        Claim This Item
-                                    </button>
-
-                                    {/* Not a Match Button (Grey, changes to Red) */}
-                                    <button
-                                        style={{
-                                            flex: 1, padding: '1rem', borderRadius: '12px',
-                                            border: '2px solid #e2e8f0', backgroundColor: 'white', color: '#64748b',
-                                            fontWeight: '700', fontSize: '1rem', cursor: 'pointer',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                                            transition: 'all 0.2s'
-                                        }}
-                                        onClick={() => navigate('/my-items')}
-                                        onMouseOver={(e) => {
-                                            e.currentTarget.style.borderColor = '#ef4444';
-                                            e.currentTarget.style.color = '#ef4444';
-                                            e.currentTarget.style.backgroundColor = '#fef2f2';
-                                        }}
-                                        onMouseOut={(e) => {
-                                            e.currentTarget.style.borderColor = '#e2e8f0';
-                                            e.currentTarget.style.color = '#64748b';
-                                            e.currentTarget.style.backgroundColor = 'white';
-                                        }}
-                                    >
-                                        <XCircle size={20} />
-                                        Not a Match
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* ------------------------------------------- */}
-                        {/* SECTION 7: AI CONFIDENCE REPORT */}
-                        {/* Automated message explaining why it matched */}
-                        {/* ------------------------------------------- */}
-                        <div style={{
-                            display: 'flex', alignItems: 'start', gap: '1rem', padding: '1.25rem',
-                            backgroundColor: 'rgba(49, 151, 149, 0.05)', borderRadius: '20px',
-                            border: '1px solid rgba(49, 151, 149, 0.1)', animation: 'fadeInUp 0.8s ease-out'
-                        }}>
-                            <Info size={20} color="#319795" style={{ marginTop: '2px' }} />
-                            <p style={{ margin: 0, fontSize: '0.9rem', color: '#134e4a', fontWeight: '500', lineHeight: '1.5' }}>
-                                Based on our AI analysis, this item has a 95% match confidence with your report. Our system identified the color "Brown" and category "Wallet" as exact matches.
-                            </p>
-                        </div>
-
+                        {/* Proceed Button */}
+                        <button className="md-btn-primary" onClick={() =>
+                            navigate(`/claim-item/${extractValue(lostItemData, 'id', 'Id')}/${extractValue(foundItemData, 'id', 'Id')}`)
+                        }>
+                            Claim This Item <ArrowRight size={16} />
+                        </button>
                     </div>
                 </div>
 
-                {/* Inline CSS only for this page */}
+                {/* ── Embedded CSS Stylesheet ── */}
                 <style>{`
-                    @keyframes fadeInUp {
-                        from { opacity: 0; transform: translateY(20px); }
-                        to { opacity: 1; transform: translateY(0); }
+                    .md-main {
+                        background: #f1f5f9;
+                        min-height: 100vh;
+                        padding: 2rem 2.5rem;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 1.5rem;
                     }
-                    @keyframes fadeInDown {
-                        from { opacity: 0; transform: translateY(-20px); }
-                        to { opacity: 1; transform: translateY(0); }
+                    .md-fullcenter {
+                        flex:1; display:flex; flex-direction:column;
+                        align-items:center; justify-content:center;
+                        gap:1rem; height:60vh;
+                        font-size:1rem; font-weight:600; color:#64748b;
                     }
-                    .submit-action-btn:hover {
-                        transform: translateY(-2px);
-                        filter: brightness(1.05);
+                    .md-spinner {
+                        width:40px; height:40px;
+                        border:4px solid #e2e8f0;
+                        border-top-color:#0d9488;
+                        border-radius:50%;
+                        animation:mdspin .8s linear infinite;
+                    }
+                    @keyframes mdspin { to{transform:rotate(360deg);} }
+                    .md-pill-btn {
+                        padding:.65rem 1.75rem; border-radius:10px;
+                        background:#0d9488; color:#fff; border:none;
+                        font-weight:700; cursor:pointer;
+                    }
+
+                    /* Banner Design */
+                    .md-banner {
+                        display:flex; align-items:center;
+                        justify-content:space-between;
+                        background:#fff; border-radius:16px;
+                        padding:1.25rem 1.75rem;
+                        border:1px solid #e2e8f0;
+                        box-shadow:0 2px 10px -4px rgba(0,0,0,.06);
+                        animation:mdup .4s ease-out;
+                    }
+                    .md-banner-inner { display:flex; align-items:center; gap:1rem; }
+                    .md-banner-icon {
+                        width:46px; height:46px; background:#f0fdfa;
+                        border-radius:13px;
+                        display:flex; align-items:center; justify-content:center;
+                        border:1px solid #ccfbf1; flex-shrink:0;
+                    }
+                    .md-banner h2 { margin:0 0 3px; font-size:1.05rem; font-weight:800; color:#1e293b; }
+                    .md-banner p  { margin:0; font-size:.85rem; color:#64748b; max-width:560px; line-height:1.5; }
+                    .md-matched-pill {
+                        background:linear-gradient(135deg,#0d9488,#0ea5e9);
+                        color:#fff; font-size:.75rem; font-weight:900;
+                        letter-spacing:.08em; padding:.4rem 1.1rem;
+                        border-radius:30px; white-space:nowrap;
+                        box-shadow:0 4px 12px rgba(13,148,136,.3);
+                    }
+
+                    /* Cards Layout Frame */
+                    .md-cards-grid {
+                        display:grid;
+                        grid-template-columns:1fr 56px 1fr;
+                        gap:0;
+                        flex:1;
+                        animation:mdup .5s ease-out;
+                    }
+                    .md-card {
+                        background:#fff;
+                        border-radius:18px;
+                        border:1px solid #e2e8f0;
+                        box-shadow:0 3px 14px -6px rgba(0,0,0,.08);
+                        display:flex;
+                        flex-direction:column;
+                        overflow:hidden;
+                    }
+                    .md-card-label {
+                        display:flex; align-items:center; gap:.6rem;
+                        padding:.85rem 1.5rem;
+                        font-size:.82rem; font-weight:800;
+                    }
+                    .md-card-lost  .md-card-label { background:#fef2f2; border-bottom:1px solid #fecaca; }
+                    .md-card-found .md-card-label { background:#f0fdfa; border-bottom:1px solid #ccfbf1; }
+                    .md-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+                    .md-dot-lost  { background:#dc2626; }
+                    .md-dot-found { background:#0d9488; }
+                    .md-label-lost  { color:#dc2626; }
+                    .md-label-found { color:#0d9488; }
+
+                    .md-img-area {
+                        height:260px; overflow:hidden;
+                        border-bottom:1px solid #f1f5f9;
+                        background:#f8fafc;
+                        position:relative;
+                        display:flex; align-items:center; justify-content:center;
+                    }
+                    .md-img {
+                        width:100%; height:100%;
+                        object-fit:cover; display:block;
+                    }
+                    .md-img-fallback {
+                        position:absolute; inset:0;
+                        flex-direction:column;
+                        align-items:center; justify-content:center;
+                        gap:.5rem; opacity:.55;
+                        font-size:.82rem; font-weight:600;
+                    }
+
+                    .md-card-info {
+                        padding:1.4rem 1.5rem;
+                        display:flex; flex-direction:column; gap:.7rem;
+                        flex:1;
+                    }
+                    .md-card-title {
+                        font-size:1.25rem; font-weight:800; color:#1e293b; margin:0;
+                    }
+                    .md-meta-row {
+                        display:flex; align-items:center; gap:.45rem;
+                        font-size:.875rem; color:#64748b;
+                    }
+                    .md-meta-row strong { color:#1e293b; }
+                    .md-chips { display:flex; flex-wrap:wrap; gap:.4rem; }
+                    .md-chip {
+                        display:flex; align-items:center; gap:4px;
+                        background:#f8fafc; border:1px solid #e2e8f0;
+                        color:#475569; font-size:.77rem; font-weight:600;
+                        padding:3px 9px; border-radius:20px;
+                    }
+                    .md-chip strong { color:#1e293b; font-weight:700; }
+
+                    /* Central Indicator styling */
+                    .md-vs-col {
+                        display:flex; flex-direction:column;
+                        align-items:center; justify-content:center; gap:0;
+                    }
+                    .md-vs-line {
+                        width:2px; flex:1;
+                        background:linear-gradient(to bottom,transparent,#e2e8f0,transparent);
+                    }
+                    .md-vs-circle {
+                        width:40px; height:40px; border-radius:50%;
+                        background:#fff; border:2px solid #0d9488;
+                        display:flex; align-items:center; justify-content:center;
+                        font-size:1.25rem; font-weight:900; color:#0d9488;
+                        box-shadow:0 0 0 6px rgba(13,148,136,.08);
+                        flex-shrink:0;
+                    }
+
+                    /* Bottom Action bar */
+                    .md-action-bar {
+                        display:flex; align-items:center;
+                        justify-content:space-between; gap:2rem;
+                        background:#fff; border-radius:16px;
+                        padding:1.25rem 1.75rem;
+                        border:1px solid #e2e8f0;
+                        box-shadow:0 2px 10px -4px rgba(0,0,0,.06);
+                        animation:mdup .6s ease-out;
+                    }
+                    .md-action-note { margin:0; font-size:.875rem; color:#64748b; line-height:1.6; max-width:540px; }
+                    .md-btn-row { display:flex; gap:.85rem; flex-shrink:0; }
+                    .md-btn-outline {
+                        display:flex; align-items:center; gap:7px;
+                        padding:.7rem 1.4rem; border-radius:11px;
+                        border:2px solid #e2e8f0; background:#fff;
+                        color:#64748b; font-weight:700; font-size:.875rem;
+                        cursor:pointer; transition:all .2s; white-space:nowrap;
+                    }
+                    .md-btn-outline:hover { border-color:#ef4444; color:#ef4444; background:#fef2f2; }
+                    .md-btn-primary {
+                        display:flex; align-items:center; gap:8px;
+                        padding:.7rem 1.6rem; border-radius:11px;
+                        border:none;
+                        background:linear-gradient(135deg,#0d9488,#0ea5e9);
+                        color:#fff; font-weight:800; font-size:.875rem;
+                        cursor:pointer; transition:all .3s;
+                        box-shadow:0 4px 14px rgba(13,148,136,.28);
+                        white-space:nowrap;
+                    }
+                    .md-btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(13,148,136,.38); }
+
+                    @keyframes mdup {
+                        from{opacity:0;transform:translateY(12px);}
+                        to{opacity:1;transform:translateY(0);}
                     }
                 `}</style>
             </main>

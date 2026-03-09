@@ -36,7 +36,9 @@ function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/item-replacement" element={<ItemReplacement />} />
         <Route path="/match-details" element={<MatchDetails />} />
+        <Route path="/match-details/:lostItemId/:foundItemId" element={<MatchDetails />} />
         <Route path="/claim-item" element={<ClaimItem />} />
+        <Route path="/claim-item/:lostItemId/:foundItemId" element={<ClaimItem />} />
         <Route path="/claim-status" element={<ClaimStatus />} />
         <Route path="/review-claim" element={<ReviewClaim />} />
         <Route path="/report-details/:id" element={<ReportDetails />} />

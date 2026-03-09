@@ -70,14 +70,17 @@ const MyItems = () => {
         return <Folder size={24} />;
     };
 
-    const getStatusTheme = (status, reportType) => {
-        // Backend uses JsonStringEnumConverter: sends 'Lost', 'Found', 'Handover' etc.
-        // We support both string enum names AND fallback numeric values
+    const getStatusTheme = (apiItem) => {
+        const status = apiItem.status ?? apiItem.Status;
+        const reportType = apiItem.reportType ?? apiItem.ReportType;
+        const hasPotentialMatch = apiItem.hasPotentialMatch ?? apiItem.HasPotentialMatch;
+
         const isHandover = status === 4 || status === 'Handover' || status === 'Returned';
         const isFoundSt = status === 1 || status === 'Found';
         const isLostSt = status === 0 || status === 'Lost';
         const isLostRep = isLostReport(reportType);
 
+        if (hasPotentialMatch) return { text: 'Potential Match Found!', color: '#0ea5e9', bg: '#e0f2fe' };
         if (isHandover) return { text: 'Returned', color: '#10b981', bg: '#ecfdf5' };
         if (isLostRep && isLostSt) return { text: 'Not Found Yet', color: '#718096', bg: '#f7fafc' };
         if (isLostRep && isFoundSt) return { text: 'Potential Match', color: '#319795', bg: '#e6fffa' };
@@ -99,7 +102,7 @@ const MyItems = () => {
             month: 'short', day: 'numeric', year: 'numeric'
         });
 
-        const statusTheme = getStatusTheme(status, reportType);
+        const statusTheme = getStatusTheme(apiItem);
 
         // Find important attributes to display on card
         const attrs = apiItem.attributes || apiItem.Attributes || [];
@@ -154,9 +157,18 @@ const MyItems = () => {
                 </div>
 
                 <div className="card-actions">
-                    <button className="action-btn secondary" onClick={() => navigate(`/report-details/${apiItem.id}`)}>
-                        <ExternalLink size={16} /> Details
-                    </button>
+                    {(apiItem.hasPotentialMatch || apiItem.HasPotentialMatch) ? (
+                        <button className="action-btn match-btn" onClick={() => {
+                            const foundId = apiItem.matchFoundItemId || apiItem.MatchFoundItemId;
+                            navigate(`/match-details/${apiItem.id}/${foundId}`);
+                        }}>
+                            View Match
+                        </button>
+                    ) : (
+                        <button className="action-btn secondary" onClick={() => navigate(`/report-details/${apiItem.id}`)}>
+                            <ExternalLink size={16} /> Details
+                        </button>
+                    )}
                     <button className="delete-btn-minimal">
                         <Trash2 size={16} />
                     </button>
@@ -430,6 +442,17 @@ const MyItems = () => {
                     .action-btn.secondary:hover {
                         background: #f8fafc;
                         border-color: #cbd5e0;
+                    }
+                    .action-btn.match-btn {
+                        background: #0ea5e9;
+                        color: #ffffff;
+                        border: none;
+                        padding: 8px 24px;
+                    }
+                    .action-btn.match-btn:hover {
+                        background: #0284c7;
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
                     }
                     .delete-btn-minimal {
                         padding: 8px;
