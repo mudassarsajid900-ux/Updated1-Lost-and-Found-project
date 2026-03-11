@@ -1,0 +1,121 @@
+﻿namespace GAC.Common.Constants.Common
+{
+    public static class CommonText
+    {
+        public const string CurrentEnv = Env_ApplabDev;
+
+        public const string Env_ApplabDev = "ApplabDev";
+        public const string Env_Development = "Development";
+        public const string Env_Staging = "Staging";
+        public const string Env_Production = "Production";
+        public const string Env_Release = "Release";
+
+        public const string ASPNETCORE_ENVIRONMENT = "ASPNETCORE_ENVIRONMENT";
+        public const string DOTNET_ENVIRONMENT = "DOTNET_ENVIRONMENT";
+        public const string Admin = "Administrator";
+        public const string LoginSuccessful = "Login successful";
+        public const string ArabStandardTime = "Arab Standard Time";
+        public const string SingleSpace = " ";
+        public const string Blob = "b";
+        public const string SuccessFlag = "Y";
+        public const string AccountName = "stnpchackathonwepoc01";
+        public const string AccountKey = "<removed_secret_key>";
+        public const string En = "En";
+        public const string Ar = "Ar";
+        public const string Ltr = "ltr";
+        public const string Rtl = "rtl";
+        public const string True = "true";
+        public const string Male = "M";
+        public const string Female = "F";
+        public const string ENGLISH = "ENGLISH";
+        public const string New = "New";
+        public const string Old = "Old";
+        public const string ChatbotDocumentsPath = "Announcements/";
+        public const string OrganizationLogoPath = "Organizations/media/";
+        public const string ChatbotDocumentsPath2 = "ChatbotTraining/Media";
+        public const string JsonContentType = "application/json";
+        public const string GenericExceptionResponse = "An unexpected exception has occurred.";
+        public const string InvalidRequest = "Invalid request data.";
+        public const string ApiKeyError = "API Key is missing";
+        public const string ApiKey = nameof(ApiKey);
+        public const string Permission = "Permission";
+        public const string SelectAr = "اختر من القائمة";
+        public const string SelectEn = "Select";
+        public const string POST = "POST";
+        public const string GET = "GET";
+        public const string PUT = "PUT";
+        public const string Login = "login";
+        public const string Language = "Language";
+        public const string LanguageValue = "LANGUAGE";
+        public const string PersonId = "PersonId";
+        public const string LeaveType = "LeaveType";
+        public const string UserName = "UserName";
+        public const string FormId = "FormId";
+        public const string ValidationId = "ValidationId";
+        public const string Host = "Host";
+        public const string Key = "Key";
+        public const string File = "file";
+        public const string Upload = "Upload";
+        public const string UploadFile = "UploadedFile";
+        public const string Name = "name";
+        public const string Value = "value";
+        public const string SucessMessage = "SuccessMessage";
+        public const string ErrorMessage = "ErrorMessage";
+        public const string Create = "Create";
+        public const string Index = "Index";
+        public const string Home = "Home";
+        public const string Account = "Account";
+        public const string AnnouncementFile = "AnnouncementFile";
+        public const string Delete = "Delete";
+        public const string Translations = "Translations";
+        public const string ContentType = "Content-Type";
+        public const string ContentLength = "Content-Length";
+        public const string Accept = "Accept";
+        public const string UserAgent = "User-Agent";
+        public const string Authorization = "Authorization";
+        public const string Payload = "payload";
+        public const string Draw = "draw";
+        public const string Start = "start";
+        public const string Length = "length";
+        public const string SearchValue = "search[value]";
+        public const string OrderColumn = "order[0][column]";
+        public const string OrderDirection = "order[0][dir]";
+        public const string Columns = "columns";
+        public const string ColumnName = "name";
+        public const string ValidationValue = "ValidationValue";
+        public const string Ascending = "asc";
+        public const string Referer = "Referer";
+        public const string Descending = "desc";
+        public const string Data = "data";
+        public const string Error = "Error";
+        public const string ObjectId = "oid";
+        public const string AppId = "appid";
+        public const string TenantId = "tid";
+        public const string IpAddress = "ipaddr";
+        public const string Audience = "aud";
+        public const string Issuer = "iss";
+        public const string ClientId = "client_id";
+        public const string ResponseType = "response_type";
+        public const string RedirectUri = "redirect_uri";
+        public const string ResponseMode = "response_mode";
+        public const string Scope = "scope";
+        public const string UiLocales = "ui_locales";
+        public const string State = "state";
+        public const string UnderScore = "_";
+        public const string unknown = "unknown";
+        public const string RateLimitExceed = "Rate limit exceeded. Please try again later.";
+        public const string Attachments = "attachments";
+        public const string JwtSettings = "JwtSettings";
+        public const string EnResourcesPath = "../Khadoom.Application/Resources/Resource.resx";
+        public const string ArResourcesPath = "../Khadoom.Application/Resources/Resource.ar.resx";
+        public const string AcceptLanguage = "Accept-Language";
+
+
+
+        public const string UserId = "user_id";
+        public const string Role = "role";
+        public const string OrganizationId = "organization_id";
+        public const string AppUserOrganizationId = "app_user_organization_id";
+        public const string ApplicationUser = "Application User";
+    }
+}
