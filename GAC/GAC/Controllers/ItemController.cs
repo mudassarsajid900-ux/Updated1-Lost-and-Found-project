@@ -1,4 +1,4 @@
-﻿using GAC.Application.Extensions;
+using GAC.Application.Extensions;
 using GAC.Application.Interfaces.Item;
 using GAC.Application.Services.Item.Dtos;
 using GAC.Common.Constants;
@@ -50,6 +50,14 @@ namespace GAC.API.Controllers
         public async Task<IActionResult> GetMyItems()
         {
             var response = await _itemService.GetMyItemsAsync();
+            return response.ToHttpResult();
+        }
+
+        [HttpGet("public-found")]
+        [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+        public async Task<IActionResult> GetPublicFoundItems()
+        {
+            var response = await _itemService.GetPublicFoundItemsAsync();
             return response.ToHttpResult();
         }
 

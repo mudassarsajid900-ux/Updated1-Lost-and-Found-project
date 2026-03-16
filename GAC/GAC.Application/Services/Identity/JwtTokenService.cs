@@ -1,8 +1,8 @@
-﻿using GAC.Application.Interfaces.Identity;
+using GAC.Application.Interfaces.Identity;
 using GAC.Application.Interfaces.Shared;
 using GAC.Common;
 using GAC.Common.Constants;
-using GAC.Common.Constants.Common;
+using GAC.Common.Constants;
 using GAC.Core.Entities.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -52,7 +52,7 @@ namespace GAC.Application.Services.Identity
                 new System.Security.Claims.Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new System.Security.Claims.Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
                 new System.Security.Claims.Claim(JwtRegisteredClaimNames.Name, user.UserName ?? string.Empty),
-                new System.Security.Claims.Claim(CommonText.UserId, user.Id.ToString()),
+                new System.Security.Claims.Claim(ApplicationConstants.UserId, user.Id.ToString()),
                
             };
 
@@ -94,7 +94,7 @@ namespace GAC.Application.Services.Identity
 
         public ClaimsPrincipal? GetPrincipalFromExpiredToken(string? token)
         {
-            var jwtSettings = _configuration.GetSection(CommonText.JwtSettings).Get<JwtSettings>();
+            var jwtSettings = _configuration.GetSection(ApplicationConstants.JwtSettings).Get<JwtSettings>();
 
             // Disable default mapping so "email" stays as is
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();

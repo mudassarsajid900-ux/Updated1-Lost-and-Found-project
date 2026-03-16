@@ -1,6 +1,6 @@
 using AutoMapper;
 using GAC.Application.Services.Replacement.Dtos;
-using GAC.Core.Entities.Replacment;
+using GAC.Core.Entities.Replacement;
 
 namespace GAC.Application.Mappings
 {
@@ -8,8 +8,11 @@ namespace GAC.Application.Mappings
     {
         public ReplacementMappingProfile()
         {
-            CreateMap<ReplacmentRecord, GetReplacementDto>();
-            CreateMap<CreateReplacementDto, ReplacmentRecord>();
+            CreateMap<ReplacementRecord, GetReplacementDto>()
+                .ForMember(d => d.LostItemTitle, o => o.MapFrom(s => s.LostItem.Location.Name + " - " + s.LostItem.ItemType.Name))
+                .ForMember(d => d.FoundItemTitle, o => o.MapFrom(s => s.FoundItem != null ? s.FoundItem.Location.Name + " - " + s.FoundItem.ItemType.Name : "Not Assigned"));
+            
+            CreateMap<CreateReplacementDto, ReplacementRecord>();
         }
     }
 }

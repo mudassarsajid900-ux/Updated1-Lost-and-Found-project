@@ -1,5 +1,6 @@
 using GAC.Application.Interfaces.Replacement;
 using GAC.Application.Services.Replacement.Dtos;
+using GAC.Common.Constants;
 using GAC.Common.Responce;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -36,6 +37,46 @@ namespace GAC.API.Controllers
         public async Task<ActionResult<Response<List<GetReplacementDto>>>> GetMyReplacements()
         {
             var result = await _replacementService.GetMyReplacementsAsync();
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpGet("eligible-items")]
+        public async Task<ActionResult<Response<List<ReplacementEligibleItemDto>>>> GetEligibleItems()
+        {
+            var result = await _replacementService.GetEligibleItemsAsync();
+            return StatusCode(result.StatusCode, result);
+        }
+
+        // Admin Endpoints
+        [Authorize(Roles = ApplicationConstants.AdministratorRole)]
+        [HttpGet("admin/all-pending")]
+        public async Task<ActionResult<Response<List<GetReplacementDto>>>> GetAllPending()
+        {
+            var result = await _replacementService.GetAllPendingRequestsAsync();
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [Authorize(Roles = ApplicationConstants.AdministratorRole)]
+        [HttpPost("admin/process")]
+        public async Task<ActionResult<Response<GetReplacementDto>>> Process(AdminProcessReplacementDto dto)
+        {
+            var result = await _replacementService.ProcessRequestAsync(dto);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [Authorize(Roles = ApplicationConstants.AdministratorRole)]
+        [HttpGet("admin/suggestions/{requestId}")]
+        public async Task<ActionResult<Response<List<long>>>> GetSuggestions(long requestId)
+        {
+            var result = await _replacementService.GetSmartMatchSuggestionsAsync(requestId);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [Authorize(Roles = ApplicationConstants.AdministratorRole)]
+        [HttpPut("admin/settings/threshold/{days}")]
+        public async Task<ActionResult<Response<bool>>> UpdateThreshold(int days)
+        {
+            var result = await _replacementService.UpdateThresholdAsync(days);
             return StatusCode(result.StatusCode, result);
         }
     }

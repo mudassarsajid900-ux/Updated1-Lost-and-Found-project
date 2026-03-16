@@ -15,31 +15,43 @@ namespace GAC.Application.Services.Auction
     {
         private readonly IGenericRepository<AuctionRecord> _auctionRepository;
         private readonly IGenericRepository<Bid> _bidRepository;
+        private readonly IGenericRepository<Items> _itemRepository;
         private readonly IMapper _mapper;
         private readonly UserData _userData;
 
         public AuctionService(
             IGenericRepository<AuctionRecord> auctionRepository,
             IGenericRepository<Bid> bidRepository,
+            IGenericRepository<Items> itemRepository,
             IMapper mapper,
             UserData userData)
         {
             _auctionRepository = auctionRepository;
             _bidRepository = bidRepository;
+            _itemRepository = itemRepository;
             _mapper = mapper;
             _userData = userData;
         }
 
         public async Task<Response<GetAuctionDto>> CreateAuctionAsync(CreateAuctionDto dto)
         {
+            var item = await _itemRepository.GetByIdAsync((int)dto.FoundItemId);
+            if (item == null)
+                return Response<GetAuctionDto>.NotFoundResponse("Item not found");
+
             var entity = new AuctionRecord
             {
                 FoundItemId = dto.FoundItemId,
                 HighestBid = 0,
-                IsActive = true
+                IsActive = true,
+                CreatedBy = _userData.UserId
             };
 
             await _auctionRepository.AddAsync(entity);
+
+            // Update Item Status so it can't be used for replacement or matched anymore
+            item.Status = ItemStatus.Auction;
+            await _itemRepository.UpdateAsync(item);
 
             var result = _mapper.Map<GetAuctionDto>(entity);
             return Response<GetAuctionDto>.SetSuccessResponse(result, "Auction created successfully", StatusCodes.Status201Created);

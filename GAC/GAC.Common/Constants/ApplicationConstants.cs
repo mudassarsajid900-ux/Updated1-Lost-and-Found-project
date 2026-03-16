@@ -1,4 +1,4 @@
-﻿namespace GAC.Common.Constants
+namespace GAC.Common.Constants
 {
     public static class ApplicationConstants
     {
@@ -62,6 +62,9 @@
         public const string AccountController = "Account";
         public const string AddUpdate = "AddUpdate";
 
-
+        public const string Descending = "desc";
+        public const string Ascending = "asc";
+        public const string JwtSettings = "JwtSettings";
+        public const string UserId = "user_id";
     }
 }

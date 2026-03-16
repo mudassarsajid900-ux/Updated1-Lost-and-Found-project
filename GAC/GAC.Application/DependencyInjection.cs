@@ -1,9 +1,10 @@
-﻿using GAC.Application.Interfaces.Auction;
+using GAC.Application.Interfaces.Auction;
 using GAC.Application.Interfaces.ClaimRequests;
 using GAC.Application.Interfaces.Identity;
 using GAC.Application.Interfaces.Item;
 using GAC.Application.Interfaces.Locations;
 using GAC.Application.Interfaces.Replacement;
+using GAC.Application.Interfaces.Handover;
 using GAC.Application.Interfaces.Shared;
 using GAC.Application.Services.Auction;
 using GAC.Application.Services.ClaimRequests;
@@ -12,6 +13,7 @@ using GAC.Application.Services.Item;
 using GAC.Application.Services.Locations;
 using GAC.Application.Services.Logs;
 using GAC.Application.Services.Replacement;
+using GAC.Application.Services.Handover;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GAC.Application
@@ -33,6 +35,7 @@ namespace GAC.Application
             services.AddScoped<IAuctionService, AuctionService>();
             services.AddScoped<IReplacementService, ReplacementService>();
             services.AddScoped<IMobileModelService, MobileModelService>();
+            services.AddScoped<IHandoverService, HandoverService>();
             return services;
         }
     }

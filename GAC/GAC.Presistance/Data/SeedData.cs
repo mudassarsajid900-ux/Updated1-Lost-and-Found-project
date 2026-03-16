@@ -1,6 +1,7 @@
-﻿using GAC.Core.Entities.Identity;
+using GAC.Core.Entities.Identity;
 using GAC.Core.Entities.ItemTypes;
 using GAC.Core.Entities.Locations;
+using GAC.Core.Entities.SystemSettings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +19,22 @@ namespace GAC.Infrastructure.Data
             SeedLocations(builder);
             SeedItemTypes(builder);
             SeedMobileModels(builder);
+            SeedSystemSettings(builder);
+        }
+
+        private static void SeedSystemSettings(ModelBuilder builder)
+        {
+            builder.Entity<SystemSetting>().HasData(
+                new SystemSetting
+                {
+                    Id = 1,
+                    SettingKey = "ReplacementThresholdDays",
+                    SettingValue = "90",
+                    Description = "Number of days a lost item remains missing before replacement eligibility opens.",
+                    CreatedBy = 1,
+                    CreatedOn = DateTime.UtcNow
+                }
+            );
         }
 
         public static List<Location> GetSeededLocations()

@@ -1,4 +1,4 @@
-﻿using GAC.Core.Entities;
+using GAC.Core.Entities;
 using GAC.Core.Entities.Auction;
 using GAC.Core.Entities.Claims;
 using GAC.Core.Entities.ExceptionLogs;
@@ -7,7 +7,8 @@ using GAC.Core.Entities.Item;
 using GAC.Core.Entities.ItemTypes;
 using GAC.Core.Entities.Locations;
 using GAC.Core.Entities.LostItems;
-using GAC.Core.Entities.Replacment;
+using GAC.Core.Entities.Replacement;
+using GAC.Core.Entities.SystemSettings;
 using GAC.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -36,7 +37,8 @@ namespace GAC.Presistance.Data
         public DbSet<ItemAttribute> ItemAttributes => Set<ItemAttribute>();
         public DbSet<ItemsHandOverRecord> ItemsHandOverRecords => Set<ItemsHandOverRecord>();
         public DbSet<Location> Locations => Set<Location>();    
-        public DbSet<ReplacmentRecord> ReplacmentRecords => Set<ReplacmentRecord>();
+        public DbSet<ReplacementRecord> ReplacementRecords => Set<ReplacementRecord>();
+        public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
         public DbSet<Bid> Bids => Set<Bid>();
         public DbSet<AuctionRecord> AuctionRecords => Set<AuctionRecord>();
         public DbSet<ClaimRequest> ClaimRequest => Set<ClaimRequest>();
@@ -138,14 +140,14 @@ namespace GAC.Presistance.Data
 
 
             // 8. ReplacementRecord → FoundItem
-            builder.Entity<ReplacmentRecord>()
+            builder.Entity<ReplacementRecord>()
                 .HasOne(rr => rr.FoundItem)
                 .WithMany()
                 .HasForeignKey(rr => rr.FoundItemId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // 9. ReplacementRecord → LostItem
-            builder.Entity<ReplacmentRecord>()
+            builder.Entity<ReplacementRecord>()
                 .HasOne(rr => rr.LostItem)
                 .WithMany()
                 .HasForeignKey(rr => rr.LostItemId)

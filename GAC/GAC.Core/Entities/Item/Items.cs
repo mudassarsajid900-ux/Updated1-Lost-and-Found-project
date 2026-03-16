@@ -1,4 +1,4 @@
-﻿using GAC.Core.Entities.ItemTypes;
+using GAC.Core.Entities.ItemTypes;
 using GAC.Core.Entities.Locations;
 using GAC.Core.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -17,6 +17,7 @@ namespace GAC.Core.Entities.Item
 
         public ICollection<ItemAttribute> Attributes { get; set; }
         public ItemStatus Status { get; set; }
+        public ItemCondition Condition { get; set; }
         public ReportType ReportType { get; set; }
         public string? ImageUrl { get; set; }
     }

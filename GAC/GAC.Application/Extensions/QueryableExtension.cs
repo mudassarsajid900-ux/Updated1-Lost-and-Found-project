@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace QatarFreeZone.Application.Extensions;
+namespace GAC.Application.Extensions;
 
 public static class QueryableExtension
 {

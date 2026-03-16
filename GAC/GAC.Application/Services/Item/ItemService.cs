@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using GAC.Application.Helper;
 using GAC.Application.Interfaces.Item;
 using GAC.Application.Interfaces.Shared;
@@ -255,6 +255,29 @@ namespace GAC.Application.Services.Item
                 {
                     dto.HasPotentialMatch = true;
                     dto.MatchFoundItemId = match.FoundItemId;
+                }
+            }
+
+            return Response<List<GetItemDto>>.SetSuccessResponse(dtoList);
+        }
+
+        public async Task<Response<List<GetItemDto>>> GetPublicFoundItemsAsync()
+        {
+            var foundItems = await _itemRepository.AsQueryable()
+                .Include(x => x.Location)
+                .Include(x => x.ItemType)
+                .Where(x => x.ReportType == ReportType.Found && x.Status == ItemStatus.Found)
+                .OrderByDescending(x => x.CreatedOn)
+                .ToListAsync();
+
+            var dtoList = _mapper.Map<List<GetItemDto>>(foundItems);
+
+            // Hide sensitive attributes for privacy
+            foreach (var dto in dtoList)
+            {
+                if (dto.Attributes != null)
+                {
+                    dto.Attributes = new List<GetItemAttributeDto>();
                 }
             }
 
