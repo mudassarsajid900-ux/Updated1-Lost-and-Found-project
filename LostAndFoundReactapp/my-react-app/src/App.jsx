@@ -12,10 +12,13 @@ import Welcome from './pages/Welcome';
 import MatchDetails from './pages/MatchDetails';
 import ClaimItem from './pages/ClaimItem';
 import ClaimStatus from './pages/ClaimStatus';
+import PublicFoundWall from './pages/PublicFoundWall';
 import ReviewClaim from './pages/ReviewClaim';
 import AdminDashboard from './admin/AdminDashboard';
 import AdminManageUsers from './admin/AdminManageUsers';
 import AdminSettings from './admin/AdminSettings';
+import AdminReplacements from './pages/AdminReplacements';
+import AdminHandover from './admin/AdminHandover';
 import ReportDetails from './pages/ReportDetails';
 
 
@@ -29,9 +32,13 @@ function App() {
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/admin-users" element={<AdminManageUsers />} />
         <Route path="/admin-settings" element={<AdminSettings />} />
+        <Route path="/admin-replacements" element={<AdminReplacements />} />
+        <Route path="/admin-handover" element={<AdminHandover />} />
+        <Route path="/admin-reports" element={<MyItems isAdmin={true} />} />
         <Route path="/report-found" element={<ReportFound />} />
         <Route path="/report-lost" element={<ReportLost />} />
         <Route path="/my-items" element={<MyItems />} />
+        <Route path="/public-found" element={<PublicFoundWall />} />
         <Route path="/auction" element={<Auction />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/item-replacement" element={<ItemReplacement />} />

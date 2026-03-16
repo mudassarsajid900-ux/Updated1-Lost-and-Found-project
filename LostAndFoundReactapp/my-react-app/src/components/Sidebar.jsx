@@ -3,7 +3,7 @@
 // We import React and icons used in the Sidebar
 // ========================================== //
 import React from 'react';
-import { Home, Folder, PlusCircle, Gavel, Settings, LogOut, User } from 'lucide-react';
+import { Home, Folder, PlusCircle, Gavel, Settings, LogOut, User, RefreshCw, ShieldCheck, Eye } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 // ========================================== //
@@ -95,6 +95,20 @@ const Sidebar = ({ isAdmin = false }) => {
                             <span>Manage Auctions</span>
                         </button>
                         <button
+                            className={`nav-item ${isActive('/admin-replacements') ? 'active' : ''}`}
+                            onClick={() => navigate('/admin-replacements')}
+                        >
+                            <RefreshCw size={20} />
+                            <span>Manage Replacements</span>
+                        </button>
+                        <button
+                            className={`nav-item ${isActive('/admin-handover') ? 'active' : ''}`}
+                            onClick={() => navigate('/admin-handover')}
+                        >
+                            <ShieldCheck size={20} />
+                            <span>Manage Handovers</span>
+                        </button>
+                        <button
                             className={`nav-item ${isActive('/admin-settings') ? 'active' : ''}`}
                             onClick={() => navigate('/admin-settings')}
                         >
@@ -130,11 +144,25 @@ const Sidebar = ({ isAdmin = false }) => {
                             <span>Add New</span>
                         </button>
                         <button
+                            className={`nav-item ${isActive('/public-found') ? 'active' : ''}`}
+                            onClick={() => navigate('/public-found')}
+                        >
+                            <Eye size={20} />
+                            <span>Public Found</span>
+                        </button>
+                        <button
                             className={`nav-item ${isActive('/auction') ? 'active' : ''}`}
                             onClick={() => navigate('/auction')}
                         >
                             <Gavel size={20} />
                             <span>Auction</span>
+                        </button>
+                        <button
+                            className={`nav-item ${isActive('/item-replacement') ? 'active' : ''}`}
+                            onClick={() => navigate('/item-replacement')}
+                        >
+                            <RefreshCw size={20} />
+                            <span>Replacement</span>
                         </button>
                         <button
                             className={`nav-item ${isActive('/settings') ? 'active' : ''}`}

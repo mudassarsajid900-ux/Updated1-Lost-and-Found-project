@@ -16,9 +16,10 @@ const AdminSettings = () => {
     // State for temporary toggles
     const [systemSettings, setSystemSettings] = useState({
         maintenanceMode: false,
-        allowNewRegistrations: true,
         emailNotifications: true,
+        replacementThreshold: 90,
     });
+    const [isThresholdUpdating, setIsThresholdUpdating] = useState(false);
 
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -62,6 +63,19 @@ const AdminSettings = () => {
             });
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleThresholdUpdate = async () => {
+        setIsThresholdUpdating(true);
+        try {
+            await api.put(`Replacement/admin/settings/threshold/${systemSettings.replacementThreshold}`);
+            alert("Replacement threshold updated successfully!");
+        } catch (err) {
+            console.error(err);
+            alert("Failed to update threshold.");
+        } finally {
+            setIsThresholdUpdating(false);
         }
     };
 
@@ -146,6 +160,33 @@ const AdminSettings = () => {
                                     </div>
                                     <div className={`toggle-switch ${systemSettings.emailNotifications ? 'active' : ''}`} onClick={() => toggleSetting('emailNotifications')}>
                                         <div className="toggle-handle"></div>
+                                    </div>
+                                </div>
+
+                                <div className="setting-row">
+                                    <div className="setting-info">
+                                        <div className="action-icon-box bg-purple-soft">
+                                            <RefreshCw size={18} className="text-purple" />
+                                        </div>
+                                        <div className="setting-text">
+                                            <h4>Replacement Threshold (Days)</h4>
+                                            <p>Wait time before replacement eligibility.</p>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <input 
+                                            type="number" 
+                                            value={systemSettings.replacementThreshold} 
+                                            onChange={(e) => setSystemSettings(prev => ({...prev, replacementThreshold: e.target.value}))}
+                                            style={{ width: '60px', padding: '5px', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}
+                                        />
+                                        <button 
+                                            onClick={handleThresholdUpdate}
+                                            disabled={isThresholdUpdating}
+                                            style={{ padding: '6px 12px', background: '#1e293b', color: 'white', border: 'none', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer' }}
+                                        >
+                                            {isThresholdUpdating ? "..." : "Save"}
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -252,6 +293,7 @@ const AdminSettings = () => {
                 .bg-teal-soft { background: #f0fdfa; } .text-teal { color: #0d9488; }
                 .bg-orange-soft { background: #fff7ed; } .text-orange { color: #ea580c; }
                 .bg-blue-soft { background: #eff6ff; } .text-blue { color: #3b82f6; }
+                .bg-purple-soft { background: #f5f3ff; } .text-purple { color: #7c3aed; }
                 .bg-red-soft { background: #fef2f2; } .text-red { color: #ef4444; }
                 .text-slate-light { color: #94a3b8; }
                 

@@ -89,6 +89,58 @@ const MyItems = () => {
         return { text: 'Processing', color: '#f59e0b', bg: '#fffbeb' };
     };
 
+    const getTimelineState = (apiItem) => {
+        const status = apiItem.status ?? apiItem.Status;
+        const reportType = apiItem.reportType ?? apiItem.ReportType;
+        const isLost = isLostReport(reportType);
+
+        if (status === 4 || status === 5 || status === 6 || status === 'Handover' || status === 'ReplacementHandover' || status === 'AuctionHandover') {
+            return 4; 
+        }
+
+        if (!isLost) {
+            return status === 1 || status === 'Found' ? 2 : 3; 
+        }
+
+        if (apiItem.hasPotentialMatch || apiItem.HasPotentialMatch || status === 2 || status === 'Replacement') {
+            return 3; 
+        }
+        
+        return 2; 
+    };
+
+    const renderTimeline = (apiItem) => {
+        const isLost = isLostReport(apiItem.reportType ?? apiItem.ReportType);
+        const state = getTimelineState(apiItem);
+        
+        return (
+            <div className="item-timeline">
+                <div className={`timeline-step ${state >= 1 ? 'completed' : ''} ${state === 1 ? 'active' : ''}`}>
+                    <div className="step-circle"></div>
+                    <span className="step-label">{isLost ? 'Reported' : 'Received'}</span>
+                </div>
+                <div className={`timeline-line ${state >= 2 ? 'completed' : ''}`}></div>
+                
+                <div className={`timeline-step ${state >= 2 && !apiItem.hasPotentialMatch ? 'completed' : ''} ${state === 2 ? 'active' : ''}`}>
+                    <div className="step-circle"></div>
+                    <span className="step-label">{isLost ? 'Searching' : 'Stored'}</span>
+                </div>
+                <div className={`timeline-line ${state >= 3 ? 'completed' : ''}`}></div>
+                
+                <div className={`timeline-step ${state >= 3 ? 'completed' : ''} ${state === 3 ? 'active' : ''}`}>
+                    <div className="step-circle"></div>
+                    <span className="step-label">{isLost ? 'Match Found' : 'Processed'}</span>
+                </div>
+                <div className={`timeline-line ${state >= 4 ? 'completed' : ''}`}></div>
+                
+                <div className={`timeline-step ${state >= 4 ? 'completed' : ''}`}>
+                    <div className="step-circle"></div>
+                    <span className="step-label">Handover</span>
+                </div>
+            </div>
+        );
+    };
+
     // ========================================== //
     // SECTION 3: RENDER CARD
     // ========================================== //
@@ -155,6 +207,8 @@ const MyItems = () => {
                         )}
                     </div>
                 </div>
+
+                {renderTimeline(apiItem)}
 
                 <div className="card-actions">
                     {(apiItem.hasPotentialMatch || apiItem.HasPotentialMatch) ? (
@@ -347,6 +401,70 @@ const MyItems = () => {
                         box-shadow: 0 12px 20px -8px rgba(0,0,0,0.08);
                         border-color: #99f6e4;
                     }
+                    
+                    /* Timeline Styling */
+                    .item-timeline {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        margin: 1rem 0;
+                        padding: 1rem;
+                        background: #f8fafc;
+                        border-radius: 12px;
+                        border: 1px solid #f1f5f9;
+                    }
+                    .timeline-step {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        gap: 8px;
+                        position: relative;
+                        z-index: 2;
+                        width: 70px;
+                    }
+                    .step-circle {
+                        width: 16px;
+                        height: 16px;
+                        border-radius: 50%;
+                        background: #e2e8f0;
+                        border: 3px solid #fff;
+                        box-shadow: 0 0 0 2px #e2e8f0;
+                        transition: all 0.3s;
+                    }
+                    .step-label {
+                        font-size: 0.7rem;
+                        font-weight: 700;
+                        color: #94a3b8;
+                        text-align: center;
+                        text-transform: uppercase;
+                    }
+                    .timeline-step.completed .step-circle {
+                        background: #319795;
+                        box-shadow: 0 0 0 2px #319795;
+                    }
+                    .timeline-step.completed .step-label {
+                        color: #319795;
+                    }
+                    .timeline-step.active .step-circle {
+                        background: #0ea5e9;
+                        box-shadow: 0 0 0 3px #bae6fd;
+                        animation: pulse 2s infinite;
+                    }
+                    .timeline-step.active .step-label {
+                        color: #0ea5e9;
+                    }
+                    .timeline-line {
+                        flex: 1;
+                        height: 3px;
+                        background: #e2e8f0;
+                        margin-top: -18px;
+                        z-index: 1;
+                        transition: all 0.3s;
+                    }
+                    .timeline-line.completed {
+                        background: #319795;
+                    }
+
                     .card-top {
                         display: flex;
                         gap: 1.25rem;

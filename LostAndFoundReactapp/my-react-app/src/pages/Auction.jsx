@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Home, Folder, PlusCircle, Settings, LogOut, ChevronLeft, Gavel, Search, Clock, DollarSign, TrendingUp, Award, Zap, Shield, Loader, AlertCircle } from 'lucide-react';
+import { User, Home, Folder, PlusCircle, Settings, LogOut, ChevronLeft, Gavel, Search, Clock, DollarSign, TrendingUp, Award, Zap, Shield, Loader, AlertCircle, Flame, ArrowUpCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
@@ -470,9 +470,16 @@ const Auction = () => {
                                                             <span className="label">CURRENT BID:</span>
                                                             <span className="value">Rs. {Number(item.highestBid || 0).toLocaleString()}</span>
                                                         </div>
-                                                        <div className="time-info">
-                                                            <Clock size={14} className="icon-teal" />
-                                                            <span>Live Auction</span>
+                                                        <div className="time-info" style={{ display: 'flex', gap: '10px' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                <Clock size={14} className="icon-teal" />
+                                                                <span>Live</span>
+                                                            </div>
+                                                            {Number(item.highestBid || 0) > 0 && (
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ea580c', background: '#ffedd5', padding: '2px 8px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                                                                    <Flame size={12} fill="#ea580c" /> HOT
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                     <button className="bid-btn" onClick={() => handlePlaceBidClick(item)}>
@@ -520,15 +527,17 @@ const Auction = () => {
                                                                         <p>Current Highest: <span className="v">Rs. {bid.currentHighestBid.toLocaleString()}</span></p>
                                                                     </div>
                                                                     {bid.isHighestBidder ? (
-                                                                        <div className="status-badge-blue">You are the highest bidder!</div>
+                                                                        <div className="status-badge-blue"><Award size={16} /> You are the highest bidder!</div>
                                                                     ) : (
-                                                                        <div className="status-badge-red">You've been outbid!</div>
+                                                                        <div className="status-badge-red" style={{ animation: 'pulse-fast 1s infinite' }}><AlertCircle size={16} /> ALERT: You've been outbid!</div>
                                                                     )}
                                                                 </div>
                                                                 <div className="info-actions">
-                                                                    <div className="time-left-pill">Active Auction</div>
-                                                                    <button className="increase-bid-btn" onClick={() => handlePlaceBidClick({ id: bid.auctionId, itemTitle: bid.itemTitle, highestBid: bid.currentHighestBid, itemImageUrl: bid.itemImageUrl })}>
-                                                                        Increase Bid
+                                                                    <div className="time-left-pill" style={{ background: bid.isHighestBidder ? '#f1f5f9' : '#fee2e2', color: bid.isHighestBidder ? '#64748b' : '#ef4444' }}>
+                                                                        {bid.isHighestBidder ? 'Winning' : 'Losing'}
+                                                                    </div>
+                                                                    <button className="increase-bid-btn" style={{ display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => handlePlaceBidClick({ id: bid.auctionId, itemTitle: bid.itemTitle, highestBid: bid.currentHighestBid, itemImageUrl: bid.itemImageUrl })}>
+                                                                        <ArrowUpCircle size={18} /> Increase Bid
                                                                     </button>
                                                                 </div>
                                                             </div>
@@ -791,11 +800,13 @@ const Auction = () => {
                 .status-badge-red { display: inline-flex; align-items: center; background: #fff1f2; color: #e11d48; padding: 6px 16px; border-radius: 100px; font-weight: 800; font-size: 0.85rem; border: 1px solid #ffe4e6; }
                 .status-badge-green { display: inline-flex; align-items: center; background: #f0f9ff; color: #0284c7; padding: 6px 16px; border-radius: 100px; font-weight: 800; font-size: 0.85rem; border: 1px solid #e0f2fe; }
 
-                .increase-bid-btn { background: #2dd4bf; color: white; border: none; padding: 1rem 1.5rem; border-radius: 16px; font-weight: 800; cursor: pointer; }
-                .time-left-pill { background: #1e293b; color: white; padding: 6px 14px; border-radius: 100px; font-size: 0.8rem; font-weight: 800; margin-bottom: 8px; }
+                .increase-bid-btn { background: #2dd4bf; color: white; border: none; padding: 1rem 1.5rem; border-radius: 16px; font-weight: 800; cursor: pointer; transition: all 0.2s; }
+                .increase-bid-btn:hover { background: #0d9488; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(13, 148, 136, 0.3); }
+                .time-left-pill { background: #1e293b; color: white; padding: 6px 14px; border-radius: 100px; font-size: 0.8rem; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; }
                 .time-left-pill.red { background: #ef4444; }
 
                 .mt-12 { margin-top: 3rem; }
+                @keyframes pulse-fast { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.02); } 100% { opacity: 1; transform: scale(1); } }
                 .empty-mini-state { 
                     padding: 3rem; text-align: center; background: white; border-radius: 20px; 
                     border: 1px dashed #e2e8f0; color: #94a3b8; font-weight: 600; 
