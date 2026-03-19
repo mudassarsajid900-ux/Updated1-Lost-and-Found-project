@@ -14,6 +14,7 @@ namespace GAC.Core.Entities.Item
 
         public double MatchConfidenceScore { get; set; }
         public bool IsMatchResolved { get; set; } = false;
+        public bool IsVerifiedByAdmin { get; set; } = false;
 
         public int UserId { get; set; }
         [ForeignKey("UserId")] public ApplicationUser User { get; set; }

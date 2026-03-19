@@ -1,4 +1,4 @@
-﻿using GAC.Application.Helper;
+using GAC.Application.Helper;
 using GAC.Application.Interfaces.Shared;
 using GAC.Application.Services.Identity.Dtos.Shared;
 using GAC.Common.Constants;
@@ -32,11 +32,21 @@ namespace GAC.Presistance.Repositories
             _serviceProvider = serviceProvider;
         }
 
-        private bool HasModelProperty(string propertyName) =>
-            _context.Model.FindEntityType(typeof(TEntity))?.FindProperty(propertyName) != null;
+        private bool HasModelProperty(string propertyName)
+        {
+            var entityType = _context.Model.FindEntityType(typeof(TEntity));
+            return entityType != null && entityType.FindProperty(propertyName) != null;
+        }
 
-        public async Task<TEntity> GetByIdAsync(int id) =>
-            await _dbSet.FindAsync(id);
+        public async Task<TEntity> GetByIdAsync(long id)
+        {
+            var keyType = _context.Model.FindEntityType(typeof(TEntity))?.FindPrimaryKey()?.Properties[0].ClrType;
+            if (keyType == typeof(int))
+            {
+                return await _dbSet.FindAsync((int)id);
+            }
+            return await _dbSet.FindAsync(id);
+        }
 
         public async Task<int> CountAsync() => await _dbSet.CountAsync();
 
@@ -179,10 +189,25 @@ namespace GAC.Presistance.Repositories
         {
             try
             {
-                var entity = await GetByIdAsync((int)id);
+                var entity = await GetByIdAsync(id);
                 if (entity != null)
                 {
-                    _dbSet.Remove(entity);
+                    if (entity is BaseEntity b)
+                    {
+                        // Optimization: Perform Soft Delete instead of hard delete
+                        // to prevent Foreign Key constraint conflicts.
+                        var userId = _userData?.UserId ?? 0;
+                        b.IsDeleted = true;
+                        b.IsActive = false;
+                        b.DeletedOn = DateTime.Now;
+                        b.DeletedBy = userId;
+                        _dbSet.Update(entity);
+                    }
+                    else
+                    {
+                        _dbSet.Remove(entity);
+                    }
+
                     await _context.SaveChangesAsync();
 
                     // Save audit log after successful save (separate transaction)
@@ -496,8 +521,25 @@ namespace GAC.Presistance.Repositories
         public async Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate) =>
             await _dbSet.Where(predicate).ToListAsync();
 
-        public IQueryable<TEntity> AsQueryable() => _dbSet.AsQueryable();
-        public IQueryable<TEntity> AsNoTracking() => _dbSet.AsNoTracking();
+        public IQueryable<TEntity> AsQueryable()
+        {
+            IQueryable<TEntity> query = _dbSet;
+            if (HasModelProperty(EntityFieldConstant.IsDeleted))
+            {
+                query = query.Where(e => EF.Property<bool>(e, EntityFieldConstant.IsDeleted) == false);
+            }
+            return query;
+        }
+
+        public IQueryable<TEntity> AsNoTracking()
+        {
+            IQueryable<TEntity> query = _dbSet.AsNoTracking();
+            if (HasModelProperty(EntityFieldConstant.IsDeleted))
+            {
+                query = query.Where(e => EF.Property<bool>(e, EntityFieldConstant.IsDeleted) == false);
+            }
+            return query;
+        }
 
         public async Task<(IEnumerable<TEntity> Data, int TotalCount)> GetPagedAsync(
             int pageNumber, int pageSize,

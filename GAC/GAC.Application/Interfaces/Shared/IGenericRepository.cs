@@ -1,4 +1,4 @@
-﻿using GAC.Application.Services.Identity.Dtos.Shared;
+using GAC.Application.Services.Identity.Dtos.Shared;
 using System.Linq.Expressions;
 
 namespace GAC.Application.Interfaces.Shared
@@ -6,7 +6,7 @@ namespace GAC.Application.Interfaces.Shared
     public interface IGenericRepository<TEntity> where TEntity : class
     {
         // Single Entity Operations
-        Task<TEntity> GetByIdAsync(int id);
+        Task<TEntity> GetByIdAsync(long id);
         Task<TEntity> GetByDynamicColumnsAsync(Dictionary<string, object> columnFiltersEqual, Dictionary<string, object> columnFiltersContains, bool asNoTracking = false, bool asSplitQuery = false, bool checkIsActive = false,
                Func<IQueryable<TEntity>, IQueryable<TEntity>> includeExpression = null);
         Task<int> CountAsync();

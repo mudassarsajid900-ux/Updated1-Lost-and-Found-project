@@ -331,14 +331,12 @@ const ReportFound = () => {
             // STEP 5: Add Photo
             // If the user selected an image, append it to the file list
             if (photo) {
+                console.log("Attaching photo:", photo.name);
                 data.append('photo', photo);
             }
 
             // STEP 6: API Request
             console.log("Submitting Found Report...");
-            if (photo) {
-                data.append('photo', photo);
-            }
 
             console.log("Sending FormData...");
             const response = await api.post('Item/create', data, {

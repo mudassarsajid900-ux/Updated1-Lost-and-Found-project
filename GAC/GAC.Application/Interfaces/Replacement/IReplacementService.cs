@@ -14,6 +14,9 @@ namespace GAC.Application.Interfaces.Replacement
         Task<Response<List<GetReplacementDto>>> GetAllPendingRequestsAsync();
         Task<Response<GetReplacementDto>> ProcessRequestAsync(AdminProcessReplacementDto dto);
         Task<Response<List<long>>> GetSmartMatchSuggestionsAsync(long requestId);
-        Task<Response<bool>> UpdateThresholdAsync(int days);
+        Task<Response<bool>> UpdateReplacementEligibilityThresholdAsync(int days);
+        Task<Response<bool>> UpdateFoundToReplacementThresholdAsync(int days);
+        Task<Response<bool>> UpdateReplacementToAuctionThresholdAsync(int days);
+        Task<Response<Dictionary<string, int>>> GetAllThresholdsAsync();
     }
 }

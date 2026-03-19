@@ -61,7 +61,7 @@ namespace GAC.API.Controllers
             return response.ToHttpResult();
         }
 
-        [HttpDelete(ApiConstatnts.DeleteItemBy)]
+        [HttpDelete(ApiConstatnts.Delete)]
         public async Task<IActionResult> Delete(long id)
         {
             var response = await _itemService.DeleteAsync(id);

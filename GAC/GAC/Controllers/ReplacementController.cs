@@ -73,10 +73,34 @@ namespace GAC.API.Controllers
         }
 
         [Authorize(Roles = ApplicationConstants.AdministratorRole)]
-        [HttpPut("admin/settings/threshold/{days}")]
-        public async Task<ActionResult<Response<bool>>> UpdateThreshold(int days)
+        [HttpPut("admin/settings/eligibility-threshold/{days}")]
+        public async Task<ActionResult<Response<bool>>> UpdateEligibilityThreshold(int days)
         {
-            var result = await _replacementService.UpdateThresholdAsync(days);
+            var result = await _replacementService.UpdateReplacementEligibilityThresholdAsync(days);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [Authorize(Roles = ApplicationConstants.AdministratorRole)]
+        [HttpPut("admin/settings/found-to-replacement-threshold/{days}")]
+        public async Task<ActionResult<Response<bool>>> UpdateFoundToReplacementThreshold(int days)
+        {
+            var result = await _replacementService.UpdateFoundToReplacementThresholdAsync(days);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [Authorize(Roles = ApplicationConstants.AdministratorRole)]
+        [HttpPut("admin/settings/replacement-to-auction-threshold/{days}")]
+        public async Task<ActionResult<Response<bool>>> UpdateReplacementToAuctionThreshold(int days)
+        {
+            var result = await _replacementService.UpdateReplacementToAuctionThresholdAsync(days);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [Authorize(Roles = ApplicationConstants.AdministratorRole)]
+        [HttpGet("admin/settings/thresholds")]
+        public async Task<ActionResult<Response<Dictionary<string, int>>>> GetAllThresholds()
+        {
+            var result = await _replacementService.GetAllThresholdsAsync();
             return StatusCode(result.StatusCode, result);
         }
     }

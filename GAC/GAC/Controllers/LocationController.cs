@@ -1,4 +1,4 @@
-﻿using GAC.Application.Extensions;
+using GAC.Application.Extensions;
 using GAC.Application.Interfaces.Locations;
 using GAC.Application.Services.Locations.Dtos;
 using GAC.Common.Constants;
@@ -31,7 +31,7 @@ public class LocationController : ControllerBase
         return response.ToHttpResult();
     }
 
-    [HttpGet(ApiConstatnts.GetItemBy)]
+    [HttpGet("{id:long}")]
     public async Task<IActionResult> Get(long id)
     {
         var response = await _locationService.GetByIdAsync(id);
@@ -45,7 +45,7 @@ public class LocationController : ControllerBase
         return response.ToHttpResult();
     }
 
-    [HttpDelete(ApiConstatnts.DeleteItemBy)]
+    [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
     {
         var response = await _locationService.DeleteAsync(id);

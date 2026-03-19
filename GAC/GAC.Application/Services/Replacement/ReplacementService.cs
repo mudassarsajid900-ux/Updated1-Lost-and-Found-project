@@ -38,14 +38,14 @@ namespace GAC.Application.Services.Replacement
         public async Task<Response<GetReplacementDto>> CreateReplacementAsync(CreateReplacementDto dto)
         {
             // Verify item eligibility
-            var item = await _itemRepository.GetByIdAsync((int)dto.LostItemId);
+            var item = await _itemRepository.GetByIdAsync(dto.LostItemId);
             if (item == null || item.ReportType != ReportType.Lost || item.CreatedBy != _userData.UserId)
                 return Response<GetReplacementDto>.NotFoundResponse();
 
             if (item.Status == ItemStatus.Replacement || item.Status == ItemStatus.ReplacementHandover)
                 return Response<GetReplacementDto>.SetCustomErrorResponse("This item is already in the replacement process.", StatusCodes.Status400BadRequest);
 
-            var thresholdDays = await GetReplacementThresholdAsync();
+            var thresholdDays = await GetSettingValueAsync("ReplacementEligibilityThreshold", 90);
             if ((DateTime.UtcNow - item.EventTime.ToUniversalTime()).TotalDays < thresholdDays)
                 return Response<GetReplacementDto>.SetCustomErrorResponse($"You must wait at least {thresholdDays} days before requesting a replacement.", StatusCodes.Status400BadRequest);
 
@@ -64,7 +64,7 @@ namespace GAC.Application.Services.Replacement
 
         public async Task<Response<List<ReplacementEligibleItemDto>>> GetEligibleItemsAsync()
         {
-            var thresholdDays = await GetReplacementThresholdAsync();
+            var thresholdDays = await GetSettingValueAsync("ReplacementEligibilityThreshold", 90);
             var cutoffDate = DateTime.UtcNow.AddDays(-thresholdDays);
 
             var items = await _itemRepository.AsQueryable()
@@ -137,7 +137,7 @@ namespace GAC.Application.Services.Replacement
 
             if (dto.IsApproved)
             {
-                var foundItem = await _itemRepository.GetByIdAsync((int)dto.FoundItemId);
+                var foundItem = await _itemRepository.GetByIdAsync(dto.FoundItemId);
                 if (foundItem == null || foundItem.ReportType != ReportType.Found || foundItem.Status != ItemStatus.Found)
                     return Response<GetReplacementDto>.SetCustomErrorResponse("Selected found item is not available for replacement.", StatusCodes.Status400BadRequest);
 
@@ -186,18 +186,48 @@ namespace GAC.Application.Services.Replacement
             return Response<List<long>>.SetSuccessResponse(suggestions);
         }
 
-        public async Task<Response<bool>> UpdateThresholdAsync(int days)
+        public async Task<Response<bool>> UpdateReplacementEligibilityThresholdAsync(int days)
+        {
+            return await UpsertSettingAsync("ReplacementEligibilityThreshold", days, 
+                "Number of days a lost item must be missing before the user can request a replacement.");
+        }
+
+        public async Task<Response<bool>> UpdateFoundToReplacementThresholdAsync(int days)
+        {
+            return await UpsertSettingAsync("FoundToReplacementThreshold", days, 
+                "Number of days an unclaimed found item remains as 'Found' before becoming available for replacement.");
+        }
+
+        public async Task<Response<bool>> UpdateReplacementToAuctionThresholdAsync(int days)
+        {
+            return await UpsertSettingAsync("ReplacementToAuctionThreshold", days, 
+                "Number of days an item stays in the Replacement pool before it automatically moves to Auction.");
+        }
+
+        public async Task<Response<Dictionary<string, int>>> GetAllThresholdsAsync()
+        {
+            var result = new Dictionary<string, int>
+            {
+                { "ReplacementEligibilityThreshold", await GetSettingValueAsync("ReplacementEligibilityThreshold", 90) },
+                { "FoundToReplacementThreshold", await GetSettingValueAsync("FoundToReplacementThreshold", 20) },
+                { "ReplacementToAuctionThreshold", await GetSettingValueAsync("ReplacementToAuctionThreshold", 40) }
+            };
+
+            return Response<Dictionary<string, int>>.SetSuccessResponse(result);
+        }
+
+        private async Task<Response<bool>> UpsertSettingAsync(string key, int days, string description)
         {
             var setting = await _settingsRepository.AsQueryable()
-                .FirstOrDefaultAsync(x => x.SettingKey == "ReplacementThresholdDays");
+                .FirstOrDefaultAsync(x => x.SettingKey == key);
 
             if (setting == null)
             {
                 setting = new SystemSetting
                 {
-                    SettingKey = "ReplacementThresholdDays",
+                    SettingKey = key,
                     SettingValue = days.ToString(),
-                    Description = "Number of days a lost item remains missing before replacement eligibility opens.",
+                    Description = description,
                     CreatedBy = _userData.UserId
                 };
                 await _settingsRepository.AddAsync(setting);
@@ -210,18 +240,18 @@ namespace GAC.Application.Services.Replacement
                 await _settingsRepository.UpdateAsync(setting);
             }
 
-            return Response<bool>.SetSuccessResponse(true, "Replacement threshold updated successfully.");
+            return Response<bool>.SetSuccessResponse(true, $"{key} updated successfully.");
         }
 
-        private async Task<int> GetReplacementThresholdAsync()
+        private async Task<int> GetSettingValueAsync(string key, int defaultValue)
         {
             var setting = await _settingsRepository.AsQueryable()
-                .FirstOrDefaultAsync(x => x.SettingKey == "ReplacementThresholdDays");
+                .FirstOrDefaultAsync(x => x.SettingKey == key);
             
             if (setting != null && int.TryParse(setting.SettingValue, out int days))
                 return days;
 
-            return 90; // Default
+            return defaultValue;
         }
     }
 }

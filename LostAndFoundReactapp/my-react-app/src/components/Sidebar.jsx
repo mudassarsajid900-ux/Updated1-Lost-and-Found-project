@@ -143,13 +143,7 @@ const Sidebar = ({ isAdmin = false }) => {
                             <PlusCircle size={20} />
                             <span>Add New</span>
                         </button>
-                        <button
-                            className={`nav-item ${isActive('/public-found') ? 'active' : ''}`}
-                            onClick={() => navigate('/public-found')}
-                        >
-                            <Eye size={20} />
-                            <span>Public Found</span>
-                        </button>
+
                         <button
                             className={`nav-item ${isActive('/auction') ? 'active' : ''}`}
                             onClick={() => navigate('/auction')}

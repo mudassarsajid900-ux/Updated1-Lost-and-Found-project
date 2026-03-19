@@ -24,39 +24,73 @@ import Header from '../components/Header';
 // ========================================== //
 const MyItems = () => {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('lost'); // 'lost' or 'found'
+    // Persist active tab in localStorage so it doesn't reset on refresh
+    const [activeTab, setActiveTab] = useState(() => localStorage.getItem('myItemsActiveTab') || 'lost');
+    
+    useEffect(() => {
+        localStorage.setItem('myItemsActiveTab', activeTab);
+    }, [activeTab]); // 'lost' or 'found'
     const [loading, setLoading] = useState(true);
     const [myItems, setMyItems] = useState([]);
 
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+    const fetchMyItems = async () => {
+        setLoading(true);
+        try {
+            const response = await api.get('Item/my-items');
+            console.log("My Items API Response:", response.data);
+            const data = response.data.data || response.data.Data || [];
+            if (data) setMyItems(data);
+        } catch (err) { 
+            console.error("Failed to fetch my items:", err); 
+        }
+        finally { setLoading(false); }
+    };
+
+    const handleDeleteItem = async (id) => {
+        if (!window.confirm("Delete this report?")) return;
+        try {
+            await api.delete(`Item/${id}`);
+            fetchMyItems();
+        } catch (err) { alert("Delete failed"); }
+    };
+
     useEffect(() => {
-        const fetchMyItems = async () => {
-            try {
-                const response = await api.get('Item/my-items');
-
-                // Support both camelCase and PascalCase from backend (JSON serializer differences)
-                const isOk = response.data.isSucceeded || response.data.IsSucceeded;
-                const data = response.data.data || response.data.Data;
-
-                if (isOk && data) {
-                    setMyItems(data);
-                }
-            } catch (err) {
-                // If 401 occurs, the axios interceptor will handle redirection to login
-                console.error('Failed to fetch my items:', err?.response?.status, err?.response?.data || err.message);
-            } finally {
-                setLoading(false);
-            }
+        const load = async () => {
+            await fetchMyItems();
         };
-        fetchMyItems();
+        load();
     }, []);
+
+    // Intelligent tab selection logic
+    const [initialTabSet, setInitialTabSet] = useState(false);
+    useEffect(() => {
+        if (!loading && myItems.length > 0 && !initialTabSet) {
+            const hasSavedTab = localStorage.getItem('myItemsActiveTab');
+            
+            // Only auto-switch if user hasn't manually preferred a tab yet
+            if (!hasSavedTab) {
+                const lostCount = myItems.filter(i => isLostReport(i.reportType ?? i.ReportType)).length;
+                const foundCount = myItems.filter(i => isFoundReport(i.reportType ?? i.ReportType)).length;
+                
+                if (lostCount === 0 && foundCount > 0) {
+                    setActiveTab('found');
+                } else if (foundCount === 0 && lostCount > 0) {
+                    setActiveTab('lost');
+                }
+            }
+            setInitialTabSet(true);
+        }
+    }, [loading, myItems, initialTabSet]);
+
+
 
     // Filter by the reportType property
     // Backend uses JsonStringEnumConverter so it sends 'Lost' / 'Found' (strings), NOT 0 / 1
     // We handle both string names AND numeric values just to be safe
-    const isLostReport = (v) => v === 0 || v === 'Lost' || v === 'lost';
-    const isFoundReport = (v) => v === 1 || v === 'Found' || v === 'found';
+    const isLostReport = (v) => v === 0 || String(v).toLowerCase() === 'lost' || String(v) === '0';
+    const isFoundReport = (v) => v === 1 || String(v).toLowerCase() === 'found' || String(v) === '1';
 
     const lostReports = myItems.filter(item => isLostReport(item.reportType ?? item.ReportType));
     const foundItems = myItems.filter(item => isFoundReport(item.reportType ?? item.ReportType));
@@ -74,39 +108,61 @@ const MyItems = () => {
         const status = apiItem.status ?? apiItem.Status;
         const reportType = apiItem.reportType ?? apiItem.ReportType;
         const hasPotentialMatch = apiItem.hasPotentialMatch ?? apiItem.HasPotentialMatch;
+        const isVerifiedByAdmin = apiItem.isVerifiedByAdmin ?? apiItem.IsVerifiedByAdmin;
 
         const isHandover = status === 4 || status === 'Handover' || status === 'Returned';
         const isFoundSt = status === 1 || status === 'Found';
         const isLostSt = status === 0 || status === 'Lost';
         const isLostRep = isLostReport(reportType);
 
-        if (hasPotentialMatch) return { text: 'Potential Match Found!', color: '#0ea5e9', bg: '#e0f2fe' };
+        const isReplacementSt = status === 2 || status === 'Replacement';
+        const isAuctionSt = status === 3 || status === 'Auction';
+
+        // ONLY show match to User A if Admin has verified receipt
+        if (hasPotentialMatch && isVerifiedByAdmin) return { text: 'Potential Match Found!', color: '#0ea5e9', bg: '#e0f2fe' };
+        
         if (isHandover) return { text: 'Returned', color: '#10b981', bg: '#ecfdf5' };
-        if (isLostRep && isLostSt) return { text: 'Not Found Yet', color: '#718096', bg: '#f7fafc' };
-        if (isLostRep && isFoundSt) return { text: 'Potential Match', color: '#319795', bg: '#e6fffa' };
+        if (isReplacementSt) return { text: 'Replacement Requested', color: '#6366f1', bg: '#e0e7ff' };
+        if (isAuctionSt) return { text: 'In Auction', color: '#f59e0b', bg: '#fffbeb' };
+
+        if (isLostRep && isLostSt) return { text: 'Searching...', color: '#718096', bg: '#f7fafc' };
+        if (isLostRep && isFoundSt) return { text: 'Found (Verified)', color: '#319795', bg: '#e6fffa' };
         if (!isLostRep && isFoundSt) return { text: 'On Hand', color: '#319795', bg: '#e6fffa' };
 
-        return { text: 'Processing', color: '#f59e0b', bg: '#fffbeb' };
+        return { text: 'Processing', color: '#4a5568', bg: '#edf2f7' };
     };
 
     const getTimelineState = (apiItem) => {
+        const isLost = isLostReport(apiItem.reportType ?? apiItem.ReportType);
         const status = apiItem.status ?? apiItem.Status;
-        const reportType = apiItem.reportType ?? apiItem.ReportType;
-        const isLost = isLostReport(reportType);
+        const hasPotentialMatch = apiItem.hasPotentialMatch ?? apiItem.HasPotentialMatch;
+        const isVerifiedByAdmin = apiItem.isVerifiedByAdmin ?? apiItem.IsVerifiedByAdmin;
 
-        if (status === 4 || status === 5 || status === 6 || status === 'Handover' || status === 'ReplacementHandover' || status === 'AuctionHandover') {
-            return 4; 
-        }
+        if (isLost) {
+            // Priority 1: Handover
+            if (status === 4 || status === 'Handover') return 4;
 
-        if (!isLost) {
-            return status === 1 || status === 'Found' ? 2 : 3; 
-        }
+            // Priority 2: Replacement (Step 3 or 4)
+            if (status === 2 || status === 'Replacement') return 3;
 
-        if (apiItem.hasPotentialMatch || apiItem.HasPotentialMatch || status === 2 || status === 'Replacement') {
-            return 3; 
+            // Priority 3: Verified Match (Step 3)
+            if (hasPotentialMatch && isVerifiedByAdmin) return 3;
+
+            // Standard: Searching (Step 2)
+            return 2;
+        } else {
+            // Priority 1: Handover
+            if (status === 4 || status === 'Handover') return 4;
+
+            // Priority 2: Auction (Step 3)
+            if (status === 3 || status === 'Auction') return 3;
+
+            // Priority 3: Verified Match (Step 3)
+            if (hasPotentialMatch && isVerifiedByAdmin) return 3;
+
+            // For found items: Received(1) -> Stored(2) -> Processed(3) -> Handover(4)
+            return (status === 1 || status === 'Found' || status === 0) ? 2 : 3;
         }
-        
-        return 2; 
     };
 
     const renderTimeline = (apiItem) => {
@@ -121,7 +177,7 @@ const MyItems = () => {
                 </div>
                 <div className={`timeline-line ${state >= 2 ? 'completed' : ''}`}></div>
                 
-                <div className={`timeline-step ${state >= 2 && !apiItem.hasPotentialMatch ? 'completed' : ''} ${state === 2 ? 'active' : ''}`}>
+                <div className={`timeline-step ${state >= 2 ? 'completed' : ''} ${state === 2 ? 'active' : ''}`}>
                     <div className="step-circle"></div>
                     <span className="step-label">{isLost ? 'Searching' : 'Stored'}</span>
                 </div>
@@ -210,23 +266,25 @@ const MyItems = () => {
 
                 {renderTimeline(apiItem)}
 
-                <div className="card-actions">
-                    {(apiItem.hasPotentialMatch || apiItem.HasPotentialMatch) ? (
-                        <button className="action-btn match-btn" onClick={() => {
-                            const foundId = apiItem.matchFoundItemId || apiItem.MatchFoundItemId;
-                            navigate(`/match-details/${apiItem.id}/${foundId}`);
-                        }}>
-                            View Match
+                    <div className="card-actions">
+                        {((apiItem.hasPotentialMatch || apiItem.HasPotentialMatch) && (apiItem.isVerifiedByAdmin || apiItem.IsVerifiedByAdmin)) ? (
+                            <button className="action-btn match-btn" onClick={() => {
+                                const isLost = isLostReport(apiItem.reportType ?? apiItem.ReportType);
+                                const lostId = isLost ? apiItem.id : (apiItem.matchFoundItemId || apiItem.MatchFoundItemId);
+                                const foundId = isLost ? (apiItem.matchFoundItemId || apiItem.MatchFoundItemId) : apiItem.id;
+                                navigate(`/match-details/${lostId}/${foundId}`);
+                            }}>
+                                View Match
+                            </button>
+                        ) : (
+                            <button className="action-btn secondary" onClick={() => navigate(`/report-details/${apiItem.id}`)}>
+                                <ExternalLink size={16} /> Details
+                            </button>
+                        )}
+                        <button className="delete-btn-minimal" onClick={() => handleDeleteItem(apiItem.id)}>
+                            <Trash2 size={16} />
                         </button>
-                    ) : (
-                        <button className="action-btn secondary" onClick={() => navigate(`/report-details/${apiItem.id}`)}>
-                            <ExternalLink size={16} /> Details
-                        </button>
-                    )}
-                    <button className="delete-btn-minimal">
-                        <Trash2 size={16} />
-                    </button>
-                </div>
+                    </div>
             </div>
         );
     };

@@ -49,9 +49,9 @@ namespace GAC.Application.Services.Handover
 
         public async Task<Response<GetHandoverDto>> CreateHandoverAsync(CreateHandoverDto dto)
         {
-            var item = await _itemRepository.GetByIdAsync((int)dto.ItemId);
+            var item = await _itemRepository.GetByIdAsync(dto.ItemId);
             if (item == null)
-                return Response<GetHandoverDto>.NotFoundResponse("Item not found");
+                return Response<GetHandoverDto>.SetCustomErrorResponse("Item not found", StatusCodes.Status404NotFound);
 
             var entity = _mapper.Map<ItemsHandOverRecord>(dto);
             entity.CreatedBy = _userData.UserId;
@@ -74,7 +74,7 @@ namespace GAC.Application.Services.Handover
                     item.Status = ItemStatus.Handover;
                     if (dto.ClaimRequestId.HasValue)
                     {
-                        var claim = await _claimRepository.GetByIdAsync((int)dto.ClaimRequestId.Value);
+                        var claim = await _claimRepository.GetByIdAsync(dto.ClaimRequestId.Value);
                         if (claim != null)
                         {
                             claim.Status = ClaimStatus.HandedOver;
@@ -86,7 +86,7 @@ namespace GAC.Application.Services.Handover
                     item.Status = ItemStatus.ReplacementHandover;
                     if (dto.ReplacementRecordId.HasValue)
                     {
-                        var rep = await _replacementRepository.GetByIdAsync((int)dto.ReplacementRecordId.Value);
+                        var rep = await _replacementRepository.GetByIdAsync(dto.ReplacementRecordId.Value);
                         if (rep != null)
                         {
                             rep.Status = ReplacementStatus.Completed;

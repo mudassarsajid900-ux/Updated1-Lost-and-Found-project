@@ -17,14 +17,39 @@ const AdminSettings = () => {
     const [systemSettings, setSystemSettings] = useState({
         maintenanceMode: false,
         emailNotifications: true,
-        replacementThreshold: 90,
+        eligibilityThreshold: 90,
+        unclaimedThreshold: 20,
+        auctionThreshold: 40,
     });
-    const [isThresholdUpdating, setIsThresholdUpdating] = useState(false);
+    const [loadingSettings, setLoadingSettings] = useState(false);
+    const [isUpdating, setIsUpdating] = useState({ eligibility: false, unclaimed: false, auction: false });
 
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
     const [pwdStatus, setPwdStatus] = useState({ type: '', message: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    React.useEffect(() => {
+        fetchThresholds();
+    }, []);
+
+    const fetchThresholds = async () => {
+        setLoadingSettings(true);
+        try {
+            const res = await api.get('Replacement/admin/settings/thresholds');
+            const data = res.data.data;
+            setSystemSettings(prev => ({
+                ...prev,
+                eligibilityThreshold: data.ReplacementEligibilityThreshold || 90,
+                unclaimedThreshold: data.FoundToReplacementThreshold || 20,
+                auctionThreshold: data.ReplacementToAuctionThreshold || 40,
+            }));
+        } catch (err) {
+            console.error("Error fetching thresholds:", err);
+        } finally {
+            setLoadingSettings(false);
+        }
+    };
 
     const toggleSetting = (key) => setSystemSettings(prev => ({ ...prev, [key]: !prev[key] }));
 
@@ -66,16 +91,30 @@ const AdminSettings = () => {
         }
     };
 
-    const handleThresholdUpdate = async () => {
-        setIsThresholdUpdating(true);
+    const handleThresholdUpdate = async (type) => {
+        setIsUpdating(prev => ({ ...prev, [type]: true }));
         try {
-            await api.put(`Replacement/admin/settings/threshold/${systemSettings.replacementThreshold}`);
-            alert("Replacement threshold updated successfully!");
+            let endpoint = '';
+            let val = 0;
+            if (type === 'eligibility') {
+                endpoint = 'eligibility-threshold';
+                val = systemSettings.eligibilityThreshold;
+            } else if (type === 'unclaimed') {
+                endpoint = 'found-to-replacement-threshold';
+                val = systemSettings.unclaimedThreshold;
+            } else if (type === 'auction') {
+                endpoint = 'replacement-to-auction-threshold';
+                val = systemSettings.auctionThreshold;
+            }
+
+            await api.put(`Replacement/admin/settings/${endpoint}/${val}`);
+            alert("Threshold updated successfully!");
+            fetchThresholds();
         } catch (err) {
             console.error(err);
             alert("Failed to update threshold.");
         } finally {
-            setIsThresholdUpdating(false);
+            setIsUpdating(prev => ({ ...prev, [type]: false }));
         }
     };
 
@@ -169,23 +208,77 @@ const AdminSettings = () => {
                                             <RefreshCw size={18} className="text-purple" />
                                         </div>
                                         <div className="setting-text">
-                                            <h4>Replacement Threshold (Days)</h4>
-                                            <p>Wait time before replacement eligibility.</p>
+                                            <h4>Replacement Eligibility (Days)</h4>
+                                            <p>Wait time before a user can request a replacement.</p>
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                         <input 
                                             type="number" 
-                                            value={systemSettings.replacementThreshold} 
-                                            onChange={(e) => setSystemSettings(prev => ({...prev, replacementThreshold: e.target.value}))}
+                                            value={systemSettings.eligibilityThreshold} 
+                                            onChange={(e) => setSystemSettings(prev => ({...prev, eligibilityThreshold: e.target.value}))}
                                             style={{ width: '60px', padding: '5px', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}
                                         />
                                         <button 
-                                            onClick={handleThresholdUpdate}
-                                            disabled={isThresholdUpdating}
+                                            onClick={() => handleThresholdUpdate('eligibility')}
+                                            disabled={isUpdating.eligibility}
                                             style={{ padding: '6px 12px', background: '#1e293b', color: 'white', border: 'none', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer' }}
                                         >
-                                            {isThresholdUpdating ? "..." : "Save"}
+                                            {isUpdating.eligibility ? "..." : "Save"}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="setting-row">
+                                    <div className="setting-info">
+                                        <div className="action-icon-box bg-teal-soft">
+                                            <CheckCircle size={18} className="text-teal" />
+                                        </div>
+                                        <div className="setting-text">
+                                            <h4>Found → Replacement (Days)</h4>
+                                            <p>Time an unclaimed item stays as 'Found'.</p>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <input 
+                                            type="number" 
+                                            value={systemSettings.unclaimedThreshold} 
+                                            onChange={(e) => setSystemSettings(prev => ({...prev, unclaimedThreshold: e.target.value}))}
+                                            style={{ width: '60px', padding: '5px', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}
+                                        />
+                                        <button 
+                                            onClick={() => handleThresholdUpdate('unclaimed')}
+                                            disabled={isUpdating.unclaimed}
+                                            style={{ padding: '6px 12px', background: '#1e293b', color: 'white', border: 'none', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer' }}
+                                        >
+                                            {isUpdating.unclaimed ? "..." : "Save"}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="setting-row">
+                                    <div className="setting-info">
+                                        <div className="action-icon-box bg-orange-soft">
+                                            <Gavel size={18} className="text-orange" />
+                                        </div>
+                                        <div className="setting-text">
+                                            <h4>Replacement → Auction (Days)</h4>
+                                            <p>Time an item stays in the Replacement pool.</p>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <input 
+                                            type="number" 
+                                            value={systemSettings.auctionThreshold} 
+                                            onChange={(e) => setSystemSettings(prev => ({...prev, auctionThreshold: e.target.value}))}
+                                            style={{ width: '60px', padding: '5px', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}
+                                        />
+                                        <button 
+                                            onClick={() => handleThresholdUpdate('auction')}
+                                            disabled={isUpdating.auction}
+                                            style={{ padding: '6px 12px', background: '#1e293b', color: 'white', border: 'none', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer' }}
+                                        >
+                                            {isUpdating.auction ? "..." : "Save"}
                                         </button>
                                     </div>
                                 </div>

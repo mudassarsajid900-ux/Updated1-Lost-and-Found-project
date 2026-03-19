@@ -1,4 +1,4 @@
-﻿using GAC.API.Extensions;
+using GAC.API.Extensions;
 using GAC.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +11,6 @@ builder.Services.AddProblemDetails();
 var app = builder.Build();
 
 // Middleware
-app.UseApiPipeline(); 
+await app.UseApiPipeline(); 
 
 app.Run();

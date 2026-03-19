@@ -70,7 +70,7 @@ const UserFormModal = ({ mode, user, onClose, onSaved, availableRoles }) => {
         try {
             if (mode === 'create') {
                 // POST /api/Users — CreateUserDto
-                await api.post('/Users', {
+                await api.post('Users', {
                     userName: form.email.split('@')[0], // auto-generate from email
                     firstName: form.firstName,
                     lastName: form.lastName,
@@ -82,7 +82,7 @@ const UserFormModal = ({ mode, user, onClose, onSaved, availableRoles }) => {
                 });
             } else {
                 // PUT /api/Users/{id} — UpdateUserDto
-                await api.put(`/Users/${user.id}`, {
+                await api.put(`Users/${user.id}`, {
                     id: user.id,
                     userName: form.email ? form.email.split('@')[0] : form.userName,
                     firstName: form.firstName,
@@ -225,7 +225,7 @@ const DeleteModal = ({ user, onClose, onDeleted }) => {
     const handleDelete = async () => {
         setLoading(true);
         try {
-            await api.delete(`/Users/${user.id}`);
+            await api.delete(`Users/${user.id}`);
             onDeleted();
             onClose();
         } catch (err) {
@@ -282,7 +282,7 @@ const AdminManageUsers = () => {
     useEffect(() => {
         const fetchRoles = async () => {
             try {
-                const response = await api.get('/roles/GetAllRoles');
+                const response = await api.get('roles/GetAllRoles');
                 console.log("Fetched roles:", response.data);
                 setAvailableRoles(response.data || []);
             } catch (err) {
@@ -307,7 +307,7 @@ const AdminManageUsers = () => {
                     { data: 'email', name: 'Email', searchable: true, orderable: true, search: { value: '', regex: false } }
                 ]
             };
-            const response = await api.post('/Users/list', requestBody);
+            const response = await api.post('Users/list', requestBody);
             setUsers(response.data.result || []);
             setTotalUsers(response.data.recordsTotal || 0);
         } catch (err) {

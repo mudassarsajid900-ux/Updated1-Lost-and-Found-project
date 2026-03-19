@@ -7,6 +7,7 @@ using GAC.Application.Interfaces.Replacement;
 using GAC.Application.Interfaces.Handover;
 using GAC.Application.Interfaces.Shared;
 using GAC.Application.Services.Auction;
+using GAC.Application.Services.BackgroundJobs;
 using GAC.Application.Services.ClaimRequests;
 using GAC.Application.Services.Identity;
 using GAC.Application.Services.Item;
@@ -36,6 +37,11 @@ namespace GAC.Application
             services.AddScoped<IReplacementService, ReplacementService>();
             services.AddScoped<IMobileModelService, MobileModelService>();
             services.AddScoped<IHandoverService, HandoverService>();
+
+            // Background Service: Automatically moves items through the lifecycle
+            // Found → Replacement → Auction based on Admin-defined thresholds
+            services.AddHostedService<ItemLifecycleService>();
+
             return services;
         }
     }

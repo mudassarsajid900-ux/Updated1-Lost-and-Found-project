@@ -5,6 +5,7 @@ using GAC.Application.Interfaces.Shared;
 using GAC.Application.Services.Auction.Dtos;
 using GAC.Common.Responce;
 using GAC.Core.Entities.Auction;
+using GAC.Core.Entities.Item;
 using GAC.Core.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -35,9 +36,9 @@ namespace GAC.Application.Services.Auction
 
         public async Task<Response<GetAuctionDto>> CreateAuctionAsync(CreateAuctionDto dto)
         {
-            var item = await _itemRepository.GetByIdAsync((int)dto.FoundItemId);
+            var item = await _itemRepository.GetByIdAsync(dto.FoundItemId);
             if (item == null)
-                return Response<GetAuctionDto>.NotFoundResponse("Item not found");
+                return Response<GetAuctionDto>.SetCustomErrorResponse("Item not found", StatusCodes.Status404NotFound);
 
             var entity = new AuctionRecord
             {
@@ -59,7 +60,7 @@ namespace GAC.Application.Services.Auction
 
         public async Task<Response<GetAuctionDto>> PlaceBidAsync(PlaceBidDto dto)
         {
-            var entity = await _auctionRepository.GetByIdAsync((int)dto.AuctionId);
+            var entity = await _auctionRepository.GetByIdAsync(dto.AuctionId);
             if (entity == null)
                 return Response<GetAuctionDto>.NotFoundResponse();
 
@@ -115,7 +116,7 @@ namespace GAC.Application.Services.Auction
         }
         public async Task<Response<List<GetBidDto>>> GetBidHistoryAsync(long auctionId)
         {
-            var auction = await _auctionRepository.GetByIdAsync((int)auctionId);
+            var auction = await _auctionRepository.GetByIdAsync(auctionId);
             if (auction == null)
                 return Response<List<GetBidDto>>.NotFoundResponse();
 

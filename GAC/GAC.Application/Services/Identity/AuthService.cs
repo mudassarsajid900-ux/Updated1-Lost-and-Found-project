@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using GAC.Application.Interfaces.Identity;
 using GAC.Application.Interfaces.Shared;
 using GAC.Application.Services.Identity.Dtos.Auth;
@@ -56,6 +56,9 @@ namespace GAC.Application.Services.Identity
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
             if (user == null)
                 return Response<UserDetailsDto>.SetCustomErrorResponse("User not Found", StatusCodes.Status401Unauthorized);
+
+            if (!user.IsActive)
+                return Response<UserDetailsDto>.SetCustomErrorResponse("Your account is deactivated. Please contact the administrator.", StatusCodes.Status403Forbidden);
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
             if (!result.Succeeded)
@@ -115,7 +118,7 @@ namespace GAC.Application.Services.Identity
             try
             {
                 var user = await _userManager.FindByEmailAsync(model.Email);
-                if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
+                if (user == null || !user.IsActive || !await _userManager.CheckPasswordAsync(user, model.Password))
                 {
                     // Log failed attempt
                     await _exceptionLogService.LogAsync(BuildLogDto(

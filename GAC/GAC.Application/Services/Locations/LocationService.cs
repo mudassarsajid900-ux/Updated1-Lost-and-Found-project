@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using GAC.Application.Interfaces.Locations;
 using GAC.Application.Interfaces.Shared;
 using GAC.Application.Services.Locations.Dtos;
@@ -83,7 +83,7 @@ public class LocationService : ILocationService
 
     public async Task<Response<string>> DeleteAsync(long id)
     {
-        var entity = await _locationRepository.GetByIdAsync((int)id);
+        var entity = await _locationRepository.GetByIdAsync(id);
 
         if (entity == null)
             return Response<string>.NotFoundResponse();

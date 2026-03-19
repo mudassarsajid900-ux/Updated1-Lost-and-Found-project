@@ -1,4 +1,4 @@
-﻿using GAC.Common.Constants;
+using GAC.Common.Constants;
 using GAC.Core.Enums;
 using System.Collections.Generic;
 
@@ -17,5 +17,6 @@ namespace GAC.Application.Services.Item.Dtos
 
         public bool HasPotentialMatch { get; set; } = false;
         public long? MatchFoundItemId { get; set; }
+        public bool IsVerifiedByAdmin { get; set; } = false;
     }
 }

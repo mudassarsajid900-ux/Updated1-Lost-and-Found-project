@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace GAC.API.Extensions
 {
     public static class MiddlewareConfigurationExtensions
     {
-        public static WebApplication UseApiPipeline(this WebApplication app)
+        public static async Task<WebApplication> UseApiPipeline(this WebApplication app)
         {
 
             if (app.Environment.IsDevelopment())
@@ -36,6 +36,11 @@ namespace GAC.API.Extensions
                         context.SaveChanges();
                         Console.WriteLine("Locations seeded successfully.");
                     }
+
+                    // ✅ FIXED: Ensure IsDeleted data is correctly initialized to false (not NULL) for all tables
+                    // (prevents rows from 'disappearing' on refresh if they were NULL due to old data)
+                    await context.Database.ExecuteSqlRawAsync("IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Items' AND COLUMN_NAME = 'IsDeleted') UPDATE [Items] SET [IsDeleted] = 0 WHERE [IsDeleted] IS NULL");
+                    await context.Database.ExecuteSqlRawAsync("IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'ItemMatches' AND COLUMN_NAME = 'IsDeleted') UPDATE [ItemMatches] SET [IsDeleted] = 0 WHERE [IsDeleted] IS NULL");
                 }
                 catch (Exception ex)
                 {

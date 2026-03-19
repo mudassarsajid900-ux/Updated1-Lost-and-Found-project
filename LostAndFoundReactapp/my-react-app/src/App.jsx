@@ -12,7 +12,7 @@ import Welcome from './pages/Welcome';
 import MatchDetails from './pages/MatchDetails';
 import ClaimItem from './pages/ClaimItem';
 import ClaimStatus from './pages/ClaimStatus';
-import PublicFoundWall from './pages/PublicFoundWall';
+
 import ReviewClaim from './pages/ReviewClaim';
 import AdminDashboard from './admin/AdminDashboard';
 import AdminManageUsers from './admin/AdminManageUsers';
@@ -38,7 +38,7 @@ function App() {
         <Route path="/report-found" element={<ReportFound />} />
         <Route path="/report-lost" element={<ReportLost />} />
         <Route path="/my-items" element={<MyItems />} />
-        <Route path="/public-found" element={<PublicFoundWall />} />
+
         <Route path="/auction" element={<Auction />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/item-replacement" element={<ItemReplacement />} />

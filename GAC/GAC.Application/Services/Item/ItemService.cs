@@ -6,6 +6,7 @@ using GAC.Application.Services.Item.Dtos;
 using GAC.Common.Responce;
 using GAC.Core.Entities.Item;
 using GAC.Core.Entities.ItemTypes;
+using GAC.Core.Enums;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -85,9 +86,18 @@ namespace GAC.Application.Services.Item
 
                 // 4. Save to database
                 await _itemRepository.AddAsync(entity);
+                Console.WriteLine($"[DEBUG] Found Item Created: Id={entity.Id}, CreatedBy={_userData.UserId}");
 
                 // Run matching algorithm for new Found item
-                await CheckForMatchesAsync(entity);
+                try 
+                {
+                    await CheckForMatchesAsync(entity);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ERROR] Matching algorithm failed for Item {entity.Id}: {ex.Message}");
+                    // We don't throw here so the report is still saved successfully
+                }
 
                 // 5. Fetch the saved record (including relations) to return as a result
                 var result = await GetByIdAsync(entity.Id);
@@ -139,9 +149,17 @@ namespace GAC.Application.Services.Item
                 }
 
                 await _itemRepository.AddAsync(entity);
+                Console.WriteLine($"[DEBUG] Lost Item Created: Id={entity.Id}, CreatedBy={_userData.UserId}");
 
                 // Run matching algorithm for new Lost item
-                await CheckForMatchesAsync(entity);
+                try 
+                {
+                    await CheckForMatchesAsync(entity);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ERROR] Matching algorithm failed for Item {entity.Id}: {ex.Message}");
+                }
 
                 var result = await GetByIdAsync(entity.Id);
                 return Response<GetItemDto>.SetSuccessResponse(
@@ -227,38 +245,53 @@ namespace GAC.Application.Services.Item
         /// </summary>
         public async Task<Response<List<GetItemDto>>> GetMyItemsAsync()
         {
-            if (_userData.UserId == 0)
+            try
             {
-                return Response<List<GetItemDto>>.SetCustomErrorResponse("User identity not found.", StatusCodes.Status401Unauthorized);
-            }
-
-            var items = await _itemRepository.AsQueryable()
-                .Include(x => x.Location)
-                .Include(x => x.ItemType)
-                .Include(x => x.Attributes)
-                .Where(x => x.CreatedBy == _userData.UserId)
-                .OrderByDescending(x => x.CreatedOn)
-                .ToListAsync();
-
-            var dtoList = _mapper.Map<List<GetItemDto>>(items);
-
-            // Fetch any potential matches for the user's lost items
-            var userItemIds = items.Select(x => x.Id).ToList();
-            var matches = await _itemMatchRepository.AsQueryable()
-                .Where(m => userItemIds.Contains(m.LostItemId) && !m.IsMatchResolved)
-                .ToListAsync();
-
-            foreach(var dto in dtoList)
-            {
-                var match = matches.FirstOrDefault(m => m.LostItemId == dto.Id);
-                if (match != null)
+                if (_userData.UserId == 0)
                 {
-                    dto.HasPotentialMatch = true;
-                    dto.MatchFoundItemId = match.FoundItemId;
+                    return Response<List<GetItemDto>>.SetCustomErrorResponse("User identity not found.", StatusCodes.Status401Unauthorized);
                 }
-            }
 
-            return Response<List<GetItemDto>>.SetSuccessResponse(dtoList);
+                var items = await _itemRepository.AsQueryable()
+                    .Include(x => x.Location)
+                    .Include(x => x.ItemType)
+                    .Include(x => x.Attributes)
+                    .Where(x => x.CreatedBy == _userData.UserId)
+                    .OrderByDescending(x => x.CreatedOn)
+                    .ToListAsync();
+
+                var dtoList = _mapper.Map<List<GetItemDto>>(items);
+
+                // Fetch any potential matches where this user's item is either the Lost or Found side
+                var userItemIds = items.Select(x => x.Id).ToList();
+                var matches = new List<ItemMatch>();
+                if (userItemIds.Any())
+                {
+                    matches = await _itemMatchRepository.AsQueryable()
+                        .Where(m => (userItemIds.Contains(m.LostItemId) || userItemIds.Contains(m.FoundItemId)) && !m.IsMatchResolved)
+                        .ToListAsync();
+                }
+
+                foreach(var dto in dtoList)
+                {
+                    // check if this item is in any active match
+                    var match = matches.FirstOrDefault(m => m.LostItemId == dto.Id || m.FoundItemId == dto.Id);
+                    if (match != null)
+                    {
+                        dto.HasPotentialMatch = true;
+                        // If this is the lost item, link to the found one. If this is the found item, link to the lost one.
+                        dto.MatchFoundItemId = (dto.Id == match.LostItemId) ? match.FoundItemId : match.LostItemId;
+                        dto.IsVerifiedByAdmin = match.IsVerifiedByAdmin;
+                    }
+                }
+
+                return Response<List<GetItemDto>>.SetSuccessResponse(dtoList);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("ERROR IN GetMyItemsAsync: " + ex.ToString());
+                throw;
+            }
         }
 
         public async Task<Response<List<GetItemDto>>> GetPublicFoundItemsAsync()
@@ -277,7 +310,7 @@ namespace GAC.Application.Services.Item
             {
                 if (dto.Attributes != null)
                 {
-                    dto.Attributes = new List<GetItemAttributeDto>();
+                    dto.Attributes = new List<GetItemAttributes>();
                 }
             }
 
@@ -286,7 +319,7 @@ namespace GAC.Application.Services.Item
 
         public async Task<Response<string>> DeleteAsync(long id)
         {
-            var entity = await _itemRepository.GetByIdAsync((int)id);
+            var entity = await _itemRepository.GetByIdAsync(id);
 
             if (entity == null)
                 return Response<string>.NotFoundResponse();
@@ -324,7 +357,12 @@ namespace GAC.Application.Services.Item
 
             var candidates = await _itemRepository.AsQueryable()
                 .Include(x => x.Attributes)
-                .Where(x => x.ReportType == targetType && x.ItemTypeId == newItem.ItemTypeId && x.Status != GAC.Core.Enums.ItemStatus.Handover)
+                // FIXED: Only match against items that are still actively available (Lost or Found).
+                // Items already in Replacement(2), Auction(3), Handover(4), ReplacementHandover(5), 
+                // or AuctionHandover(6) should NOT appear as match candidates.
+                .Where(x => x.ReportType == targetType && 
+                           x.ItemTypeId == newItem.ItemTypeId && 
+                           (x.Status == GAC.Core.Enums.ItemStatus.Found || x.Status == GAC.Core.Enums.ItemStatus.Lost))
                 .ToListAsync();
 
             foreach (var candidate in candidates)

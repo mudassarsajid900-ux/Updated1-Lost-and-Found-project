@@ -1,4 +1,4 @@
-﻿using GAC.Application.Interfaces.Identity;
+using GAC.Application.Interfaces.Identity;
 using GAC.Application.Interfaces.Shared;
 using GAC.Application.Services.Identity.Dtos.User;
 using GAC.Common.Pagination;
@@ -33,12 +33,13 @@ namespace GAC.Application.Services.Identity
 
             if (!string.IsNullOrWhiteSpace(request?.Search?.Value))
             {
-                string searchQuery = request.Search.Value;
-                filter = user =>
-                    (user.UserName != null && user.UserName.Contains(searchQuery)) ||
-                    (user.Email != null && user.Email.Contains(searchQuery)) ||
-                    (user.FirstName != null && user.FirstName.Contains(searchQuery)) ||
-                    (user.LastName != null && user.LastName.Contains(searchQuery));
+                string searchQuery = request.Search.Value.ToLower();
+                filter = user => user.IsActive && (
+                    (user.UserName != null && user.UserName.ToLower().Contains(searchQuery)) ||
+                    (user.Email != null && user.Email.ToLower().Contains(searchQuery)) ||
+                    (user.FirstName != null && user.FirstName.ToLower().Contains(searchQuery)) ||
+                    (user.LastName != null && user.LastName.ToLower().Contains(searchQuery))
+                );
             }
 
             string sortColumn = request.Columns[request.Order[0].Column].Data;
@@ -201,12 +202,16 @@ namespace GAC.Application.Services.Identity
             if (user == null)
                 return Response<bool>.UserNotFoundResponse();
 
-            var deleteResult = await _userManager.DeleteAsync(user);
-            if (!deleteResult.Succeeded)
-                return Response<bool>.SetCustomErrorResponse(
-                    string.Join(", ", deleteResult.Errors.Select(error => error.Description)), 500);
+            // Perform Soft Delete by setting IsActive to false
+            // This avoids Foreign Key violation errors with Items, Claims, and Auctions
+            user.IsActive = false;
+            var updateResult = await _userManager.UpdateAsync(user);
 
-            return Response<bool>.SetSuccessResponse(true);
+            if (!updateResult.Succeeded)
+                return Response<bool>.SetCustomErrorResponse(
+                    string.Join(", ", updateResult.Errors.Select(error => error.Description)), 500);
+
+            return Response<bool>.SetSuccessResponse(true, "User deactivated successfully");
         }
 
         public async Task<Response<bool>> RemoveRoleAsync(int userId, string roleId)
