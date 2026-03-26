@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LogOut, ChevronRight, Settings as SettingsIcon, Shield, Server, Mail, Lock, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { LogOut, ChevronRight, Settings as SettingsIcon, Shield, Server, Mail, Lock, CheckCircle, AlertCircle, X, RefreshCw, Gavel } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';

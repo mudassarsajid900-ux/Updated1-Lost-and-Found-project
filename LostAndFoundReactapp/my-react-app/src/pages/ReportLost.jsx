@@ -192,16 +192,60 @@ const ReportLost = () => {
     // These variables store the answers the user types into the form.
     // If they are editing, it fills it with 'editData'. Otherwise it is empty.
     // ========================================== //
-    const [selectedCategory, setSelectedCategory] = useState(editData?.itemType || "");
+    const [selectedCategory, setSelectedCategory] = useState(editData?.type || editData?.Type || "");
 
-    const [formData, setFormData] = useState({
-        itemType: editData?.itemType || "",
-        attributes: editData?.attributes || {},
-        lastSeenLocation: editData?.lastSeenLocation || "",
-        dateLost: editData?.dateLost || "",
-        timeLost: editData?.timeLost || "",
-        description: editData?.description || ""
-    });
+    const getInitialFormData = () => {
+        if (!editData) {
+            return {
+                itemType: "",
+                attributes: {},
+                lastSeenLocation: "",
+                dateLost: "",
+                timeLost: "",
+                description: ""
+            };
+        }
+        
+        const dateRaw = editData.eventTime || editData.EventTime;
+        let dateFormatted = "";
+        let timeFormatted = "";
+        
+        if (dateRaw) {
+            try {
+                const parsedDate = new Date(dateRaw);
+                if (!isNaN(parsedDate.getTime())) {
+                    dateFormatted = parsedDate.toISOString().split('T')[0];
+                    timeFormatted = parsedDate.toTimeString().substring(0, 5);
+                }
+            } catch (e) {
+                console.error("Date parse error", e);
+            }
+        }
+        
+        const venue = editData.locationName || editData.LocationName || "";
+        const attrs = editData.attributes || editData.Attributes || [];
+        
+        let desc = "";
+        const attrObj = {};
+        
+        attrs.forEach(a => {
+            const fname = a.fieldName || a.FieldName;
+            const fval = a.fieldValue || a.FieldValue;
+            if (fname === 'Additional Description' || fname === 'Lost Description') desc = fval;
+            else attrObj[fname] = fval;
+        });
+
+        return {
+            itemType: editData.type || editData.Type || "",
+            attributes: attrObj,
+            lastSeenLocation: venue,
+            dateLost: dateFormatted,
+            timeLost: timeFormatted,
+            description: desc
+        };
+    };
+
+    const [formData, setFormData] = useState(getInitialFormData());
 
 
     // ========================================== //
@@ -296,53 +340,103 @@ const ReportLost = () => {
 
         try {
             // STEP 1: Identification
-            // Find IDs of selected category and location names from the pre-loaded lists
             const typeEntity = itemTypes.find(t => t.name === selectedCategory);
             const locationEntity = universityLocations.find(l => l.name === formData.lastSeenLocation);
 
             // STEP 2: Date/Time Synchronization
-            // .NET requires ISO string or specific format. We clean user input and append seconds.
-            const cleanTime = formData.timeLost.split(' ')[0];
+            let cleanTime = "12:00";
+            if (formData.timeLost) {
+                // Handle both "HH:MM" and "HH:MM AM/PM"
+                cleanTime = formData.timeLost.split(' ')[0];
+                if (cleanTime.split(':').length < 2) cleanTime = "12:00";
+            }
+            
+            if (!formData.dateLost) {
+                throw new Error("Date is required. Please pick a date of the incident.");
+            }
+            
             const isoDateTime = `${formData.dateLost}T${cleanTime}:00`;
 
-            // STEP 3: Data Packaging
-            // We use FormData because:
-            // a) Files (images) can't be sent via raw JSON easily.
-            // b) The backend uses [FromForm] attributes.
-            const data = new FormData();
-            data.append('eventTime', isoDateTime);
-            data.append('locationId', locationEntity?.id || 0);
-            data.append('itemTypeId', typeEntity?.id || 0);
-            data.append('status', 0);      // Enum: 0 = Lost
-            data.append('reportType', 0);  // Enum: 0 = Lost Report
+            let response;
 
-            // STEP 4: Dynamic Attributes Mapping
-            // Backend model binding for List<Attribute> expects indexed naming:
-            // Attributes[0].FieldName, Attributes[0].FieldValue
-            let attrIndex = 0;
-            Object.entries(formData.attributes).forEach(([key, val]) => {
-                data.append(`Attributes[${attrIndex}].FieldName`, key);
-                data.append(`Attributes[${attrIndex}].FieldValue`, String(val));
-                attrIndex++;
-            });
+            if (editData) {
+                // UPDATE LOGIC (JSON body)
 
-            // STEP 5: Additional Info
-            // If the user provided a custom description, we treat it as an extra attribute
-            if (formData.description) {
-                data.append(`Attributes[${attrIndex}].FieldName`, 'Additional Description');
-                data.append(`Attributes[${attrIndex}].FieldValue`, formData.description);
+                // Fix 1: status must be a number (0=Lost). API may return string "Lost" or number 0.
+                const rawStatus = editData.status ?? editData.Status;
+                let numericStatus = 0; // default = Lost
+                if (typeof rawStatus === 'number') numericStatus = rawStatus;
+                else if (typeof rawStatus === 'string') {
+                    const s = rawStatus.toLowerCase();
+                    if (s === 'found') numericStatus = 1;
+                    else if (s === 'lost') numericStatus = 0;
+                    else numericStatus = parseInt(rawStatus) || 0;
+                }
+
+                // Fix 2: locationId — prefer name match but always fall back to original ID
+                const safeLocationId = locationEntity?.id || editData.locationId || editData.LocationId || 0;
+                const safeItemTypeId = typeEntity?.id || editData.itemTypeId || editData.ItemTypeId || 0;
+
+                const updateData = {
+                    id: editData.id || editData.Id,
+                    eventTime: isoDateTime,
+                    locationId: safeLocationId,
+                    itemTypeId: safeItemTypeId,
+                    status: numericStatus,
+                    attributes: Object.entries(formData.attributes).map(([key, val]) => ({
+                        fieldName: key,
+                        fieldValue: Array.isArray(val) ? val.join(', ') : String(val)
+                    }))
+                };
+                if (formData.description) {
+                    updateData.attributes.push({
+                        fieldName: 'Additional Description',
+                        fieldValue: formData.description
+                    });
+                }
+                
+                console.log("Submitting Lost Report Update...", updateData);
+                response = await api.put('Item/update', updateData);
+                console.log("Server Response:", response.data);
+
+            } else {
+                // CREATE LOGIC (Multipart Form Data)
+                const data = new FormData();
+                data.append('eventTime', isoDateTime);
+                data.append('locationId', locationEntity?.id || 0);
+                data.append('itemTypeId', typeEntity?.id || 0);
+                data.append('status', 0);      // Enum: 0 = Lost
+                data.append('reportType', 0);  // Enum: 0 = Lost Report
+
+                let attrIndex = 0;
+                Object.entries(formData.attributes).forEach(([key, val]) => {
+                    data.append(`Attributes[${attrIndex}].FieldName`, key);
+                    data.append(`Attributes[${attrIndex}].FieldValue`, String(val));
+                    attrIndex++;
+                });
+
+                if (formData.description) {
+                    data.append(`Attributes[${attrIndex}].FieldName`, 'Additional Description');
+                    data.append(`Attributes[${attrIndex}].FieldValue`, formData.description);
+                }
+
+                console.log("Submitting Lost Report...");
+                response = await api.post('Item/create', data, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                console.log("Server Response:", response.data);
             }
-
-            // STEP 6: API Communication
-            console.log("Submitting Lost Report...");
-            const response = await api.post('Item/create', data, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            console.log("Server Response:", response.data);
 
             if (response.data.isSucceeded || response.data.IsSucceeded) {
                 setSubmitStatus({ type: 'success', message: response.data.message || 'Report submitted successfully!' });
-                setTimeout(() => navigate('/dashboard'), 2000);
+                setTimeout(() => {
+                    const itemId = editData?.id || editData?.Id;
+                    if (isAdmin) {
+                        navigate(editData ? `/admin-report-control/${itemId}` : '/admin-reports');
+                    } else {
+                        navigate(editData ? '/my-items' : '/dashboard');
+                    }
+                }, 2000);
             } else {
                 setSubmitStatus({ type: 'error', message: response.data.message || 'Failed to submit report' });
             }
@@ -520,6 +614,8 @@ const ReportLost = () => {
         });
     };
 
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
     // ========================================== //
     // SECTION 7: PAGE LAYOUT AND HTML
     // ========================================== //
@@ -527,7 +623,7 @@ const ReportLost = () => {
         <div className="dashboard-container">
 
             {/* Display Sidebar Menu */}
-            <Sidebar />
+            <Sidebar isAdmin={isAdmin} />
 
             <main className="main-content">
 
@@ -536,7 +632,14 @@ const ReportLost = () => {
                     title={editData ? "Edit Lost Report" : "Report Lost Item"}
                     subtitle={editData ? "Update your item details below." : "Tell us what happened."}
                     showBack={true}
-                    onBack={() => navigate('/dashboard')}
+                    onBack={() => {
+                        const itemId = editData?.id || editData?.Id;
+                        if (isAdmin) {
+                            navigate(editData ? `/admin-report-control/${itemId}` : '/admin-reports');
+                        } else {
+                            navigate(editData ? '/my-items' : '/dashboard');
+                        }
+                    }}
                 />
 
                 <div className="content-wrapper">

@@ -5,28 +5,27 @@
 import React from 'react';
 import { Home, Folder, PlusCircle, Gavel, Settings, LogOut, User, RefreshCw, ShieldCheck, Eye } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import api from '../api/axios';
 
 // ========================================== //
 // SECTION 2: MAIN SIDEBAR COMPONENT
 // This is the left-side navigation menu seen on almost every page.
 // It changes its layout depending on if an Admin is logged in or a regular student.
 // ========================================== //
-const Sidebar = ({ isAdmin = false }) => {
+const Sidebar = ({ isAdmin: propIsAdmin }) => {
     // Allows us to navigate between pages when a link is clicked
     const navigate = useNavigate();
-
-    // Gives us the current URL (e.g. '/dashboard') so we can highlight the active link
     const location = useLocation();
 
-    // ========================================== //
-    // HELPER FUNCTIONS
-    // ========================================== //
+    // Check localStorage if prop is not provided
+    const isAdmin = propIsAdmin !== undefined ? propIsAdmin : localStorage.getItem('isAdmin') === 'true';
 
     // Checks if the button's path matches the current URL. If yes, it highlights it.
     const isActive = (path) => location.pathname === path;
 
     // Sets the home route based on whether the user is an admin or not
     const homePath = isAdmin ? '/admin-dashboard' : '/dashboard';
+
 
     // ========================================== //
     // COMPONENT HTML / UI RENDER
@@ -107,6 +106,21 @@ const Sidebar = ({ isAdmin = false }) => {
                         >
                             <ShieldCheck size={20} />
                             <span>Manage Handovers</span>
+                            {(() => {
+                                const [count, setCount] = React.useState(0);
+                                React.useEffect(() => {
+                                    const fetchCount = async () => {
+                                        try {
+                                            const res = await api.get('Handover/pending');
+                                            setCount(res.data.data?.length || 0);
+                                        } catch (e) {}
+                                    };
+                                    fetchCount();
+                                    const interval = setInterval(fetchCount, 60000); // Check every minute
+                                    return () => clearInterval(interval);
+                                }, []);
+                                return count > 0 && <span style={{ marginLeft: 'auto', background: '#ef4444', color: '#fff', padding: '2px 8px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '900' }}>{count}</span>;
+                            })()}
                         </button>
                         <button
                             className={`nav-item ${isActive('/admin-settings') ? 'active' : ''}`}
@@ -178,6 +192,7 @@ const Sidebar = ({ isAdmin = false }) => {
                     localStorage.removeItem('token');
                     localStorage.removeItem('username');
                     localStorage.removeItem('userEmail');
+                    localStorage.removeItem('isAdmin');
                     navigate('/login');
                 }}>
                     <LogOut size={20} />

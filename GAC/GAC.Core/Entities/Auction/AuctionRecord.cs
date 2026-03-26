@@ -1,4 +1,4 @@
-﻿
+
 using GAC.Core.Entities.Identity;
 using GAC.Core.Entities.Item;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -14,5 +14,6 @@ namespace GAC.Core.Entities.Auction
         [ForeignKey("HighestBidderId")] public ApplicationUser HighestBidder { get; set; }
         public string CnicImagePath { get; set; }
         public string PersonImagePath { get; set; }
+        public DateTime EndDate { get; set; }
     }
 }

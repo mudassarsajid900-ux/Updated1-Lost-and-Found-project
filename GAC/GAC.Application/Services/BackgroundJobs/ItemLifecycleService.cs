@@ -30,8 +30,8 @@ namespace GAC.Application.Services.BackgroundJobs
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ItemLifecycleService> _logger;
 
-        // How often this background job runs (every 24 hours)
-        private readonly TimeSpan _checkInterval = TimeSpan.FromHours(24);
+        // How often this background job runs (every 1 minute for responsive testing)
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1);
 
         public ItemLifecycleService(
             IServiceProvider serviceProvider,
@@ -139,7 +139,8 @@ namespace GAC.Application.Services.BackgroundJobs
                         HighestBidderId = 0,
                         IsActive = true,
                         CreatedBy = item.CreatedBy,  // Use the original reporter
-                        CreatedOn = DateTime.UtcNow
+                        CreatedOn = DateTime.UtcNow,
+                        EndDate = DateTime.UtcNow.AddDays(7) // Setting a default 7-day auction duration
                     };
                     await auctionRepo.AddAsync(auctionRecord);
                 }
@@ -168,6 +169,7 @@ namespace GAC.Application.Services.BackgroundJobs
             int defaultValue)
         {
             var setting = await settingsRepo.AsQueryable()
+                .OrderByDescending(x => x.CreatedOn)
                 .FirstOrDefaultAsync(x => x.SettingKey == key);
 
             if (setting != null && int.TryParse(setting.SettingValue, out int value))

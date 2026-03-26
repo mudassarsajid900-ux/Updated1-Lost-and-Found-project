@@ -14,6 +14,8 @@ namespace GAC.Application.Services.Auction.Dtos
     public class CreateAuctionDto
     {
         public long FoundItemId { get; set; }
+        public long StartingPrice { get; set; }
+        public int DurationHours { get; set; }
     }
 
     public class PlaceBidDto
@@ -28,6 +30,8 @@ namespace GAC.Application.Services.Auction.Dtos
         public bool IsActive { get; set; }
         public string ItemTitle { get; set; }
         public string ItemImageUrl { get; set; }
+        public DateTime EndDate { get; set; }
+        public string HighestBidderName { get; set; }
     }
 
     public class GetBidDto
@@ -46,7 +50,7 @@ namespace GAC.Application.Services.Auction.Dtos
         public long MyHighestBid { get; set; }
         public long CurrentHighestBid { get; set; }
         public bool IsHighestBidder { get; set; }
-        public string TimeLeft { get; set; } // Can be "Live" for now or a formatted string
+        public DateTime EndDate { get; set; }
     }
 
     public class MyWinDto

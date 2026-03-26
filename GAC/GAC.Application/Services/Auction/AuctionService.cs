@@ -43,9 +43,11 @@ namespace GAC.Application.Services.Auction
             var entity = new AuctionRecord
             {
                 FoundItemId = dto.FoundItemId,
-                HighestBid = 0,
+                HighestBid = dto.StartingPrice,
                 IsActive = true,
-                CreatedBy = _userData.UserId
+                CreatedBy = _userData.UserId,
+                HighestBidderId = 0,
+                EndDate = DateTime.UtcNow.AddHours(dto.DurationHours)
             };
 
             await _auctionRepository.AddAsync(entity);
@@ -58,6 +60,26 @@ namespace GAC.Application.Services.Auction
             return Response<GetAuctionDto>.SetSuccessResponse(result, "Auction created successfully", StatusCodes.Status201Created);
         }
 
+        public async Task<Response<GetAuctionDto>> EndAuctionAsync(long auctionId)
+        {
+            var entity = await _auctionRepository.AsQueryable()
+                .Include(x => x.FoundItem)
+                .ThenInclude(i => i.ItemType)
+                .FirstOrDefaultAsync(x => x.Id == auctionId);
+                
+            if (entity == null)
+                return Response<GetAuctionDto>.NotFoundResponse();
+
+            if (!entity.IsActive)
+                return Response<GetAuctionDto>.SetCustomErrorResponse("Auction is already ended", StatusCodes.Status400BadRequest);
+
+            entity.IsActive = false;
+            await _auctionRepository.UpdateAsync(entity);
+
+            var result = _mapper.Map<GetAuctionDto>(entity);
+            return Response<GetAuctionDto>.SetSuccessResponse(result, "Auction ended successfully");
+        }
+
         public async Task<Response<GetAuctionDto>> PlaceBidAsync(PlaceBidDto dto)
         {
             var entity = await _auctionRepository.GetByIdAsync(dto.AuctionId);
@@ -66,6 +88,9 @@ namespace GAC.Application.Services.Auction
 
             if (!entity.IsActive)
                 return Response<GetAuctionDto>.SetCustomErrorResponse("Auction is not active", StatusCodes.Status400BadRequest);
+
+            if (DateTime.UtcNow > entity.EndDate)
+                return Response<GetAuctionDto>.SetCustomErrorResponse("Auction has already ended", StatusCodes.Status400BadRequest);
 
             if (dto.BidAmount <= entity.HighestBid)
                 return Response<GetAuctionDto>.SetCustomErrorResponse("Bid must be higher than current highest bid", StatusCodes.Status400BadRequest);
@@ -114,6 +139,24 @@ namespace GAC.Application.Services.Auction
             var result = _mapper.Map<List<GetAuctionDto>>(auctions);
             return Response<List<GetAuctionDto>>.SetSuccessResponse(result);
         }
+
+        public async Task<Response<List<GetAuctionDto>>> GetCompletedAuctionsAsync()
+        {
+            var auctions = await _auctionRepository.AsQueryable()
+                .Include(x => x.FoundItem)
+                .ThenInclude(i => i.ItemType)
+                .Include(x => x.HighestBidder)
+                .Where(x => !x.IsActive)
+                .ToListAsync();
+
+            var result = auctions.Select(x => {
+                var dto = _mapper.Map<GetAuctionDto>(x);
+                dto.HighestBidderName = x.HighestBidder != null ? (x.HighestBidder.FirstName + " " + x.HighestBidder.LastName) : "No Bidder";
+                return dto;
+            }).ToList();
+
+            return Response<List<GetAuctionDto>>.SetSuccessResponse(result);
+        }
         public async Task<Response<List<GetBidDto>>> GetBidHistoryAsync(long auctionId)
         {
             var auction = await _auctionRepository.GetByIdAsync(auctionId);
@@ -152,7 +195,7 @@ namespace GAC.Application.Services.Auction
                     MyHighestBid = g.Max(x => x.bid.BidAmount),
                     CurrentHighestBid = g.First().auction.HighestBid,
                     IsHighestBidder = (g.First().auction.HighestBidderId == userId),
-                    TimeLeft = "Active" // Or format a countdown if you have and EndDate (not in schema yet)
+                    EndDate = g.First().auction.EndDate
                 })
                 .ToListAsync();
 

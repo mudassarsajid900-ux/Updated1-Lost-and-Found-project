@@ -32,6 +32,7 @@ namespace GAC.Core.Entities.LostItems
         
         public string ReceiverName { get; set; }
         public string ReceiverCnic { get; set; }
+        public string ReceiverPhone { get; set; }
         
         public string AdminNotes { get; set; }
     }

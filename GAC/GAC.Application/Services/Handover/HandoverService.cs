@@ -74,10 +74,18 @@ namespace GAC.Application.Services.Handover
                     item.Status = ItemStatus.Handover;
                     if (dto.ClaimRequestId.HasValue)
                     {
-                        var claim = await _claimRepository.GetByIdAsync(dto.ClaimRequestId.Value);
+                        var claim = await _claimRepository.AsQueryable()
+                            .Include(c => c.LostItem)
+                            .FirstOrDefaultAsync(c => c.Id == dto.ClaimRequestId.Value);
+
                         if (claim != null)
                         {
                             claim.Status = ClaimStatus.HandedOver;
+                            if (claim.LostItem != null)
+                            {
+                                claim.LostItem.Status = ItemStatus.Handover;
+                                await _itemRepository.UpdateAsync(claim.LostItem);
+                            }
                             await _claimRepository.UpdateAsync(claim);
                         }
                     }
@@ -108,26 +116,70 @@ namespace GAC.Application.Services.Handover
         public async Task<Response<List<GetHandoverDto>>> GetAllHandoversAsync()
         {
             var handovers = await _handoverRepository.AsQueryable()
-                .Include(x => x.Item)
-                .ThenInclude(i => i.ItemType)
+                .Include(x => x.Item).ThenInclude(i => i.ItemType)
+                .Include(x => x.Item).ThenInclude(i => i.Attributes)
                 .OrderByDescending(x => x.CreatedOn)
                 .ToListAsync();
 
-            var result = _mapper.Map<List<GetHandoverDto>>(handovers);
+            var result = handovers.Select(x => new GetHandoverDto
+            {
+                Id = x.Id,
+                ItemId = x.ItemId,
+                ItemTitle = x.Item?.ItemType?.Name ?? (x.Item != null ? ("Ref: " + x.Item.Id) : "Unknown Asset"),
+                ItemDescription = x.Item?.Attributes.FirstOrDefault(a => a.FieldName == "Description")?.FieldValue ?? "No narrative recorded.",
+                ItemCategory = x.Item?.ItemType?.Name ?? "General Asset",
+                ReceiverName = x.ReceiverName,
+                ReceiverCnic = x.ReceiverCnic,
+                ReceiverPhone = x.ReceiverPhone,
+                CnicImagePath = x.CnicImagePath,
+                PersonImagePath = x.PersonImagePath,
+                AdminNotes = x.AdminNotes,
+                HandoverType = x.HandoverType,
+                CreatedOn = x.CreatedOn,
+                Attributes = x.Item?.Attributes.Select(a => new GAC.Application.Services.Item.Dtos.GetItemAttributes
+                {
+                    Id = a.Id,
+                    FieldName = a.FieldName,
+                    FieldValue = a.FieldValue
+                }).ToList() ?? new()
+            }).ToList();
+
             return Response<List<GetHandoverDto>>.SetSuccessResponse(result);
         }
 
         public async Task<Response<GetHandoverDto>> GetByIdAsync(long id)
         {
             var entity = await _handoverRepository.AsQueryable()
-                .Include(x => x.Item)
-                .ThenInclude(i => i.ItemType)
+                .Include(x => x.Item).ThenInclude(i => i.ItemType)
+                .Include(x => x.Item).ThenInclude(i => i.Attributes)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             if (entity == null)
                 return Response<GetHandoverDto>.NotFoundResponse();
 
-            var result = _mapper.Map<GetHandoverDto>(entity);
+            var result = new GetHandoverDto
+            {
+                Id = entity.Id,
+                ItemId = entity.ItemId,
+                ItemTitle = entity.Item?.ItemType?.Name ?? (entity.Item != null ? ("Ref: " + entity.Item.Id) : "Unknown Asset"),
+                ItemDescription = entity.Item?.Attributes.FirstOrDefault(a => a.FieldName == "Description")?.FieldValue ?? "No narrative recorded.",
+                ItemCategory = entity.Item?.ItemType?.Name ?? "General Asset",
+                ReceiverName = entity.ReceiverName,
+                ReceiverCnic = entity.ReceiverCnic,
+                ReceiverPhone = entity.ReceiverPhone,
+                CnicImagePath = entity.CnicImagePath,
+                PersonImagePath = entity.PersonImagePath,
+                AdminNotes = entity.AdminNotes,
+                HandoverType = entity.HandoverType,
+                CreatedOn = entity.CreatedOn,
+                Attributes = entity.Item?.Attributes.Select(a => new GAC.Application.Services.Item.Dtos.GetItemAttributes
+                {
+                    Id = a.Id,
+                    FieldName = a.FieldName,
+                    FieldValue = a.FieldValue
+                }).ToList() ?? new()
+            };
+
             return Response<GetHandoverDto>.SetSuccessResponse(result);
         }
 
@@ -138,6 +190,8 @@ namespace GAC.Application.Services.Handover
             // 1. Found Items newly reported (Student hands over to Admin)
             var foundItems = await _itemRepository.AsQueryable()
                 .Include(x => x.ItemType)
+                .Include(x => x.Attributes)
+                .Include(x => x.Location)
                 .Include(x => x.CreatedByUser)
                 .Where(x => x.ReportType == ReportType.Found && x.Status == ItemStatus.Found)
                 .ToListAsync();
@@ -156,13 +210,17 @@ namespace GAC.Application.Services.Handover
                     ItemImageUrl = item.ImageUrl,
                     HandoverType = HandoverType.FoundItemToAdmin,
                     TargetPersonName = item.CreatedByUser?.FirstName + " " + item.CreatedByUser?.LastName,
-                    TargetPersonEmail = item.CreatedByUser?.Email
+                    TargetPersonEmail = item.CreatedByUser?.Email,
+                    ItemLocation = item.Location?.Name,
+                    Attributes = item.Attributes.Select(a => new GAC.Application.Services.Item.Dtos.GetItemAttributes { Id = a.Id, FieldName = a.FieldName, FieldValue = a.FieldValue }).ToList()
                 });
             }
 
             // 2. Approved Claims (Admin hands over to Claimant)
             var claims = await _claimRepository.AsQueryable()
                 .Include(x => x.FoundItem).ThenInclude(i => i.ItemType)
+                .Include(x => x.FoundItem).ThenInclude(i => i.Attributes)
+                .Include(x => x.FoundItem).ThenInclude(i => i.Location)
                 .Include(x => x.CreatedByUser)
                 .Where(x => x.Status == ClaimStatus.VerificationSucced)
                 .ToListAsync();
@@ -177,13 +235,17 @@ namespace GAC.Application.Services.Handover
                     HandoverType = HandoverType.AdminToClaimant,
                     ClaimRequestId = claim.Id,
                     TargetPersonName = claim.CreatedByUser?.FirstName + " " + claim.CreatedByUser?.LastName,
-                    TargetPersonEmail = claim.CreatedByUser?.Email
+                    TargetPersonEmail = claim.CreatedByUser?.Email,
+                    ItemLocation = claim.FoundItem.Location?.Name,
+                    Attributes = claim.FoundItem.Attributes.Select(a => new GAC.Application.Services.Item.Dtos.GetItemAttributes { Id = a.Id, FieldName = a.FieldName, FieldValue = a.FieldValue }).ToList()
                 });
             }
 
             // 3. Approved Replacements (Admin hands over to User)
             var replacements = await _replacementRepository.AsQueryable()
                 .Include(x => x.FoundItem).ThenInclude(i => i.ItemType)
+                .Include(x => x.FoundItem).ThenInclude(i => i.Attributes)
+                .Include(x => x.FoundItem).ThenInclude(i => i.Location)
                 .Include(x => x.CreatedByUser)
                 .Where(x => x.Status == ReplacementStatus.Approved)
                 .ToListAsync();
@@ -198,13 +260,17 @@ namespace GAC.Application.Services.Handover
                     HandoverType = HandoverType.AdminToReplacementUser,
                     ReplacementRecordId = rep.Id,
                     TargetPersonName = rep.CreatedByUser?.FirstName + " " + rep.CreatedByUser?.LastName,
-                    TargetPersonEmail = rep.CreatedByUser?.Email
+                    TargetPersonEmail = rep.CreatedByUser?.Email,
+                    ItemLocation = rep.FoundItem?.Location?.Name,
+                    Attributes = rep.FoundItem?.Attributes.Select(a => new GAC.Application.Services.Item.Dtos.GetItemAttributes { Id = a.Id, FieldName = a.FieldName, FieldValue = a.FieldValue }).ToList() ?? new()
                 });
             }
 
             // 4. Finished Auctions (Admin hands over to Winner)
             var auctions = await _auctionRepository.AsQueryable()
                 .Include(x => x.FoundItem).ThenInclude(i => i.ItemType)
+                .Include(x => x.FoundItem).ThenInclude(i => i.Attributes)
+                .Include(x => x.FoundItem).ThenInclude(i => i.Location)
                 .Include(x => x.HighestBidder)
                 .Where(x => !x.IsActive && x.HighestBidderId > 0)
                 .ToListAsync();
@@ -224,7 +290,9 @@ namespace GAC.Application.Services.Handover
                     HandoverType = HandoverType.AdminToAuctionWinner,
                     AuctionRecordId = auction.Id,
                     TargetPersonName = auction.HighestBidder?.FirstName + " " + auction.HighestBidder?.LastName,
-                    TargetPersonEmail = auction.HighestBidder?.Email
+                    TargetPersonEmail = auction.HighestBidder?.Email,
+                    ItemLocation = auction.FoundItem.Location?.Name,
+                    Attributes = auction.FoundItem.Attributes.Select(a => new GAC.Application.Services.Item.Dtos.GetItemAttributes { Id = a.Id, FieldName = a.FieldName, FieldValue = a.FieldValue }).ToList()
                 });
             }
 

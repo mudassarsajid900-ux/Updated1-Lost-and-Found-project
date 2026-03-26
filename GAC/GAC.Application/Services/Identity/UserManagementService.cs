@@ -28,7 +28,8 @@ namespace GAC.Application.Services.Identity
 
         public async Task<(IEnumerable<UserDto> Users, int TotalCount)> GetUsersAsync(DataTableRequest request)
         {
-            int pageNumber = Math.Max(1, request.Start / request.Length + 1);
+            int length = request.Length > 0 ? request.Length : 10;
+            int pageNumber = Math.Max(1, request.Start / length + 1);
             Expression<Func<ApplicationUser, bool>> filter = user => user.IsActive;
 
             if (!string.IsNullOrWhiteSpace(request?.Search?.Value))
@@ -42,11 +43,14 @@ namespace GAC.Application.Services.Identity
                 );
             }
 
-            string sortColumn = request.Columns[request.Order[0].Column].Data;
-            bool sortDescending = string.Equals(request.Order[0].Dir, "desc", StringComparison.OrdinalIgnoreCase);
+            string sortColumn = (request.Order != null && request.Order.Count > 0 && request.Columns != null && request.Columns.Count > request.Order[0].Column)
+                                ? request.Columns[request.Order[0].Column].Data 
+                                : "Id";
+            bool sortDescending = request.Order != null && request.Order.Count > 0 && 
+                                  string.Equals(request.Order[0].Dir, "desc", StringComparison.OrdinalIgnoreCase);
 
             (IEnumerable<ApplicationUser> userData, int totalCount) = await _userRepository.GetPagedAsync(
-                pageNumber, request.Length, filter, sortColumn, sortDescending);
+                pageNumber, length, filter, sortColumn, sortDescending);
 
             var userDtos = new List<UserDto>();
             foreach (var user in userData)

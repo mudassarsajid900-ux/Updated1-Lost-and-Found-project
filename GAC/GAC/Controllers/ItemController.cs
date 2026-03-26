@@ -40,11 +40,10 @@ namespace GAC.API.Controllers
         }
 
         [HttpGet(ApiConstatnts.GetAll)]
-        public async Task<IActionResult> GetAll()
-        {
-            var response = await _itemService.GetAllAsync();
-            return response.ToHttpResult();
-        }
+        public async Task<IActionResult> GetAll() => Ok(await _itemService.GetAllAsync());
+
+        [HttpPut("verify/{id}")]
+        public async Task<IActionResult> Verify(long id) => Ok(await _itemService.VerifyItemAsync(id));
 
         [HttpGet("my-items")]
         public async Task<IActionResult> GetMyItems()

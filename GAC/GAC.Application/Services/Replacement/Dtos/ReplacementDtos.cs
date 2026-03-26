@@ -41,4 +41,14 @@ namespace GAC.Application.Services.Replacement.Dtos
         public int DaysSinceReported { get; set; }
         public bool IsEligible { get; set; }
     }
+
+    public class ReplacementPoolItemDto
+    {
+        public long Id { get; set; }
+        public string Title { get; set; }
+        public string ImageUrl { get; set; }
+        public DateTime FoundDate { get; set; }
+        public string Location { get; set; }
+        public int DaysInPool { get; set; }
+    }
 }

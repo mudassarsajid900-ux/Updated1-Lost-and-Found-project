@@ -178,36 +178,57 @@ namespace GAC.Application.Services.Item
         /// </summary>
         public async Task<Response<GetItemDto>> UpdateAsync(UpdateItemDto dto)
         {
+            // Step 1: Load item WITHOUT attributes (no navigation property to confuse EF)
             var existing = await _itemRepository
                 .AsNoTracking()
-                .Include(x=>x.Attributes)
-                .Include(x => x.Location)
-                .FirstOrDefaultAsync(x=>x.Id==dto.Id);
+                .FirstOrDefaultAsync(x => x.Id == dto.Id);
 
             if (existing == null)
                 return Response<GetItemDto>.NotFoundResponse();
 
-            _mapper.Map(dto, existing);
-
-            // Remove old attributes
-            if (existing.Attributes != null && existing.Attributes.Any())
-                await _attributeRepository.DeleteListAsync(existing.Attributes.ToList());
-
-            // Add new attributes
-            existing.Attributes = dto.Attributes?.Select(a => new ItemAttribute
-            {
-                FieldName = a.FieldName,
-                FieldValue = a.FieldValue,
-                LostItemId = existing.Id
-            }).ToList();
+            // Step 2: Update only scalar fields on the item
+            existing.EventTime = dto.EventTime;
+            existing.LocationId = dto.LocationId;
+            existing.ItemTypeId = dto.ItemTypeId;
+            existing.Status = dto.Status;
+            // Clear navigation so EF does NOT try to manage attributes during UpdateAsync
+            existing.Attributes = null;
 
             await _itemRepository.UpdateAsync(existing);
+
+            // Step 3: Delete all old attributes for this item directly via attribute repository
+            var oldAttrs = await _attributeRepository
+                .AsNoTracking()
+                .Where(a => a.LostItemId == dto.Id)
+                .ToListAsync();
+
+            if (oldAttrs.Any())
+                await _attributeRepository.DeleteListAsync(oldAttrs);
+
+            // Step 4: Insert fresh new attributes (all required fields set explicitly)
+            if (dto.Attributes != null && dto.Attributes.Any())
+            {
+                var newAttrs = dto.Attributes.Select(a => new ItemAttribute
+                {
+                    FieldName = a.FieldName,
+                    FieldValue = a.FieldValue,
+                    LostItemId = existing.Id,
+                    CreatedBy = existing.CreatedBy,
+                    CreatedOn = DateTime.UtcNow,
+                    LastModifiedBy = existing.CreatedBy,
+                    LastModifiedOn = DateTime.UtcNow,
+                    IsActive = true,
+                    IsDeleted = false
+                }).ToList();
+
+                await _attributeRepository.AddRangeAsync(newAttrs);
+            }
 
             var updated = await GetByIdAsync(existing.Id);
 
             return Response<GetItemDto>.SetSuccessResponse(
                 updated.Data,
-                "Lost Report submitted successfully");
+                "Item updated successfully");
         }
 
         public async Task<Response<GetItemDto>> GetByIdAsync(long id)
@@ -217,6 +238,7 @@ namespace GAC.Application.Services.Item
                 .Include(x => x.Attributes)
                 .Include(x => x.Location)
                 .Include(x => x.ItemType)
+                .Include(x => x.CreatedByUser)
                 .FirstOrDefaultAsync(x => x.Id == id);
             if (entity == null)
                 return Response<GetItemDto>.NotFoundResponse();
@@ -233,6 +255,7 @@ namespace GAC.Application.Services.Item
                 .Include(x => x.Location)
                 .Include(x => x.ItemType)
                 .Include(x => x.Attributes)
+                .Include(x=>x.CreatedByUser)
                 .ToListAsync();
 
             var dtoList = _mapper.Map<List<GetItemDto>>(items);
@@ -262,26 +285,37 @@ namespace GAC.Application.Services.Item
 
                 var dtoList = _mapper.Map<List<GetItemDto>>(items);
 
-                // Fetch any potential matches where this user's item is either the Lost or Found side
+                // Fetch matches including the items to check verification status
                 var userItemIds = items.Select(x => x.Id).ToList();
                 var matches = new List<ItemMatch>();
                 if (userItemIds.Any())
                 {
                     matches = await _itemMatchRepository.AsQueryable()
+                        .Include(m => m.LostItem)
+                        .Include(m => m.FoundItem)
                         .Where(m => (userItemIds.Contains(m.LostItemId) || userItemIds.Contains(m.FoundItemId)) && !m.IsMatchResolved)
                         .ToListAsync();
                 }
 
                 foreach(var dto in dtoList)
                 {
-                    // check if this item is in any active match
                     var match = matches.FirstOrDefault(m => m.LostItemId == dto.Id || m.FoundItemId == dto.Id);
                     if (match != null)
                     {
-                        dto.HasPotentialMatch = true;
-                        // If this is the lost item, link to the found one. If this is the found item, link to the lost one.
-                        dto.MatchFoundItemId = (dto.Id == match.LostItemId) ? match.FoundItemId : match.LostItemId;
-                        dto.IsVerifiedByAdmin = match.IsVerifiedByAdmin;
+                        var isLostReporter = dto.ReportType == ReportType.Lost;
+                        var otherSideVerified = isLostReporter ? match.FoundItem.IsVerifiedByAdmin : true; // Found items always see their match? Or do they? The user said "Matching not start until...". 
+
+                        if (isLostReporter && !match.FoundItem.IsVerifiedByAdmin)
+                        {
+                            // Hidden from user because it's not in office yet
+                            dto.HasPotentialMatch = false; 
+                        }
+                        else 
+                        {
+                            dto.HasPotentialMatch = true;
+                            dto.MatchFoundItemId = isLostReporter ? match.FoundItemId : match.LostItemId;
+                            dto.IsVerifiedByAdmin = isLostReporter ? match.FoundItem.IsVerifiedByAdmin : match.LostItem.IsVerifiedByAdmin;
+                        }
                     }
                 }
 
@@ -425,6 +459,18 @@ namespace GAC.Application.Services.Item
                     }
                 }
             }
+        }
+
+        public async Task<Response<bool>> VerifyItemAsync(long id)
+        {
+            var item = await _itemRepository.GetByIdAsync(id);
+            if (item == null) return Response<bool>.NotFoundResponse();
+
+            item.IsVerifiedByAdmin = true;
+            item.VerifiedDate = DateTime.UtcNow;
+            await _itemRepository.UpdateAsync(item);
+
+            return Response<bool>.SetSuccessResponse(true, "Item receipt verified successfully.");
         }
     }
 }

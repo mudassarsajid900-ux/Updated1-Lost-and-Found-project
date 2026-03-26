@@ -20,5 +20,7 @@ namespace GAC.Core.Entities.Item
         public ItemCondition Condition { get; set; }
         public ReportType ReportType { get; set; }
         public string? ImageUrl { get; set; }
+        public bool IsVerifiedByAdmin { get; set; } = false;
+        public DateTime? VerifiedDate { get; set; }
     }
 }

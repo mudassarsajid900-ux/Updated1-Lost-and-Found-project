@@ -26,6 +26,14 @@ namespace GAC.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpPost("{id}/end")]
+        public async Task<ActionResult<Response<GetAuctionDto>>> EndAuction(long id)
+        {
+            var result = await _auctionService.EndAuctionAsync(id);
+            return StatusCode(result.StatusCode, result);
+        }
+
         [HttpPost("place-bid")]
         public async Task<ActionResult<Response<GetAuctionDto>>> PlaceBid(PlaceBidDto dto)
         {
@@ -44,6 +52,14 @@ namespace GAC.API.Controllers
         public async Task<ActionResult<Response<List<GetAuctionDto>>>> GetActiveAuctions()
         {
             var result = await _auctionService.GetAllActiveAuctionsAsync();
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("completed")]
+        public async Task<ActionResult<Response<List<GetAuctionDto>>>> GetCompletedAuctions()
+        {
+            var result = await _auctionService.GetCompletedAuctionsAsync();
             return StatusCode(result.StatusCode, result);
         }
 

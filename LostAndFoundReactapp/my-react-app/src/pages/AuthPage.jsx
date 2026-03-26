@@ -149,8 +149,10 @@ const LoginForm = ({ navigate }) => {
 
                 // Route user based on their Role
                 if (roles && roles.includes('Admin')) {
+                    localStorage.setItem('isAdmin', 'true');
                     navigate('/admin-dashboard');
                 } else {
+                    localStorage.setItem('isAdmin', 'false');
                     navigate('/dashboard');
                 }
             } else {

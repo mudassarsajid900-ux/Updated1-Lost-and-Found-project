@@ -15,6 +15,32 @@ const Auction = () => {
     // Navigate between pages
     const navigate = useNavigate();
 
+    // Helper: Calculate remaining time in human-readable format
+    const getTimeRemaining = (endDateStr) => {
+        if (!endDateStr) return 'Active';
+        const total = Date.parse(endDateStr) - Date.parse(new Date());
+        if (total <= 0) return 'Ended';
+        
+        const seconds = Math.floor((total / 1000) % 60);
+        const minutes = Math.floor((total / 1000 / 60) % 60);
+        const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
+        const days = Math.floor(total / (1000 * 60 * 60 * 24));
+
+        if (days > 0) return `${days}d ${hours}h left`;
+        if (hours > 0) return `${hours}h ${minutes}m left`;
+        if (minutes > 0) return `${minutes}m ${seconds}s left`;
+        return `${seconds}s left`;
+    };
+
+    // Helper: Dynamic Bid Increment based on current price
+    const getMinIncrement = (currentPrice) => {
+        if (currentPrice < 1000) return 100;
+        if (currentPrice < 5000) return 250;
+        if (currentPrice < 10000) return 500;
+        if (currentPrice < 50000) return 1000;
+        return 5000;
+    };
+
     // ========================================== //
     // STATE VARIABLES
     // ========================================== //
@@ -44,6 +70,7 @@ const Auction = () => {
     const [myBids, setMyBids] = useState([]);
     const [myWins, setMyWins] = useState([]);
     const [loadingUserAuctions, setLoadingUserAuctions] = useState(false);
+    const [selectedWinningAuction, setSelectedWinningAuction] = useState(null);
 
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -125,7 +152,9 @@ const Auction = () => {
     // User clicks the "Place Bid" button on an item card
     const handlePlaceBidClick = (item) => {
         setSelectedItem(item);
-        setBidAmount(Number(item.highestBid || item.HighestBid || 0) + 500);
+        const currentPrice = Number(item.highestBid || item.HighestBid || 0);
+        const increment = getMinIncrement(currentPrice);
+        setBidAmount(currentPrice + increment);
         setSubmitStatus({ type: '', message: '' });
         setIsModalOpen(true);
     };
@@ -136,11 +165,12 @@ const Auction = () => {
 
         const newBidVal = parseInt(bidAmount);
         const currentPrice = Number(selectedItem.highestBid || selectedItem.HighestBid || 0);
+        const minRequired = currentPrice + getMinIncrement(currentPrice);
 
-        if (newBidVal <= currentPrice) {
+        if (newBidVal < minRequired) {
             setSubmitStatus({
                 type: 'error',
-                message: `Please enter a bid higher than Rs. ${currentPrice.toLocaleString()}`
+                message: `Minimum required bid is Rs. ${minRequired.toLocaleString()}`
             });
             return;
         }
@@ -180,6 +210,10 @@ const Auction = () => {
     const handleBackToList = () => {
         setViewMode('list');
         setSelectedItem(null);
+    };
+
+    const handleViewReceipt = (win) => {
+        setSelectedWinningAuction(win);
     };
 
     // Handler to open detail view from card title/image
@@ -243,21 +277,24 @@ const Auction = () => {
                                 <div className="card-inner-header">
                                     <h4>Take Action</h4>
                                 </div>
-                                <div className="bid-interaction-zone">
-                                    <div className="light-input-wrapper">
-                                        <span className="rs-tag">Rs.</span>
-                                        <input
-                                            type="number"
-                                            className="light-input-field"
-                                            placeholder="Enter your bid"
-                                            value={bidAmount}
-                                            onChange={(e) => setBidAmount(e.target.value)}
-                                        />
+                                    <div className="bid-interaction-zone">
+                                        <div className="light-input-wrapper">
+                                            <span className="rs-tag">Rs.</span>
+                                            <input
+                                                type="number"
+                                                className="light-input-field"
+                                                placeholder={`Min Rs. ${Number(Number(selectedItem.highestBid || selectedItem.HighestBid || 0) + getMinIncrement(Number(selectedItem.highestBid || selectedItem.HighestBid || 0))).toLocaleString()}`}
+                                                value={bidAmount}
+                                                onChange={(e) => setBidAmount(e.target.value)}
+                                            />
+                                        </div>
+                                        <button className="place-bid-btn-primary" onClick={handleSubmitBid}>
+                                            Place Your Bid
+                                        </button>
                                     </div>
-                                    <button className="place-bid-btn-primary" onClick={handleSubmitBid}>
-                                        Place Your Bid
-                                    </button>
-                                </div>
+                                    <p style={{ marginTop: '10px', fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center' }}>
+                                        Required Minimum Increment: Rs. {getMinIncrement(Number(selectedItem.highestBid || selectedItem.HighestBid || 0)).toLocaleString()}
+                                    </p>
                             </div>
 
                             <div className="modal-card-sleek history-card-web">
@@ -285,6 +322,68 @@ const Auction = () => {
                                         <div className="no-bids-text">No bids placed yet. Be the first!</div>
                                     )}
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const renderReceiptModal = () => {
+        if (!selectedWinningAuction) return null;
+
+        return (
+            <div className="modal-overlay receipt-overlay">
+                <div className="bid-modal-container receipt-container animate-slide-up" style={{ maxWidth: '450px', background: '#fff' }}>
+                    <div className="receipt-paper">
+                        <div className="receipt-top-header" style={{ background: '#0d9488', color: '#fff', padding: '2rem', textAlign: 'center', position: 'relative' }}>
+                            <button className="close-btn-round" onClick={() => setSelectedWinningAuction(null)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(255,255,255,0.2)', color: '#fff' }}>×</button>
+                            <div style={{ background: '#fff', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto' }}>
+                                <Award size={32} color="#0d9488" />
+                            </div>
+                            <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '900' }}>AUCTION WINNER</h2>
+                            <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', opacity: 0.9 }}>Digital Acquisition Receipt</p>
+                        </div>
+
+                        <div style={{ padding: '2rem' }}>
+                            <div style={{ textAlign: 'center', marginBottom: '1.5rem', borderBottom: '2px dashed #f1f5f9', paddingBottom: '1.5rem' }}>
+                                <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#1e293b', fontWeight: '800' }}>{selectedWinningAuction.itemTitle}</h3>
+                                <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#94a3b8' }}>Order ID: {selectedWinningAuction.orderNumber || `AUC-${selectedWinningAuction.auctionId}`}</p>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '600' }}>Winning Bid</span>
+                                    <span style={{ color: '#1e293b', fontSize: '1rem', fontWeight: '800' }}>Rs. {selectedWinningAuction.winningBid.toLocaleString()}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '600' }}>Winner Name</span>
+                                    <span style={{ color: '#1e293b', fontSize: '0.9rem', fontWeight: '700' }}>{currentUserName}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '600' }}>Date Won</span>
+                                    <span style={{ color: '#1e293b', fontSize: '0.9rem', fontWeight: '700' }}>{new Date(selectedWinningAuction.endDate).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+
+                            <div style={{ marginTop: '2rem', padding: '1.5rem', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                                <div style={{ width: '120px', height: '120px', background: '#fff', border: '1px solid #e2e8f0', margin: '0 auto 1rem auto', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <div style={{ width: '100%', height: '100%', background: 'repeating-conic-gradient(#0f172a 0% 25%, #fff 0% 50%) 50% / 20px 20px' }}></div>
+                                </div>
+                                <p style={{ fontSize: '0.7rem', color: '#94a3b8', margin: 0 }}>PRESENT THIS QR CODE AT THE OFFICE FOR COLLECTION</p>
+                            </div>
+
+                            <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+                                <button 
+                                    onClick={() => window.print()}
+                                    style={{ width: '100%', padding: '1rem', borderRadius: '14px', background: '#1e293b', color: '#fff', fontWeight: '800', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                                >
+                                    Print Receipt
+                                </button>
+                                <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: '#64748b', lineHeight: '1.4' }}>
+                                    Note: Items must be collected within 48 hours. Please bring your University Identity Card.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -374,7 +473,7 @@ const Auction = () => {
                                 </div>
                                 <div className="timer-box">
                                     <Clock size={16} />
-                                    <span>Status: Live Auction</span>
+                                    <span>Time Left: {getTimeRemaining(selectedItem.endDate || selectedItem.EndDate)}</span>
                                 </div>
                             </div>
 
@@ -473,7 +572,7 @@ const Auction = () => {
                                                         <div className="time-info" style={{ display: 'flex', gap: '10px' }}>
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                                 <Clock size={14} className="icon-teal" />
-                                                                <span>Live</span>
+                                                                <span style={{ color: '#0d9488', fontWeight: 'bold' }}>{getTimeRemaining(item.endDate || item.EndDate)}</span>
                                                             </div>
                                                             {Number(item.highestBid || 0) > 0 && (
                                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ea580c', background: '#ffedd5', padding: '2px 8px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold' }}>
@@ -532,14 +631,14 @@ const Auction = () => {
                                                                         <div className="status-badge-red" style={{ animation: 'pulse-fast 1s infinite' }}><AlertCircle size={16} /> ALERT: You've been outbid!</div>
                                                                     )}
                                                                 </div>
-                                                                <div className="info-actions">
-                                                                    <div className="time-left-pill" style={{ background: bid.isHighestBidder ? '#f1f5f9' : '#fee2e2', color: bid.isHighestBidder ? '#64748b' : '#ef4444' }}>
-                                                                        {bid.isHighestBidder ? 'Winning' : 'Losing'}
+                                                                    <div className="info-actions">
+                                                                        <div className="time-left-pill" style={{ background: bid.isHighestBidder ? '#f1f5f9' : '#fee2e2', color: bid.isHighestBidder ? '#64748b' : '#ef4444' }}>
+                                                                            {getTimeRemaining(bid.endDate || bid.EndDate)}
+                                                                        </div>
+                                                                        <button className="increase-bid-btn" style={{ display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => handlePlaceBidClick({ id: bid.auctionId, itemTitle: bid.itemTitle, highestBid: bid.currentHighestBid, itemImageUrl: bid.itemImageUrl, endDate: (bid.endDate || bid.EndDate) })}>
+                                                                            <ArrowUpCircle size={18} /> Increase Bid
+                                                                        </button>
                                                                     </div>
-                                                                    <button className="increase-bid-btn" style={{ display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => handlePlaceBidClick({ id: bid.auctionId, itemTitle: bid.itemTitle, highestBid: bid.currentHighestBid, itemImageUrl: bid.itemImageUrl })}>
-                                                                        <ArrowUpCircle size={18} /> Increase Bid
-                                                                    </button>
-                                                                </div>
                                                             </div>
                                                         </div>
                                                     )) : (
@@ -567,8 +666,8 @@ const Auction = () => {
                                                                     <div className="status-badge-green">Status: Ready for Pickup</div>
                                                                 </div>
                                                                 <div className="info-actions">
-                                                                    <div className="receipt-pill">Order {win.orderNumber}</div>
-                                                                    <button className="view-details-btn">View Receipt</button>
+                                                                    <div className="receipt-pill">Order {win.orderNumber || `AUC-${win.auctionId}`}</div>
+                                                                    <button className="view-details-btn" onClick={() => handleViewReceipt(win)}>View Receipt</button>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -587,6 +686,7 @@ const Auction = () => {
                     renderBidDetail()
                 )}
                 {renderBidModal()}
+                {renderReceiptModal()}
             </main>
 
             <style dangerouslySetInnerHTML={{

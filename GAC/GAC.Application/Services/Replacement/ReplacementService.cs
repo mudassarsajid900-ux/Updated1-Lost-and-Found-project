@@ -216,9 +216,31 @@ namespace GAC.Application.Services.Replacement
             return Response<Dictionary<string, int>>.SetSuccessResponse(result);
         }
 
+        public async Task<Response<List<ReplacementPoolItemDto>>> GetAvailablePoolItemsAsync()
+        {
+            var items = await _itemRepository.AsQueryable()
+                .Include(x => x.ItemType)
+                .Include(x => x.Location)
+                .Where(x => x.Status == ItemStatus.Replacement && x.ReportType == ReportType.Found)
+                .ToListAsync();
+
+            var result = items.Select(x => new ReplacementPoolItemDto
+            {
+                Id = x.Id,
+                Title = x.ItemType.Name,
+                ImageUrl = x.ImageUrl,
+                FoundDate = x.CreatedOn,
+                Location = x.Location.Name,
+                DaysInPool = (int)(DateTime.UtcNow - x.LastModifiedOn.ToUniversalTime()).TotalDays
+            }).ToList();
+
+            return Response<List<ReplacementPoolItemDto>>.SetSuccessResponse(result);
+        }
+
         private async Task<Response<bool>> UpsertSettingAsync(string key, int days, string description)
         {
             var setting = await _settingsRepository.AsQueryable()
+                .OrderByDescending(x => x.CreatedOn)
                 .FirstOrDefaultAsync(x => x.SettingKey == key);
 
             if (setting == null)
@@ -246,6 +268,7 @@ namespace GAC.Application.Services.Replacement
         private async Task<int> GetSettingValueAsync(string key, int defaultValue)
         {
             var setting = await _settingsRepository.AsQueryable()
+                .OrderByDescending(x => x.CreatedOn)
                 .FirstOrDefaultAsync(x => x.SettingKey == key);
             
             if (setting != null && int.TryParse(setting.SettingValue, out int days))

@@ -18,5 +18,6 @@ namespace GAC.Application.Interfaces.Replacement
         Task<Response<bool>> UpdateFoundToReplacementThresholdAsync(int days);
         Task<Response<bool>> UpdateReplacementToAuctionThresholdAsync(int days);
         Task<Response<Dictionary<string, int>>> GetAllThresholdsAsync();
+        Task<Response<List<ReplacementPoolItemDto>>> GetAvailablePoolItemsAsync();
     }
 }

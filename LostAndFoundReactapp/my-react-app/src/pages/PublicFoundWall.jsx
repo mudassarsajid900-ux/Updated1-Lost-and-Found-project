@@ -99,7 +99,14 @@ const PublicFoundWall = () => {
                                         </div>
                                     </div>
                                     <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1 }}>
-                                        <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#1e293b' }}>{item.type || item.Type}</h3>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                {item.type || item.Type}
+                                                {(item.isVerifiedByAdmin || item.IsVerifiedByAdmin) && (
+                                                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', flexShrink: 0, boxShadow: '0 0 4px #10b981' }} title="Physically Verified & Secured by Admin" />
+                                                )}
+                                            </h3>
+                                        </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '0.85rem' }}>
                                             <MapPin size={14} /> {item.locationName || item.LocationName}
                                         </div>

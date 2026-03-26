@@ -15,6 +15,11 @@ namespace GAC.Application.Services.Item.Dtos
         public ReportType ReportType { get; set; }
         public string ImageUrl { get; set; }
 
+        public string ReporterName { get; set; }
+        public string ReporterEmail { get; set; }
+        public string ReporterPhone { get; set; }
+        public DateTime CreatedOn { get; set; }
+
         public bool HasPotentialMatch { get; set; } = false;
         public long? MatchFoundItemId { get; set; }
         public bool IsVerifiedByAdmin { get; set; } = false;

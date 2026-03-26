@@ -38,9 +38,9 @@ namespace GAC.Application
             services.AddScoped<IMobileModelService, MobileModelService>();
             services.AddScoped<IHandoverService, HandoverService>();
 
-            // Background Service: Automatically moves items through the lifecycle
             // Found → Replacement → Auction based on Admin-defined thresholds
             services.AddHostedService<ItemLifecycleService>();
+            services.AddHostedService<AuctionBackgroundService>();
 
             return services;
         }

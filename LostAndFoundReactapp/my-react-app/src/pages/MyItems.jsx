@@ -22,7 +22,7 @@ import Header from '../components/Header';
 // 2. Filters items into two lists (Lost Reports vs Found Items).
 // 3. Renders cards with dynamic status badges (Returned, Potential Match, etc.).
 // ========================================== //
-const MyItems = () => {
+const MyItems = ({ isAdmin = false }) => {
     const navigate = useNavigate();
     // Persist active tab in localStorage so it doesn't reset on refresh
     const [activeTab, setActiveTab] = useState(() => localStorage.getItem('myItemsActiveTab') || 'lost');
@@ -38,7 +38,8 @@ const MyItems = () => {
     const fetchMyItems = async () => {
         setLoading(true);
         try {
-            const response = await api.get('Item/my-items');
+            const endpoint = isAdmin ? 'Item/all' : 'Item/my-items';
+            const response = await api.get(endpoint);
             console.log("My Items API Response:", response.data);
             const data = response.data.data || response.data.Data || [];
             if (data) setMyItems(data);
@@ -291,15 +292,15 @@ const MyItems = () => {
 
     return (
         <div className="dashboard-container">
-            <Sidebar />
+            <Sidebar isAdmin={isAdmin} />
 
             <main className="main-content premium-bg">
                 <div className="page-max-width">
                     <Header
-                        title="My Lost & Found"
-                        subtitle="Track and manage all your reported campus items"
+                        title={isAdmin ? "Campus Inventory" : "My Lost & Found"}
+                        subtitle={isAdmin ? "Manage and view all reported items across the university" : "Track and manage all your reported campus items"}
                         showBack={true}
-                        onBack={() => navigate('/dashboard')}
+                        onBack={() => navigate(isAdmin ? '/admin-dashboard' : '/dashboard')}
                     />
 
                     {/* Premium Sliding Tabs */}

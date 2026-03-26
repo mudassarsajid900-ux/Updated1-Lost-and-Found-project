@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Camera, Search, Gavel, Home, Folder, PlusCircle, Settings, User, LogOut, ChevronLeft, Calendar, MapPin, UploadCloud, Sliders, Clock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import api from '../api/axios';
@@ -16,8 +16,10 @@ import api from '../api/axios';
 // 4. Formats data into FormData for C# multipart/form-data compatibility.
 // ========================================== //
 const ReportFound = () => {
-    // Allows us to redirect the user back to the dashboard when they click Back
     const navigate = useNavigate();
+    const location = useLocation();
+    const editData = location.state?.itemData;
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
 
     const [mobileCompanies, setMobileCompanies] = useState([]);
     const [mobileModels, setMobileModels] = useState([]);
@@ -189,16 +191,51 @@ const ReportFound = () => {
     // ========================================== //
 
     // Which big dropdown category is selected (e.g. "Phone")
-    const [selectedCategory, setSelectedCategory] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState(editData?.type || editData?.Type || "");
+
+    const getInitialFormData = () => {
+        if (!editData) return { itemType: "", attributes: {}, dateFound: "", venue: "", description: "" };
+        const dateRaw = editData.eventTime || editData.EventTime;
+        let dateFormatted = "";
+        
+        if (dateRaw) {
+            try {
+                const parsedDate = new Date(dateRaw);
+                if (!isNaN(parsedDate.getTime())) {
+                    dateFormatted = parsedDate.toISOString().split('T')[0];
+                } else if (typeof dateRaw === 'string' && dateRaw.includes('/')) {
+                    // Fallback for MM/DD/YYYY format
+                    const parts = dateRaw.split(' ')[0].split('/');
+                    if (parts.length === 3) {
+                        // MM/DD/YYYY to YYYY-MM-DD
+                        dateFormatted = `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+                    }
+                }
+            } catch (e) {
+                console.error("Date parse error", e);
+            }
+        }
+
+        const attrs = editData.attributes || editData.Attributes || [];
+        let desc = "";
+        const attrObj = {};
+        attrs.forEach(a => {
+            const fname = a.fieldName || a.FieldName;
+            const fval = a.fieldValue || a.FieldValue;
+            if (fname === 'Found Description') desc = fval;
+            else attrObj[fname] = fval;
+        });
+        return {
+            itemType: editData.type || editData.Type || "",
+            attributes: attrObj,
+            dateFound: dateFormatted,
+            venue: editData.locationName || editData.LocationName || "",
+            description: desc
+        };
+    };
 
     // The rest of the form answers
-    const [formData, setFormData] = useState({
-        itemType: "",
-        attributes: {},
-        dateFound: "",
-        venue: "",
-        description: "" // Found form usually doesn't have a separate description in sidebar, but we keep it
-    });
+    const [formData, setFormData] = useState(getInitialFormData());
 
 
     // ========================================== //
@@ -302,51 +339,92 @@ const ReportFound = () => {
             const typeEntity = itemTypes.find(t => t.name === selectedCategory);
             const locationEntity = universityLocations.find(l => l.name === formData.venue);
 
-            // STEP 2: Data Packaging (Multipart FormData)
-            // We use FormData to support the photo upload and complex list binding
-            const data = new FormData();
+            let response;
 
-            // Format found date with a default noon time for C# compatibility
-            data.append('eventTime', `${formData.dateFound}T12:00:00`);
-            data.append('locationId', locationEntity?.id || 0);
-            data.append('itemTypeId', typeEntity?.id || 0);
-            data.append('status', 1);      // Enum: 1 = Found
-            data.append('reportType', 1);  // Enum: 1 = Found Report
+            if (editData) {
+                if (!formData.dateFound) {
+                    throw new Error("Date is required. Please select a valid date.");
+                }
 
-            // STEP 3: Map Dynamic Attributes
-            // .NET list binding expects Attributes[index].Property naming convention
-            Object.entries(formData.attributes).forEach(([key, val], index) => {
-                data.append(`Attributes[${index}].FieldName`, key);
-                data.append(`Attributes[${index}].FieldValue`, String(val));
-            });
+                // Fix 1: status must be a number (1=Found). API may return string "Found" or number 1.
+                const rawStatus = editData.status ?? editData.Status;
+                let numericStatus = 1; // default = Found
+                if (typeof rawStatus === 'number') numericStatus = rawStatus;
+                else if (typeof rawStatus === 'string') {
+                    const s = rawStatus.toLowerCase();
+                    if (s === 'found') numericStatus = 1;
+                    else if (s === 'lost') numericStatus = 0;
+                    else numericStatus = parseInt(rawStatus) || 1;
+                }
 
-            // STEP 4: Secondary Description
-            // Adding description as a final attribute in the list
-            const descIndex = Object.keys(formData.attributes).length;
-            if (formData.description) {
-                data.append(`Attributes[${descIndex}].FieldName`, 'Found Description');
-                data.append(`Attributes[${descIndex}].FieldValue`, formData.description);
+                // Fix 2: locationId — prefer name match but always fall back to original ID
+                const safeLocationId = locationEntity?.id || editData.locationId || editData.LocationId || 0;
+                const safeItemTypeId = typeEntity?.id || editData.itemTypeId || editData.ItemTypeId || 0;
+
+                // UPDATE LOGIC (JSON body)
+                const updateData = {
+                    id: editData.id || editData.Id,
+                    eventTime: `${formData.dateFound}T12:00:00`,
+                    locationId: safeLocationId,
+                    itemTypeId: safeItemTypeId,
+                    status: numericStatus,
+                    attributes: Object.entries(formData.attributes).map(([key, val]) => ({
+                        fieldName: key,
+                        fieldValue: Array.isArray(val) ? val.join(', ') : String(val)
+                    }))
+                };
+                if (formData.description) {
+                    updateData.attributes.push({
+                        fieldName: 'Found Description',
+                        fieldValue: formData.description
+                    });
+                }
+                
+                console.log("Submitting Update Request...", updateData);
+                response = await api.put('Item/update', updateData);
+                console.log("Server Response:", response.data);
+
+            } else {
+                // CREATE LOGIC (Multipart Form Data)
+                const data = new FormData();
+                data.append('eventTime', `${formData.dateFound}T12:00:00`);
+                data.append('locationId', locationEntity?.id || 0);
+                data.append('itemTypeId', typeEntity?.id || 0);
+                data.append('status', 1);      // Enum: 1 = Found
+                data.append('reportType', 1);  // Enum: 1 = Found Report
+
+                Object.entries(formData.attributes).forEach(([key, val], index) => {
+                    data.append(`Attributes[${index}].FieldName`, key);
+                    data.append(`Attributes[${index}].FieldValue`, String(val));
+                });
+
+                const descIndex = Object.keys(formData.attributes).length;
+                if (formData.description) {
+                    data.append(`Attributes[${descIndex}].FieldName`, 'Found Description');
+                    data.append(`Attributes[${descIndex}].FieldValue`, formData.description);
+                }
+
+                if (photo) {
+                    data.append('photo', photo);
+                }
+
+                console.log("Submitting Found Report...");
+                response = await api.post('Item/create', data, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                console.log("Server Response:", response.data);
             }
-
-            // STEP 5: Add Photo
-            // If the user selected an image, append it to the file list
-            if (photo) {
-                console.log("Attaching photo:", photo.name);
-                data.append('photo', photo);
-            }
-
-            // STEP 6: API Request
-            console.log("Submitting Found Report...");
-
-            console.log("Sending FormData...");
-            const response = await api.post('Item/create', data, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            console.log("Server Response:", response.data);
 
             if (response.data.isSucceeded || response.data.IsSucceeded) {
                 setSubmitStatus({ type: 'success', message: response.data.message || 'Found report published successfully!' });
-                setTimeout(() => navigate('/dashboard'), 2000);
+                setTimeout(() => {
+                    const itemId = editData?.id || editData?.Id;
+                    if (isAdmin) {
+                        navigate(editData ? `/admin-report-control/${itemId}` : '/admin-reports');
+                    } else {
+                        navigate(editData ? '/my-items' : '/dashboard');
+                    }
+                }, 2000);
             } else {
                 setSubmitStatus({ type: 'error', message: response.data.message || 'Failed to publish report' });
             }
@@ -529,17 +607,24 @@ const ReportFound = () => {
         <div className="dashboard-container">
 
             {/* Show left Sidebar menu */}
-            <Sidebar />
+            <Sidebar isAdmin={isAdmin} />
 
             {/* Main content Area */}
             <main className="main-content">
 
                 {/* 7A. Page Header showing Title */}
                 <Header
-                    title="Report Found Item"
-                    subtitle="Fill in the details to help find the owner."
+                    title={editData ? "Edit Found Report" : "Report Found Item"}
+                    subtitle={editData ? "Updating report details." : "Fill in the details to help find the owner."}
                     showBack={true}
-                    onBack={() => navigate('/dashboard')}
+                    onBack={() => {
+                        const itemId = editData?.id || editData?.Id;
+                        if (isAdmin) {
+                            navigate(editData ? `/admin-report-control/${itemId}` : '/admin-reports');
+                        } else {
+                            navigate(editData ? '/my-items' : '/dashboard');
+                        }
+                    }}
                 />
 
                 <div className="content-wrapper">

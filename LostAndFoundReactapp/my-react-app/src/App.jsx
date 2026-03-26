@@ -17,8 +17,11 @@ import ReviewClaim from './pages/ReviewClaim';
 import AdminDashboard from './admin/AdminDashboard';
 import AdminManageUsers from './admin/AdminManageUsers';
 import AdminSettings from './admin/AdminSettings';
-import AdminReplacements from './pages/AdminReplacements';
+import AdminReplacements from './admin/AdminReplacements';
 import AdminHandover from './admin/AdminHandover';
+import AdminAuctions from './admin/AdminAuctions';
+import AdminInventory from './admin/AdminInventory';
+import AdminReportControl from './admin/AdminReportControl';
 import ReportDetails from './pages/ReportDetails';
 
 
@@ -34,7 +37,9 @@ function App() {
         <Route path="/admin-settings" element={<AdminSettings />} />
         <Route path="/admin-replacements" element={<AdminReplacements />} />
         <Route path="/admin-handover" element={<AdminHandover />} />
-        <Route path="/admin-reports" element={<MyItems isAdmin={true} />} />
+        <Route path="/admin-auctions" element={<AdminAuctions />} />
+        <Route path="/admin-reports" element={<AdminInventory />} />
+        <Route path="/admin-report-control/:id" element={<AdminReportControl />} />
         <Route path="/report-found" element={<ReportFound />} />
         <Route path="/report-lost" element={<ReportLost />} />
         <Route path="/my-items" element={<MyItems />} />
