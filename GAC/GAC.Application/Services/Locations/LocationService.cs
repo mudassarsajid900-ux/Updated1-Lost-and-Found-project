@@ -12,13 +12,16 @@ namespace GAC.Application.Services.Locations;
 public class LocationService : ILocationService
 {
     private readonly IGenericRepository<Location> _locationRepository;
+    private readonly IGenericRepository<GAC.Core.Entities.Item.Items> _itemRepository;
     private readonly IMapper _mapper;
 
     public LocationService(
         IGenericRepository<Location> locationRepository,
+        IGenericRepository<GAC.Core.Entities.Item.Items> itemRepository,
         IMapper mapper)
     {
         _locationRepository = locationRepository;
+        _itemRepository = itemRepository;
         _mapper = mapper;
     }
 
@@ -87,6 +90,17 @@ public class LocationService : ILocationService
 
         if (entity == null)
             return Response<string>.NotFoundResponse();
+
+        // DEletion Guard: Check if any active items are still linked to this location
+        var hasActiveItems = await _itemRepository.AsQueryable()
+            .AnyAsync(x => x.LocationId == id && (x.Status == GAC.Core.Enums.ItemStatus.Lost || x.Status == GAC.Core.Enums.ItemStatus.Found));
+
+        if (hasActiveItems)
+        {
+            return Response<string>.SetCustomErrorResponse(
+                "Cannot delete this location because it still contains active lost or found items. Please reassign or handover those items first.", 
+                StatusCodes.Status400BadRequest);
+        }
 
         await _locationRepository.DeleteAsync(id);
 

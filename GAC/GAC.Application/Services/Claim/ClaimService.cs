@@ -8,24 +8,28 @@ using GAC.Core.Entities.Claims;
 using GAC.Core.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using GAC.Core.Entities.Item;
 
 namespace GAC.Application.Services.ClaimRequests
 {
     public class ClaimService : IClaimService
     {
         private readonly IGenericRepository<ClaimRequest> _claimRepository;
-        private readonly IGenericRepository<GAC.Core.Entities.Item.Items> _itemRepository;
+        private readonly IGenericRepository<Items> _itemRepository;
+        private readonly IGenericRepository<ItemMatch> _matchRepository;
         private readonly IMapper _mapper;
         private readonly UserData _userData;
 
         public ClaimService(
             IGenericRepository<ClaimRequest> claimRepository,
-            IGenericRepository<GAC.Core.Entities.Item.Items> itemRepository,
+            IGenericRepository<Items> itemRepository,
+            IGenericRepository<ItemMatch> matchRepository,
             IMapper mapper,
             UserData userData)
         {
             _claimRepository = claimRepository;
             _itemRepository = itemRepository;
+            _matchRepository = matchRepository;
             _mapper = mapper;
             _userData = userData;
         }
@@ -75,7 +79,67 @@ namespace GAC.Application.Services.ClaimRequests
                 return Response<GetClaimDto>.NotFoundResponse();
 
             entity.Status = dto.Status;
+            entity.RejectionReason = dto.RejectionReason;
             await _claimRepository.UpdateAsync(entity);
+
+            // AUTO-RESOLVE MATCH AND MOVE TO HANDOVER UPON ADMN DECISION
+            if (dto.Status == ClaimStatus.VerificationSucceeded || dto.Status == ClaimStatus.VerificationFailed)
+            {
+                // Resolve THE specific match that was just decided
+                var specificMatch = await _matchRepository.AsQueryable()
+                    .FirstOrDefaultAsync(m => (m.LostItemId == entity.LostItemId && m.FoundItemId == entity.FoundItemId));
+                
+                if (specificMatch != null)
+                {
+                    specificMatch.IsMatchResolved = true;
+                    await _matchRepository.UpdateAsync(specificMatch);
+                }
+
+                // If approved, move items to Handover status AND resolve ALL OTHER matches
+                if (dto.Status == ClaimStatus.VerificationSucceeded)
+                {
+                    var otherMatches = await _matchRepository.AsQueryable()
+                        .Where(m => (m.FoundItemId == entity.FoundItemId || m.LostItemId == entity.FoundItemId) && !m.IsMatchResolved)
+                        .ToListAsync();
+                    
+                    foreach (var m in otherMatches)
+                    {
+                        m.IsMatchResolved = true;
+                        await _matchRepository.UpdateAsync(m);
+                    }
+
+                    // PERFECTION: Automatically reject all OTHER pending claims for this Found item
+                    var otherClaims = await _claimRepository.AsQueryable()
+                        .Where(c => c.FoundItemId == entity.FoundItemId && c.Id != entity.ClaimId && c.Status == ClaimStatus.VerificationPending)
+                        .ToListAsync();
+
+                    foreach (var otherClaim in otherClaims)
+                    {
+                        otherClaim.Status = ClaimStatus.VerificationFailed;
+                        otherClaim.RejectionReason = "Item has been successfully reclaimed by another verified owner.";
+                        await _claimRepository.UpdateAsync(otherClaim);
+                    }
+
+                    var foundItem = await _itemRepository.GetByIdAsync(entity.FoundItemId);
+                    var lostItem = await _itemRepository.GetByIdAsync(entity.LostItemId);
+
+                    if (foundItem == null || foundItem.Status == ItemStatus.Handover)
+                    {
+                        return Response<GetClaimDto>.SetCustomErrorResponse("This item has already been handed over or is unavailable.", StatusCodes.Status400BadRequest);
+                    }
+
+                    if (foundItem != null)
+                    {
+                        foundItem.Status = ItemStatus.Handover;
+                        await _itemRepository.UpdateAsync(foundItem);
+                    }
+                    if (lostItem != null)
+                    {
+                        lostItem.Status = ItemStatus.Handover;
+                        await _itemRepository.UpdateAsync(lostItem);
+                    }
+                }
+            }
 
             var result = _mapper.Map<GetClaimDto>(entity);
             return Response<GetClaimDto>.SetSuccessResponse(result, "Claim status updated successfully");
@@ -86,6 +150,12 @@ namespace GAC.Application.Services.ClaimRequests
             var entity = await _claimRepository.GetByIdAsync(id);
             if (entity == null)
                 return Response<GetClaimDto>.NotFoundResponse();
+
+            // IDOR Protection: Students only see their own claim records (Admins see all)
+            if (_userData != null && _userData.Role != "Admin" && entity.CreatedBy != _userData.UserId)
+            {
+                return Response<GetClaimDto>.SetCustomErrorResponse("Access Denied: You do not have permission to view this claim.", StatusCodes.Status403Forbidden);
+            }
 
             var result = _mapper.Map<GetClaimDto>(entity);
             return Response<GetClaimDto>.SetSuccessResponse(result);

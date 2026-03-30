@@ -8,7 +8,8 @@ import api from '../api/axios';
 import {
     ChevronLeft, Search, Calendar, MapPin,
     AlertCircle, Folder, Wallet, Laptop, Smartphone,
-    MoreVertical, Trash2, Box, ArrowRight, ExternalLink
+    MoreVertical, Trash2, Box, ArrowRight, ExternalLink,
+    ShieldCheck, CheckCircle
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
@@ -119,16 +120,23 @@ const MyItems = ({ isAdmin = false }) => {
         const isReplacementSt = status === 2 || status === 'Replacement';
         const isAuctionSt = status === 3 || status === 'Auction';
 
-        // ONLY show match to User A if Admin has verified receipt
+        const cStat = apiItem.latestClaimStatus ?? apiItem.LatestClaimStatus;
+        if (cStat === 2 || cStat === 'VerificationFailed') return { text: 'Claim Rejected', color: '#ef4444', bg: '#fef2f2' };
+
+        // PRIORITY: Handover/Returned (Status 4)
+        if (isHandover) return { text: 'Returned', color: '#10b981', bg: '#ecfdf5' };
+        
+        // Match: Only show match if NOT already handed over
         if (hasPotentialMatch && isVerifiedByAdmin) return { text: 'Potential Match Found!', color: '#0ea5e9', bg: '#e0f2fe' };
         
-        if (isHandover) return { text: 'Returned', color: '#10b981', bg: '#ecfdf5' };
         if (isReplacementSt) return { text: 'Replacement Requested', color: '#6366f1', bg: '#e0e7ff' };
         if (isAuctionSt) return { text: 'In Auction', color: '#f59e0b', bg: '#fffbeb' };
 
         if (isLostRep && isLostSt) return { text: 'Searching...', color: '#718096', bg: '#f7fafc' };
         if (isLostRep && isFoundSt) return { text: 'Found (Verified)', color: '#319795', bg: '#e6fffa' };
-        if (!isLostRep && isFoundSt) return { text: 'On Hand', color: '#319795', bg: '#e6fffa' };
+        
+        // Found items: If it's in Handover type FoundItemToAdmin or status is 1, it's safe at the office
+        if (!isLostRep && isFoundSt) return { text: 'In Office', color: '#319795', bg: '#e6fffa' };
 
         return { text: 'Processing', color: '#4a5568', bg: '#edf2f7' };
     };
@@ -262,20 +270,38 @@ const MyItems = ({ isAdmin = false }) => {
                                 ))}
                             </div>
                         )}
+
+                        {(apiItem.claimRejectionReason || apiItem.ClaimRejectionReason) && (
+                            <div style={{ marginTop: '0.75rem', padding: '0.6rem 1rem', background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '12px', color: '#ef4444', fontSize: '0.75rem', fontWeight: '700', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                                <AlertCircle size={14} style={{ marginTop: '2px', flexShrink: 0 }} />
+                                <div>
+                                    <span style={{ fontWeight: '900', textTransform: 'uppercase', marginRight: '4px' }}>Previous Claim Rejected:</span> 
+                                    {apiItem.claimRejectionReason || apiItem.ClaimRejectionReason}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 {renderTimeline(apiItem)}
 
                     <div className="card-actions">
-                        {((apiItem.hasPotentialMatch || apiItem.HasPotentialMatch) && (apiItem.isVerifiedByAdmin || apiItem.IsVerifiedByAdmin)) ? (
+                        {(apiItem.latestClaimStatus === 1 || apiItem.LatestClaimStatus === 1) ? (
+                            <button className="action-btn match-btn" onClick={() => navigate(`/match-details/${isLostReport(apiItem.reportType ?? apiItem.ReportType) ? apiItem.id : (apiItem.matchFoundItemId || apiItem.MatchFoundItemId)}/${isLostReport(apiItem.reportType ?? apiItem.ReportType) ? (apiItem.matchFoundItemId || apiItem.MatchFoundItemId) : apiItem.id}`)}>
+                                <ShieldCheck size={16} /> Review Claim
+                            </button>
+                        ) : (apiItem.latestClaimStatus === 3 || apiItem.LatestClaimStatus === 3 || apiItem.latestClaimStatus === 4 || apiItem.LatestClaimStatus === 4) ? (
+                             <button className="action-btn secondary" style={{ background: '#ecfdf5', color: '#059669', border: '1px solid #10b981' }} onClick={() => navigate(`/report-details/${apiItem.id}`)}>
+                                <CheckCircle size={16} /> Review Successfully
+                            </button>
+                        ) : ((apiItem.hasPotentialMatch || apiItem.HasPotentialMatch) && (apiItem.isVerifiedByAdmin || apiItem.IsVerifiedByAdmin)) ? (
                             <button className="action-btn match-btn" onClick={() => {
                                 const isLost = isLostReport(apiItem.reportType ?? apiItem.ReportType);
                                 const lostId = isLost ? apiItem.id : (apiItem.matchFoundItemId || apiItem.MatchFoundItemId);
                                 const foundId = isLost ? (apiItem.matchFoundItemId || apiItem.MatchFoundItemId) : apiItem.id;
                                 navigate(`/match-details/${lostId}/${foundId}`);
                             }}>
-                                View Match
+                                View Potential Match
                             </button>
                         ) : (
                             <button className="action-btn secondary" onClick={() => navigate(`/report-details/${apiItem.id}`)}>

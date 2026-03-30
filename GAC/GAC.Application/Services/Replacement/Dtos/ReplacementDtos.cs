@@ -21,6 +21,7 @@ namespace GAC.Application.Services.Replacement.Dtos
         public ReplacementStatus Status { get; set; }
         public string StatusName => Status.ToString();
         public string AdminNotes { get; set; }
+        public string ReporterName { get; set; }
         public DateTime? DecisionDate { get; set; }
         public DateTime CreatedAt { get; set; }
     }
@@ -28,7 +29,7 @@ namespace GAC.Application.Services.Replacement.Dtos
     public class AdminProcessReplacementDto
     {
         public long RequestId { get; set; }
-        public long FoundItemId { get; set; }
+        public long? FoundItemId { get; set; }
         public string AdminNotes { get; set; }
         public bool IsApproved { get; set; }
     }

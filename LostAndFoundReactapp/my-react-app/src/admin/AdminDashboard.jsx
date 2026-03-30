@@ -22,7 +22,8 @@ const AdminDashboard = () => {
         totalUsers: 0,
         pendingReports: 0,
         activeAuctions: 0,
-        pendingReplacements: 0
+        pendingReplacements: 0,
+        pendingMatches: 0
     });
     const [loading, setLoading] = useState(true);
 
@@ -67,24 +68,25 @@ const AdminDashboard = () => {
     ];
 
     // Admin Tasks Todo List Data
-    const [tasks, setTasks] = useState([
+    const [tasks, setTaskData] = useState([
         { id: 1, label: 'Review Pending Replacements', completed: false, count: 0 },
-        { id: 2, label: 'Check Unclaimed Inventory', completed: false, count: 0 },
-        { id: 3, label: 'Verify New User Registrations', completed: true, count: 0 },
+        { id: 2, label: 'Unmatched Inventory', completed: false, count: 0 },
+        { id: 5, label: 'Review Potential Matches', completed: false, count: 0, priority: true },
         { id: 4, label: 'Audit Auction Bid Logs', completed: false, count: 0 },
     ]);
 
     useEffect(() => {
-        setTasks(prev => prev.map(task => {
+        setTaskData(prev => prev.map(task => {
             if (task.id === 1) return { ...task, count: stats.pendingReplacements };
             if (task.id === 2) return { ...task, count: stats.pendingReports };
+            if (task.id === 5) return { ...task, count: stats.pendingMatches };
             return task;
         }));
     }, [stats]);
 
 
     const toggleTask = (id) => {
-        setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+        setTaskData(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
     };
 
     return (
@@ -214,6 +216,17 @@ const AdminDashboard = () => {
                                     </div>
                                 </div>
 
+                                <div style={{ background: 'white', padding: '1.75rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.02)', borderLeft: '4px solid #8b5cf6' }}>
+                                    <div style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <Handshake size={14} color="#8b5cf6" /> Pending Matches
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
+                                        <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#1e293b', lineHeight: '1' }}>
+                                            {loading ? '...' : stats.pendingMatches}
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div style={{ background: 'white', padding: '1.75rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
                                     <div style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Replacement Requests</div>
                                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
@@ -305,7 +318,7 @@ const AdminDashboard = () => {
                                         <button 
                                             onClick={() => {
                                                 if (task.id === 1) navigate('/admin-replacements');
-                                                if (task.id === 2) navigate('/admin-reports');
+                                                if (task.id === 2 || task.id === 5) navigate('/admin-reports');
                                             }}
                                             style={{
                                                 padding: '0.5rem 1.25rem',

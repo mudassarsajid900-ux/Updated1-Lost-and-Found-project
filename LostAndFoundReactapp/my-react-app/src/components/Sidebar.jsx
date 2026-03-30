@@ -3,7 +3,7 @@
 // We import React and icons used in the Sidebar
 // ========================================== //
 import React from 'react';
-import { Home, Folder, PlusCircle, Gavel, Settings, LogOut, User, RefreshCw, ShieldCheck, Eye } from 'lucide-react';
+import { Home, Folder, PlusCircle, Gavel, Settings, LogOut, User, RefreshCw, ShieldCheck, Eye, Layers } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/axios';
 
@@ -128,6 +128,13 @@ const Sidebar = ({ isAdmin: propIsAdmin }) => {
                         >
                             <Settings size={20} />
                             <span>System Settings</span>
+                        </button>
+                        <button
+                            className={`nav-item ${isActive('/admin-categories') ? 'active' : ''}`}
+                            onClick={() => navigate('/admin-categories')}
+                        >
+                            <Layers size={20} />
+                            <span>Manage Categories</span>
                         </button>
                     </>
                 ) : (

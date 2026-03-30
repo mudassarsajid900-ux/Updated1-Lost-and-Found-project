@@ -15,6 +15,7 @@ const AdminReplacements = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('requests'); // 'requests' or 'pool'
     const [selectedRequest, setSelectedRequest] = useState(null);
+    const [suggestions, setSuggestions] = useState([]);
     const [adminNotes, setAdminNotes] = useState('');
     const [processing, setProcessing] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -23,6 +24,23 @@ const AdminReplacements = () => {
         FoundToReplacementThreshold: 20,
         ReplacementToAuctionThreshold: 40
     });
+
+    useEffect(() => {
+        if (selectedRequest) {
+            fetchSuggestions(selectedRequest.id);
+        }
+    }, [selectedRequest]);
+
+    const fetchSuggestions = async (id) => {
+        try {
+            const res = await api.get(`Replacement/admin/suggestions/${id}`);
+            // Map suggestion IDs to actual pool items
+            const matches = poolItems.filter(p => res.data.data.includes(p.id));
+            setSuggestions(matches);
+        } catch (error) {
+            console.error("Error fetching suggestions:", error);
+        }
+    };
     const [pendingHandovers, setPendingHandovers] = useState([]);
 
     useEffect(() => {
@@ -40,7 +58,15 @@ const AdminReplacements = () => {
             ]);
             setRequests(reqRes.data.data || []);
             setPoolItems(poolRes.data.data || []);
-            if (settingsRes.data.data) setThresholds(settingsRes.data.data);
+            if (settingsRes.data.data) {
+                const raw = settingsRes.data.data;
+                const normalized = {
+                    ReplacementEligibilityThreshold: raw.replacementEligibilityThreshold ?? raw.ReplacementEligibilityThreshold ?? 90,
+                    FoundToReplacementThreshold: raw.foundToReplacementThreshold ?? raw.FoundToReplacementThreshold ?? 20,
+                    ReplacementToAuctionThreshold: raw.replacementToAuctionThreshold ?? raw.ReplacementToAuctionThreshold ?? 40,
+                };
+                setThresholds(normalized);
+            }
             setPendingHandovers(handoverRes.data.data || []);
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -162,21 +188,31 @@ const AdminReplacements = () => {
                         {selectedRequest && (
                             <div style={{ background: 'white', borderRadius: '24px', border: '1px solid #e2e8f0', padding: '2rem', position: 'sticky', top: '2rem' }}>
                                 <h3 style={{ margin: '0 0 1.5rem 0' }}>Process for {selectedRequest.reporterName}</h3>
-                                <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem' }}>
-                                    <span style={{ fontSize: '0.7rem', fontWeight: '800' }}>USER NOTES:</span>
-                                    <p style={{ margin: '5px 0' }}>"{selectedRequest.requestReason}"</p>
+                                <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', borderLeft: '4px solid #3b82f6' }}>
+                                    <span style={{ fontSize: '0.7rem', fontWeight: '800', color: '#3b82f6' }}>USER REQUIREMENTS:</span>
+                                    <p style={{ margin: '5px 0', fontSize: '0.9rem', color: '#4a5568' }}>"{selectedRequest.requestReason}"</p>
+                                    <p style={{ margin: '5px 0', fontSize: '0.85rem', color: '#2d3748', fontWeight: '600' }}>Desired: {selectedRequest.desiredSpecifications}</p>
                                 </div>
-                                <div style={{ fontSize: '0.85rem', fontWeight: '800', marginBottom: '10px' }}>Select Manual Replacement:</div>
+                                <div style={{ fontSize: '0.85rem', fontWeight: '800', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '5px' }}><CheckCircle size={16} color="#10b981" /> System Smart Suggestions:</div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
-                                    {poolItems.filter(p => p.title.toLowerCase() === selectedRequest.lostItemTitle.toLowerCase()).map(p => (
-                                        <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', border: '1.5px solid #10b981', background: '#f0fdf4', borderRadius: '12px' }}>
-                                            <span>{p.title}</span>
-                                            <button onClick={() => handleProcess(true, p.id)} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '0.75rem', padding: '4px 10px', cursor: 'pointer' }}>ASSIGN</button>
+                                    {suggestions.length > 0 ? suggestions.map(p => (
+                                        <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', border: '1.5px solid #10b981', background: '#f0fdf4', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.1)' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                {getIcon(p.title)}
+                                                <div>
+                                                    <div style={{ fontWeight: '800', fontSize: '0.9rem' }}>{p.title}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{p.location}</div>
+                                                </div>
+                                            </div>
+                                            <button onClick={() => handleProcess(true, p.id)} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.75rem', padding: '6px 14px', cursor: 'pointer', fontWeight: '800' }}>SELECT MATCH</button>
                                         </div>
-                                    ))}
-                                    <p style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Navigate to "Replacement Pool" to find alternatives.</p>
+                                    )) : (
+                                        <div style={{ padding: '20px', textAlign: 'center', background: '#f8fafc', borderRadius: '16px', border: '1px dashed #cbd5e1' }}>
+                                            <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0 }}>No direct smart matches found. Check the full pool.</p>
+                                        </div>
+                                    )}
                                 </div>
-                                <textarea placeholder="Final Admin Notes..." value={adminNotes} onChange={(e) => setAdminNotes(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '1.5rem', height: '80px' }} />
+                                <textarea placeholder="Final Admin Notes (Student will see this)..." value={adminNotes} onChange={(e) => setAdminNotes(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '1.5rem', height: '80px' }} />
                                 <button onClick={() => handleProcess(false)} style={{ width: '100%', padding: '10px', background: '#fff5f5', color: '#ef4444', border: '1px solid #feb2b2', borderRadius: '12px', fontWeight: '800' }}>Reject Application</button>
                             </div>
                         )}

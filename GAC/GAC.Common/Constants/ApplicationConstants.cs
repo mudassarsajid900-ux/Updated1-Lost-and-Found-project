@@ -2,7 +2,8 @@ namespace GAC.Common.Constants
 {
     public static class ApplicationConstants
     {
-        public const string AdministratorRole = "Administrator";
+        public const string AdministratorRole = "Admin";
+        public const string UserRole = "User";
 
         // Login
         public const string LoginFailed_UserNotFound = "Invalid username or password.";

@@ -24,14 +24,14 @@ namespace GAC.Core.Entities.Replacement
         public ReplacementStatus Status { get; set; } = ReplacementStatus.Pending;
 
         [StringLength(1000)]
-        public string AdminNotes { get; set; }
+        public string? AdminNotes { get; set; }
 
         public DateTime? DecisionDate { get; set; }
 
         [StringLength(150)]
-        public string CnicImagePath { get; set; }
+        public string? CnicImagePath { get; set; }
 
         [StringLength(150)]
-        public string PersonImagePath { get; set; }
+        public string? PersonImagePath { get; set; }
     }
 }

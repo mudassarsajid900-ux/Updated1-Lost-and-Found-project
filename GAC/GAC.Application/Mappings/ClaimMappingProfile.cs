@@ -9,7 +9,8 @@ namespace GAC.Application.Mappings
         public ClaimMappingProfile()
         {
             CreateMap<ClaimRequest, GetClaimDto>();
-            CreateMap<CreateClaimDto, ClaimRequest>();
+            CreateMap<CreateClaimDto, ClaimRequest>()
+                .ForMember(dest => dest.ClaimDescription, opt => opt.MapFrom(src => src.Description));
         }
     }
 }

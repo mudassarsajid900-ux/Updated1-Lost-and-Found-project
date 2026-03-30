@@ -42,11 +42,11 @@ namespace GAC.Application.Services.Replacement
             if (item == null || item.ReportType != ReportType.Lost || item.CreatedBy != _userData.UserId)
                 return Response<GetReplacementDto>.NotFoundResponse();
 
-            if (item.Status == ItemStatus.Replacement || item.Status == ItemStatus.ReplacementHandover)
-                return Response<GetReplacementDto>.SetCustomErrorResponse("This item is already in the replacement process.", StatusCodes.Status400BadRequest);
+            if (item.Status != ItemStatus.Lost)
+                return Response<GetReplacementDto>.SetCustomErrorResponse("This item is not eligible for replacement. It must be in 'Lost' status.", StatusCodes.Status400BadRequest);
 
             var thresholdDays = await GetSettingValueAsync("ReplacementEligibilityThreshold", 90);
-            if ((DateTime.UtcNow - item.EventTime.ToUniversalTime()).TotalDays < thresholdDays)
+            if (thresholdDays > 0 && (DateTime.UtcNow - item.EventTime.ToUniversalTime()).TotalDays < thresholdDays)
                 return Response<GetReplacementDto>.SetCustomErrorResponse($"You must wait at least {thresholdDays} days before requesting a replacement.", StatusCodes.Status400BadRequest);
 
             var entity = _mapper.Map<ReplacementRecord>(dto);
@@ -65,7 +65,7 @@ namespace GAC.Application.Services.Replacement
         public async Task<Response<List<ReplacementEligibleItemDto>>> GetEligibleItemsAsync()
         {
             var thresholdDays = await GetSettingValueAsync("ReplacementEligibilityThreshold", 90);
-            var cutoffDate = DateTime.UtcNow.AddDays(-thresholdDays);
+            var cutoffDate = thresholdDays == 0 ? DateTime.UtcNow.AddYears(1) : DateTime.UtcNow.AddDays(-thresholdDays);
 
             var items = await _itemRepository.AsQueryable()
                 .Include(x => x.ItemType)
@@ -97,6 +97,12 @@ namespace GAC.Application.Services.Replacement
             if (entity == null)
                 return Response<GetReplacementDto>.NotFoundResponse();
 
+            // IDOR Protection: Students only see their own records (Admins see all)
+            if (_userData != null && _userData.Role != "Admin" && entity.CreatedBy != _userData.UserId)
+            {
+                return Response<GetReplacementDto>.SetCustomErrorResponse("Access Denied: You do not have permission to view this replacement record.", StatusCodes.Status403Forbidden);
+            }
+
             var result = _mapper.Map<GetReplacementDto>(entity);
             return Response<GetReplacementDto>.SetSuccessResponse(result);
         }
@@ -119,6 +125,7 @@ namespace GAC.Application.Services.Replacement
         {
             var records = await _replacementRepository.AsQueryable()
                 .Include(x => x.LostItem).ThenInclude(i => i.ItemType)
+                .Include(x => x.LostItem).ThenInclude(i => i.CreatedByUser)
                 .Where(x => x.Status == ReplacementStatus.Pending || x.Status == ReplacementStatus.UnderReview)
                 .ToListAsync();
 
@@ -135,10 +142,10 @@ namespace GAC.Application.Services.Replacement
             if (request == null)
                 return Response<GetReplacementDto>.NotFoundResponse();
 
-            if (dto.IsApproved)
+            if (dto.IsApproved && dto.FoundItemId.HasValue)
             {
-                var foundItem = await _itemRepository.GetByIdAsync(dto.FoundItemId);
-                if (foundItem == null || foundItem.ReportType != ReportType.Found || foundItem.Status != ItemStatus.Found)
+                var foundItem = await _itemRepository.GetByIdAsync(dto.FoundItemId.Value);
+                if (foundItem == null || foundItem.ReportType != ReportType.Found || (foundItem.Status != ItemStatus.Found && foundItem.Status != ItemStatus.Replacement))
                     return Response<GetReplacementDto>.SetCustomErrorResponse("Selected found item is not available for replacement.", StatusCodes.Status400BadRequest);
 
                 request.Status = ReplacementStatus.Approved;
@@ -167,23 +174,47 @@ namespace GAC.Application.Services.Replacement
         public async Task<Response<List<long>>> GetSmartMatchSuggestionsAsync(long requestId)
         {
             var request = await _replacementRepository.AsQueryable()
-                .Include(x => x.LostItem)
+                .Include(x => x.LostItem).ThenInclude(i => i.Attributes)
                 .FirstOrDefaultAsync(x => x.Id == requestId);
 
             if (request == null)
                 return Response<List<long>>.NotFoundResponse();
 
-            // Smart logic: Unclaimed items of the same type
-            var suggestions = await _itemRepository.AsQueryable()
+            // 1. Find potential candidate found items (same type and available in Found/Replacement pools)
+            var candidates = await _itemRepository.AsQueryable()
+                .Include(x => x.Attributes)
                 .Where(x => x.ReportType == ReportType.Found && 
-                           x.Status == ItemStatus.Found && 
+                           (x.Status == ItemStatus.Found || x.Status == ItemStatus.Replacement) && 
                            x.ItemTypeId == request.LostItem.ItemTypeId)
-                .OrderBy(x => x.EventTime) // Oldest first (priority logic)
-                .Select(x => x.Id)
-                .Take(5)
+                .OrderBy(x => x.EventTime)
+                .Take(20)
                 .ToListAsync();
 
-            return Response<List<long>>.SetSuccessResponse(suggestions);
+            if (!candidates.Any())
+                return Response<List<long>>.SetSuccessResponse(new List<long>());
+
+            // 2. Score Candidates based on Attributes Similarity (Perfection logic)
+            var scoredSuggestions = candidates.Select(c => {
+                int score = 0;
+                foreach (var lostAttr in request.LostItem.Attributes)
+                {
+                    // Check if candidate has matching attribute
+                    if (c.Attributes.Any(ca => 
+                        ca.FieldName.Equals(lostAttr.FieldName, StringComparison.OrdinalIgnoreCase) && 
+                        ca.FieldValue.Equals(lostAttr.FieldValue, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        score += 20; // 20 points for each matching attribute
+                    }
+                }
+                return new { ItemId = c.Id, Score = score };
+            })
+            .OrderByDescending(x => x.Score)
+            .ThenBy(x => x.ItemId)
+            .Take(5)
+            .Select(x => x.ItemId)
+            .ToList();
+
+            return Response<List<long>>.SetSuccessResponse(scoredSuggestions);
         }
 
         public async Task<Response<bool>> UpdateReplacementEligibilityThresholdAsync(int days)

@@ -89,7 +89,9 @@ namespace GAC.Application.Services.BackgroundJobs
             // STEP 2: Found → Replacement
             // Find all Found items older than FoundToReplacementThreshold
             // ============================================================
-            var replacementCutoff = DateTime.UtcNow.AddDays(-foundToReplacementDays);
+            var replacementCutoff = foundToReplacementDays == 0 
+                ? DateTime.UtcNow.AddYears(1) // 0 implies instant "Test Mode", instantly moving everything 
+                : DateTime.UtcNow.AddDays(-foundToReplacementDays);
 
             var foundItemsToMove = await itemRepo.AsQueryable()
                 .Where(x => x.ReportType == ReportType.Found &&
@@ -115,7 +117,9 @@ namespace GAC.Application.Services.BackgroundJobs
             // STEP 3: Replacement → Auction
             // Find all Replacement items older than ReplacementToAuctionThreshold
             // ============================================================
-            var auctionCutoff = DateTime.UtcNow.AddDays(-replacementToAuctionDays);
+            var auctionCutoff = replacementToAuctionDays == 0 
+                ? DateTime.UtcNow.AddYears(1) // 0 implies instant "Test Mode", instantly moving everything
+                : DateTime.UtcNow.AddDays(-replacementToAuctionDays);
 
             var replacementItemsToAuction = await itemRepo.AsQueryable()
                 .Where(x => x.ReportType == ReportType.Found &&

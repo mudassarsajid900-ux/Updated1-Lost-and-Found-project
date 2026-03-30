@@ -23,6 +23,7 @@ namespace GAC.Application.Services.Handover
         private readonly IGenericRepository<ClaimRequest> _claimRepository;
         private readonly IGenericRepository<ReplacementRecord> _replacementRepository;
         private readonly IGenericRepository<AuctionRecord> _auctionRepository;
+        private readonly IGenericRepository<ItemMatch> _itemMatchRepository;
         private readonly IMapper _mapper;
         private readonly UserData _userData;
         private readonly IWebHostEnvironment _environment;
@@ -33,6 +34,7 @@ namespace GAC.Application.Services.Handover
             IGenericRepository<ClaimRequest> claimRepository,
             IGenericRepository<ReplacementRecord> replacementRepository,
             IGenericRepository<AuctionRecord> auctionRepository,
+            IGenericRepository<ItemMatch> itemMatchRepository,
             IMapper mapper,
             UserData userData,
             IWebHostEnvironment environment)
@@ -42,6 +44,7 @@ namespace GAC.Application.Services.Handover
             _claimRepository = claimRepository;
             _replacementRepository = replacementRepository;
             _auctionRepository = auctionRepository;
+            _itemMatchRepository = itemMatchRepository;
             _mapper = mapper;
             _userData = userData;
             _environment = environment;
@@ -69,6 +72,8 @@ namespace GAC.Application.Services.Handover
             {
                 case HandoverType.FoundItemToAdmin:
                     item.Status = ItemStatus.Found; 
+                    item.IsVerifiedByAdmin = true; // Essential: Unlocks notifications for matchers
+                    await _itemRepository.UpdateAsync(item);
                     break;
                 case HandoverType.AdminToClaimant:
                     item.Status = ItemStatus.Handover;
@@ -86,6 +91,17 @@ namespace GAC.Application.Services.Handover
                                 claim.LostItem.Status = ItemStatus.Handover;
                                 await _itemRepository.UpdateAsync(claim.LostItem);
                             }
+
+                            // Resolve the match record
+                            var match = await _itemMatchRepository.AsQueryable()
+                                .FirstOrDefaultAsync(m => ((m.LostItemId == claim.LostItemId && m.FoundItemId == claim.FoundItemId) || (m.LostItemId == claim.FoundItemId && m.FoundItemId == claim.LostItemId)) && !m.IsMatchResolved);
+                            
+                            if (match != null)
+                            {
+                                match.IsMatchResolved = true;
+                                await _itemMatchRepository.UpdateAsync(match);
+                            }
+
                             await _claimRepository.UpdateAsync(claim);
                         }
                     }
@@ -222,7 +238,7 @@ namespace GAC.Application.Services.Handover
                 .Include(x => x.FoundItem).ThenInclude(i => i.Attributes)
                 .Include(x => x.FoundItem).ThenInclude(i => i.Location)
                 .Include(x => x.CreatedByUser)
-                .Where(x => x.Status == ClaimStatus.VerificationSucced)
+                .Where(x => x.Status == ClaimStatus.VerificationSucceeded)
                 .ToListAsync();
 
             foreach (var claim in claims)

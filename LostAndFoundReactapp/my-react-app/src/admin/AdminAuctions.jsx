@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { 
     Gavel, Box, Calendar, MapPin, 
     ChevronRight, PlusCircle, AlertCircle,
-    CheckCircle2, TrendingUp, Info, Award
+    CheckCircle2, TrendingUp, Info, Award, ShieldCheck
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5197';
 
 const AdminAuctions = () => {
     const navigate = useNavigate();
@@ -313,7 +315,7 @@ const AdminAuctions = () => {
                                                 <tr key={auc.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                                                     <td style={{ padding: '1.25rem 1.5rem' }}>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                            {auc.itemImageUrl && <img src={`${API_BASE_URL}/${auc.itemImageUrl}`} style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} alt="" />}
+                                                            {auc.itemImageUrl && <img src={`${API_BASE_URL}${auc.itemImageUrl}`} style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} alt="" />}
                                                             <span style={{ fontWeight: '700', color: '#1e293b' }}>{auc.itemTitle}</span>
                                                         </div>
                                                     </td>

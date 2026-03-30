@@ -1,4 +1,4 @@
-﻿using GAC.Core.Entities.Item;
+using GAC.Core.Entities.Item;
 using GAC.Core.Enums;
 
 namespace GAC.Core.Entities.Claims
@@ -11,5 +11,7 @@ namespace GAC.Core.Entities.Claims
         public Items FoundItem { get; set; }  
         public long Score { get; set; }
         public ClaimStatus Status { get; set; }
+        public string? RejectionReason { get; set; }
+        public string? ClaimDescription { get; set; }
     }
 }

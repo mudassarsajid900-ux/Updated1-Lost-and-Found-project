@@ -116,6 +116,9 @@ const LoginForm = ({ navigate }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    
+    // Access location from react-router to get success messages passed via state
+    const location = useLocation();
     const successMessage = location.state?.message;
 
     // Function triggered when the user clicks 'Log In'

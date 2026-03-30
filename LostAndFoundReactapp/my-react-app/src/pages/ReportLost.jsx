@@ -569,10 +569,30 @@ const ReportLost = () => {
     // Loops through the chosen category and builds a box for each question.
     // Supports a special 'row' type that renders two inputs (e.g. RAM & ROM) side-by-side.
     const renderDynamicAttributes = () => {
+        // 1. Try to find hardcoded config
         const config = itemConfigurations[selectedCategory];
 
+        // 2. If not found, check if it's a dynamic category from the database
         if (!config) {
-            // Default fields for types not explicitly configured
+            const dynamicType = itemTypes.find(t => t.name === selectedCategory);
+            
+            // If it has dynamic fields defined by admin, render them as text inputs
+            if (dynamicType && dynamicType.fields && dynamicType.fields.length > 0) {
+                return dynamicType.fields.map((field) => (
+                    <div key={field.id || field.fieldName} className="input-card mt-3">
+                        <label className="field-label">{field.fieldName.toUpperCase()}</label>
+                        <input
+                            type="text"
+                            className="custom-input"
+                            placeholder={`Enter ${field.fieldName.toLowerCase()}...`}
+                            value={formData.attributes[field.fieldName] || ""}
+                            onChange={(e) => handleAttributeChange(field.fieldName, e.target.value, "text")}
+                        />
+                    </div>
+                ));
+            }
+
+            // Fallback for types with no specific configuration
             return (
                 <div className="input-card mt-3">
                     <label className="field-label">VISIBLE DESCRIPTION</label>
@@ -588,9 +608,8 @@ const ReportLost = () => {
             );
         }
 
+        // Render hardcoded configuration (for complex types like Phone/Laptop)
         return Object.entries(config).map(([name, attrConfig]) => {
-
-            // --- SPECIAL CASE: 'row' type renders multiple fields side by side ---
             if (attrConfig.type === "row") {
                 return (
                     <div key={name} style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
@@ -604,7 +623,6 @@ const ReportLost = () => {
                 );
             }
 
-            // --- DEFAULT CASE: render a single full-width input card ---
             return (
                 <div key={name} className="input-card mt-3">
                     <label className="field-label">{name.toUpperCase()}</label>

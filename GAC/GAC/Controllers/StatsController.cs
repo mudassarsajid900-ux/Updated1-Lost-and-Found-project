@@ -5,6 +5,7 @@ using GAC.Application.Interfaces.Replacement;
 using GAC.Common.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using GAC.Common.Constants;
 
 namespace GAC.API.Controllers
 {
@@ -49,13 +50,12 @@ namespace GAC.API.Controllers
 
                 var activities = new List<object>
                 {
-                    new { user = "System", action = "Stats refreshed successfully", time = "Just now", type = "system", role = "Admin" }
+                    new { user = "System", action = "Stats refreshed successfully", time = "Just now", type = "system", role = ApplicationConstants.AdministratorRole }
                 };
 
-                if (allItems.Data != null)
+                if (allItems.IsSucceeded && allItems.Data?.Items != null)
                 {
-                    var recentItems = allItems.Data.OrderByDescending(i => i.CreatedOn).Take(3);
-                    foreach(var item in recentItems)
+                    foreach (var item in allItems.Data.Items.OrderByDescending(x => x.CreatedOn).Take(5))
                     {
                         var timeSpan = DateTime.UtcNow - item.CreatedOn;
                         string timeStr = timeSpan.TotalMinutes < 1 ? "Just now" :
@@ -68,7 +68,7 @@ namespace GAC.API.Controllers
                             action = $"reported a {item.ReportType.ToString().ToLower()} {item.Type}",
                             time = timeStr,
                             type = item.ReportType.ToString().ToLower(),
-                            role = "User"
+                            role = ApplicationConstants.UserRole
                         });
                     }
                 }
@@ -76,7 +76,8 @@ namespace GAC.API.Controllers
                 return Ok(new
                 {
                     totalUsers = totalUsers,
-                    pendingReports = allItems.Data?.Count(i => i.Status == GAC.Core.Enums.ItemStatus.Found) ?? 0,
+                    pendingReports = allItems.Data?.FoundCount ?? 0,
+                    pendingMatches = allItems.Data?.MatchCount ?? 0,
                     activeAuctions = activeAuctions.Data?.Count ?? 0,
                     pendingReplacements = pendingReplacements.Data?.Count ?? 0,
                     recentActivities = activities

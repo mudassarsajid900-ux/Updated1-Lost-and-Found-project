@@ -44,7 +44,13 @@ namespace GAC.Application.Mappings
                     opt => opt.MapFrom(src => src.IsVerifiedByAdmin));
 
             CreateMap<ItemAttribute, GetItemAttributes>();
+            
+            // Category Architect Maps
             CreateMap<ItemType, GetItemTypeDto>();
+            CreateMap<Fields, GetFieldDto>();
+            CreateMap<CreateItemTypeDto, ItemType>();
+            CreateMap<CreateFieldDto, Fields>();
+
             CreateMap<MobileCompany, MobileCompanyDto>();
             CreateMap<MobileModel, MobileModelDto>();
         }

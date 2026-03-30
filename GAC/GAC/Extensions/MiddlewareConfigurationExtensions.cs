@@ -52,7 +52,7 @@ namespace GAC.API.Extensions
                     }
                 }
             }
-
+            app.UseRouting();
             app.UseCors("AllowAll");
 
             if (!app.Environment.IsDevelopment())

@@ -316,11 +316,16 @@ const ItemReplacement = () => {
 
     const renderStatusView = () => {
         const req = selectedItem;
+        
+        // Ensure robust status mapping whether backend sends int or string
+        const statusMap = { 'Pending': 0, 'UnderReview': 1, 'Approved': 2, 'Rejected': 3, 'Completed': 4 };
+        const currentLevel = typeof req.status === 'number' ? req.status : (statusMap[req.status] ?? statusMap[req.statusName] ?? 0);
+        
         const statusSteps = [
             { title: "Request Submitted", desc: "Your application is in the queue.", status: 'done' },
-            { title: "Details Review", desc: "Admin is checking item availability.", status: req.status >= 1 ? 'done' : 'active' },
-            { title: "Approval Decision", desc: "Final verification and assignment.", status: req.status >= 2 ? (req.status === 3 ? 'rejected' : 'done') : (req.status === 1 ? 'active' : 'waiting') },
-            { title: "Fulfillment", desc: req.status === 3 ? "Request was declined." : "Ready for collection.", status: req.status === 4 ? 'done' : (req.status === 2 ? 'active' : 'waiting') }
+            { title: "Details Review", desc: "Admin is checking item availability.", status: currentLevel >= 1 ? 'done' : 'active' },
+            { title: "Approval Decision", desc: "Final verification and assignment.", status: currentLevel >= 2 ? (currentLevel === 3 ? 'rejected' : 'done') : (currentLevel === 1 ? 'active' : 'waiting') },
+            { title: "Fulfillment", desc: currentLevel === 3 ? "Request was declined." : "Ready for collection.", status: currentLevel === 4 ? 'done' : (currentLevel === 2 ? 'active' : 'waiting') }
         ];
 
         return (
@@ -341,7 +346,7 @@ const ItemReplacement = () => {
                                 {getIcon(req.lostItemTitle)}
                             </div>
                             <h3 style={{ fontSize: '1.5rem', fontWeight: '900', color: '#2d3748', marginBottom: '8px' }}>{req.lostItemTitle}</h3>
-                            <div style={{ display: 'inline-block', background: req.status === 3 ? '#fff5f5' : '#ebf8ff', color: req.status === 3 ? '#e53e3e' : '#3182ce', padding: '6px 16px', borderRadius: '100px', fontSize: '0.85rem', fontWeight: '800' }}>
+                            <div style={{ display: 'inline-block', background: currentLevel === 3 ? '#fff5f5' : '#ebf8ff', color: currentLevel === 3 ? '#e53e3e' : '#3182ce', padding: '6px 16px', borderRadius: '100px', fontSize: '0.85rem', fontWeight: '800' }}>
                                 {req.statusName.toUpperCase()}
                             </div>
 

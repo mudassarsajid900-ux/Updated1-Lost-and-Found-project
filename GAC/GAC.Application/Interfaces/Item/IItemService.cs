@@ -8,7 +8,7 @@ namespace GAC.Application.Interfaces.Item
         Task<Response<GetItemDto>> CreateAsync(CreateItemDto dto);
         Task<Response<GetItemDto>> UpdateAsync(UpdateItemDto dto);
         Task<Response<GetItemDto>> GetByIdAsync(long id);
-        Task<Response<List<GetItemDto>>> GetAllAsync();
+        Task<Response<PagedItemResponseDto>> GetAllAsync(int start = 0, int length = 50, string tab = "all", string? search = null);
         Task<Response<List<GetItemDto>>> GetMyItemsAsync();
         Task<Response<List<GetItemDto>>> GetPublicFoundItemsAsync();
         Task<Response<string>> DeleteAsync(long id);

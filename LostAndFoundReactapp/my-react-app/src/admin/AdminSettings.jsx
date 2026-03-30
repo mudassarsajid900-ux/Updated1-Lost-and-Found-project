@@ -40,9 +40,9 @@ const AdminSettings = () => {
             const data = res.data.data;
             setSystemSettings(prev => ({
                 ...prev,
-                eligibilityThreshold: data.ReplacementEligibilityThreshold || 90,
-                unclaimedThreshold: data.FoundToReplacementThreshold || 20,
-                auctionThreshold: data.ReplacementToAuctionThreshold || 40,
+                eligibilityThreshold: data.replacementEligibilityThreshold ?? data.ReplacementEligibilityThreshold ?? 90,
+                unclaimedThreshold: data.foundToReplacementThreshold ?? data.FoundToReplacementThreshold ?? 20,
+                auctionThreshold: data.replacementToAuctionThreshold ?? data.ReplacementToAuctionThreshold ?? 40,
             }));
         } catch (err) {
             console.error("Error fetching thresholds:", err);
@@ -213,12 +213,16 @@ const AdminSettings = () => {
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <input 
-                                            type="number" 
-                                            value={systemSettings.eligibilityThreshold} 
-                                            onChange={(e) => setSystemSettings(prev => ({...prev, eligibilityThreshold: e.target.value}))}
-                                            style={{ width: '60px', padding: '5px', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}
-                                        />
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <input 
+                                                type="number" 
+                                                min="0"
+                                                value={systemSettings.eligibilityThreshold} 
+                                                onChange={(e) => setSystemSettings(prev => ({...prev, eligibilityThreshold: e.target.value}))}
+                                                style={{ width: '60px', padding: '5px', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}
+                                            />
+                                            {systemSettings.eligibilityThreshold == 0 && <span style={{ fontSize: '0.65rem', color: '#10b981', fontWeight: '800', marginTop: '2px', textAlign: 'center' }}>INSTANT</span>}
+                                        </div>
                                         <button 
                                             onClick={() => handleThresholdUpdate('eligibility')}
                                             disabled={isUpdating.eligibility}
@@ -240,12 +244,16 @@ const AdminSettings = () => {
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <input 
-                                            type="number" 
-                                            value={systemSettings.unclaimedThreshold} 
-                                            onChange={(e) => setSystemSettings(prev => ({...prev, unclaimedThreshold: e.target.value}))}
-                                            style={{ width: '60px', padding: '5px', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}
-                                        />
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <input 
+                                                type="number" 
+                                                min="0"
+                                                value={systemSettings.unclaimedThreshold} 
+                                                onChange={(e) => setSystemSettings(prev => ({...prev, unclaimedThreshold: e.target.value}))}
+                                                style={{ width: '60px', padding: '5px', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}
+                                            />
+                                            {systemSettings.unclaimedThreshold == 0 && <span style={{ fontSize: '0.65rem', color: '#10b981', fontWeight: '800', marginTop: '2px', textAlign: 'center' }}>INSTANT</span>}
+                                        </div>
                                         <button 
                                             onClick={() => handleThresholdUpdate('unclaimed')}
                                             disabled={isUpdating.unclaimed}
@@ -267,12 +275,16 @@ const AdminSettings = () => {
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <input 
-                                            type="number" 
-                                            value={systemSettings.auctionThreshold} 
-                                            onChange={(e) => setSystemSettings(prev => ({...prev, auctionThreshold: e.target.value}))}
-                                            style={{ width: '60px', padding: '5px', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}
-                                        />
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <input 
+                                                type="number"
+                                                min="0" 
+                                                value={systemSettings.auctionThreshold} 
+                                                onChange={(e) => setSystemSettings(prev => ({...prev, auctionThreshold: e.target.value}))}
+                                                style={{ width: '60px', padding: '5px', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}
+                                            />
+                                            {systemSettings.auctionThreshold == 0 && <span style={{ fontSize: '0.65rem', color: '#10b981', fontWeight: '800', marginTop: '2px', textAlign: 'center' }}>INSTANT</span>}
+                                        </div>
                                         <button 
                                             onClick={() => handleThresholdUpdate('auction')}
                                             disabled={isUpdating.auction}

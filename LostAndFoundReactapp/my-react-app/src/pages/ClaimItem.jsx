@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
     Folder, Wallet, Laptop, Smartphone,
     CheckCircle, AlertCircle, ArrowRight,
-    ShieldCheck, UserCheck, PackageCheck, Tag, Calendar, MapPin
+    ShieldCheck, UserCheck, PackageCheck, Tag, Calendar, MapPin, Info
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
@@ -100,6 +100,7 @@ const ClaimItem = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccessfullySubmitted, setIsSuccessfullySubmitted] = useState(false);
     const [errorMessage, setErrorMessage] = useState(null);
+    const [claimDescription, setClaimDescription] = useState('');
 
     // Initial Data Fetch
     useEffect(() => {
@@ -141,14 +142,17 @@ const ClaimItem = () => {
             // Sends the explicit connection over to the Claim controller
             await api.post('Claim/submit', {
                 lostItemId: Number(lostItemId),
-                foundItemId: Number(foundItemId)
+                foundItemId: Number(foundItemId),
+                description: claimDescription
             });
 
             // If the post succeeds without throwing errors, trigger success screen
             setIsSuccessfullySubmitted(true);
 
         } catch (submitError) {
-            setErrorMessage('Failed to submit claim. Please try again.');
+            console.error('Claim submission error:', submitError);
+            const serverMessage = submitError.response?.data?.message || submitError.response?.data?.Message || 'Failed to submit claim. Please try again.';
+            setErrorMessage(serverMessage);
         } finally {
             setIsSubmitting(false);
         }
@@ -397,6 +401,20 @@ const ClaimItem = () => {
                             </p>
 
                             <div className="ci-steps">
+                                <div style={{ borderTop: '1px solid #f1f5f9', marginTop: '1rem', paddingTop: '1.5rem', marginBottom: '1.5rem' }}>
+                                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <Info size={14} color="#3b82f6" /> Provide Proof of Ownership
+                                    </label>
+                                    <textarea 
+                                        placeholder="Explain how you know this belongs to you (e.g. 'The laptop has a sticker of a cat on the bottom' or 'The wallet contains my library card')"
+                                        value={claimDescription}
+                                        onChange={(e) => setClaimDescription(e.target.value)}
+                                        style={{ width: '100%', padding: '1rem', borderRadius: '12px', border: '1.5px solid #e2e8f0', background: '#f8fafc', fontSize: '0.85rem', color: '#334155', minHeight: '120px', resize: 'vertical', outline: 'none', transition: 'all 0.2s', fontFamily: 'inherit' }}
+                                    />
+                                    <p style={{ marginTop: '8px', fontSize: '0.7rem', color: '#94a3b8', fontStyle: 'italic', lineHeight: 1.4 }}>
+                                        Providing specific details helps the administrator verify your claim much faster.
+                                    </p>
+                                </div>
                                 {[
                                     { stepNum: 1, textTitle: 'Submit Claim', textDesc: 'Sent instantly to Admin panel' },
                                     { stepNum: 2, textTitle: 'Admin Verifies', textDesc: 'Manual review of your ownership' },

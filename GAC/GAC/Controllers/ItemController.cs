@@ -40,9 +40,12 @@ namespace GAC.API.Controllers
         }
 
         [HttpGet(ApiConstatnts.GetAll)]
-        public async Task<IActionResult> GetAll() => Ok(await _itemService.GetAllAsync());
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAll(int start = 0, int length = 50, string tab = "all", string? search = null) 
+            => Ok(await _itemService.GetAllAsync(start, length, tab, search));
 
         [HttpPut("verify/{id}")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
         public async Task<IActionResult> Verify(long id) => Ok(await _itemService.VerifyItemAsync(id));
 
         [HttpGet("my-items")]
@@ -61,6 +64,7 @@ namespace GAC.API.Controllers
         }
 
         [HttpDelete(ApiConstatnts.Delete)]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(long id)
         {
             var response = await _itemService.DeleteAsync(id);

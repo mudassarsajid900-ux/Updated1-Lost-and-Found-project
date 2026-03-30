@@ -21,6 +21,7 @@ import AdminReplacements from './admin/AdminReplacements';
 import AdminHandover from './admin/AdminHandover';
 import AdminAuctions from './admin/AdminAuctions';
 import AdminInventory from './admin/AdminInventory';
+import AdminCategories from './admin/AdminCategories';
 import AdminReportControl from './admin/AdminReportControl';
 import ReportDetails from './pages/ReportDetails';
 
@@ -39,6 +40,7 @@ function App() {
         <Route path="/admin-handover" element={<AdminHandover />} />
         <Route path="/admin-auctions" element={<AdminAuctions />} />
         <Route path="/admin-reports" element={<AdminInventory />} />
+        <Route path="/admin-categories" element={<AdminCategories />} />
         <Route path="/admin-report-control/:id" element={<AdminReportControl />} />
         <Route path="/report-found" element={<ReportFound />} />
         <Route path="/report-lost" element={<ReportLost />} />

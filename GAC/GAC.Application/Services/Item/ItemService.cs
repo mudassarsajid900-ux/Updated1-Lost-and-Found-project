@@ -11,6 +11,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
+using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace GAC.Application.Services.Item
 {
@@ -26,6 +29,7 @@ namespace GAC.Application.Services.Item
         private readonly UserData _userData;
         private readonly IWebHostEnvironment _environment;
         private readonly IGenericRepository<ItemMatch> _itemMatchRepository;
+        private readonly IGenericRepository<GAC.Core.Entities.Claims.ClaimRequest> _claimRepository;
 
         public ItemService(
             IGenericRepository<Items> itemRepository,
@@ -33,7 +37,8 @@ namespace GAC.Application.Services.Item
             IMapper mapper,
             UserData userData,
             IWebHostEnvironment environment,
-            IGenericRepository<ItemMatch> itemMatchRepository)
+            IGenericRepository<ItemMatch> itemMatchRepository,
+            IGenericRepository<GAC.Core.Entities.Claims.ClaimRequest> claimRepository)
         {
             _itemRepository = itemRepository;
             _attributeRepository = attributeRepository;
@@ -41,6 +46,7 @@ namespace GAC.Application.Services.Item
             _userData = userData;
             _environment = environment;
             _itemMatchRepository = itemMatchRepository;
+            _claimRepository = claimRepository;
         }
 
         /// <summary>
@@ -224,6 +230,24 @@ namespace GAC.Application.Services.Item
                 await _attributeRepository.AddRangeAsync(newAttrs);
             }
 
+            // PERFECTION: Re-trigger matching algorithm in case attributes or location changed
+            try
+            {
+                // We need the full entity with current attributes for the matching logic
+                var updatedEntity = await _itemRepository.AsQueryable()
+                    .Include(x => x.Attributes)
+                    .FirstOrDefaultAsync(x => x.Id == existing.Id);
+                
+                if (updatedEntity != null && (updatedEntity.Status == ItemStatus.Lost || updatedEntity.Status == ItemStatus.Found))
+                {
+                    await CheckForMatchesAsync(updatedEntity);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Live Re-Match failed for Item {existing.Id}: {ex.Message}");
+            }
+
             var updated = await GetByIdAsync(existing.Id);
 
             return Response<GetItemDto>.SetSuccessResponse(
@@ -240,27 +264,192 @@ namespace GAC.Application.Services.Item
                 .Include(x => x.ItemType)
                 .Include(x => x.CreatedByUser)
                 .FirstOrDefaultAsync(x => x.Id == id);
-            if (entity == null)
+            
+            if (entity == null || (entity.Location != null && entity.Location.IsDeleted))
                 return Response<GetItemDto>.NotFoundResponse();
 
+            // IDOR Protection: Students can only view their own items (Admins see all)
+            if (_userData != null && _userData.Role != "Admin" && entity.CreatedBy != _userData.UserId)
+            {
+                return Response<GetItemDto>.SetCustomErrorResponse("Access Denied: You do not have permission to view this report.", StatusCodes.Status403Forbidden);
+            }
+
             var dto = _mapper.Map<GetItemDto>(entity);
+
+            // Check for match
+            var match = await _itemMatchRepository.AsQueryable()
+                .FirstOrDefaultAsync(m => (m.LostItemId == id || m.FoundItemId == id) && !m.IsMatchResolved);
+            
+            if (match != null)
+            {
+                dto.HasPotentialMatch = true;
+                dto.MatchFoundItemId = match.LostItemId == id ? match.FoundItemId : match.LostItemId;
+                
+                // Load details for match comparison in Admin UI
+                var matched = await _itemRepository.AsQueryable().Include(x => x.ItemType).Include(x => x.CreatedByUser).FirstOrDefaultAsync(x => x.Id == dto.MatchFoundItemId);
+                if (matched != null)
+                {
+                    dto.MatchItemType = matched.ItemType?.Name;
+                    dto.MatchReporterName = matched.CreatedByUser?.FirstName + " " + matched.CreatedByUser?.LastName;
+                }
+            }
+
+            // Check for claim
+            var claim = await _claimRepository.AsQueryable()
+                .Include(c => c.CreatedByUser)
+                .OrderByDescending(c => c.CreatedOn)
+                .FirstOrDefaultAsync(c => (c.LostItemId == id || c.FoundItemId == id) && c.Status != ClaimStatus.VerificationFailed);
+            
+            if (claim != null)
+            {
+                dto.ClaimId = claim.Id;
+                dto.LatestClaimStatus = claim.Status;
+                dto.ClaimRejectionReason = claim.RejectionReason;
+                dto.ClaimDescription = claim.ClaimDescription;
+                dto.ClaimantName = claim.CreatedByUser?.FirstName + " " + claim.CreatedByUser?.LastName;
+                dto.ClaimantEmail = claim.CreatedByUser?.Email;
+            }
+
+            // Conflict count (how many users claimed this FOUND item)
+            if (entity.ReportType == ReportType.Found)
+            {
+                dto.ActiveClaimCount = await _claimRepository.AsQueryable()
+                    .CountAsync(c => c.FoundItemId == id && c.Status != ClaimStatus.VerificationFailed);
+            }
 
             return Response<GetItemDto>.SetSuccessResponse(dto);
         }
 
 
-        public async Task<Response<List<GetItemDto>>> GetAllAsync()
+        public async Task<Response<PagedItemResponseDto>> GetAllAsync(int start = 0, int length = 50, string tab = "all", string? search = null)
         {
-            var items = await _itemRepository.AsQueryable()
+            // 1. Unified truth: Get basic metadata for ALL non-deleted items with valid Locations
+            // This INNER JOIN on Location ensures orphaned items are EXCLUDED from all counts and lists.
+            var allValidItems = await _itemRepository.AsQueryable()
+                .Where(x => x.Status == ItemStatus.Lost || x.Status == ItemStatus.Found || x.Status == ItemStatus.Replacement)
+                .Where(x => x.Location != null && !x.Location.IsDeleted)
+                .Select(x => new { 
+                    x.Id, 
+                    x.ReportType, 
+                    x.Status, 
+                    x.IsVerifiedByAdmin, 
+                    x.CreatedOn,
+                    ItemTypeName = x.ItemType.Name,
+                    LocationName = x.Location.Name,
+                    Reporter = x.CreatedByUser.FirstName + " " + x.CreatedByUser.LastName,
+                    ReporterEmail = x.CreatedByUser.Email
+                })
+                .ToListAsync();
+
+            // 1b. Apply Search Filter if provided
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.ToLower();
+                allValidItems = allValidItems.Where(x => 
+                    (x.ItemTypeName?.ToLower().Contains(s) ?? false) || 
+                    (x.LocationName?.ToLower().Contains(s) ?? false) || 
+                    (x.Reporter?.ToLower().Contains(s) ?? false) || 
+                    (x.ReporterEmail?.ToLower().Contains(s) ?? false)
+                ).ToList();
+            }
+
+            // 2. Fetch matches/claims to handle complex tab splits
+            var matches = await _itemMatchRepository.AsQueryable().Where(m => !m.IsMatchResolved).ToListAsync();
+            var claims = await _claimRepository.AsQueryable().Where(c => c.Status != ClaimStatus.VerificationFailed).ToListAsync();
+
+            // 3. Tab logic (Categorize the valid items)
+            var lostItems = allValidItems.Where(i => i.ReportType == ReportType.Lost && i.Status != ItemStatus.Handover).ToList();
+
+            // FIXED: Matching tab shows any Found item that has an active (non-failed, non-handed-over) claim.
+            // We do NOT require an active ItemMatch record because when admin approves a claim,
+            // the match is resolved (IsMatchResolved=true), but the item is still awaiting physical handover.
+            // The claim record is the correct source of truth for "is this a matching case?".
+            var matchingItems = allValidItems.Where(i => i.ReportType == ReportType.Found && i.Status != ItemStatus.Handover && i.IsVerifiedByAdmin 
+                && claims.Any(c => c.FoundItemId == i.Id && c.Status != ClaimStatus.HandedOver)).ToList();
+            
+            // Found tab: verified found items that have NO active claim (pure found items not yet matched/claimed)
+            var foundItems = allValidItems.Where(i => i.ReportType == ReportType.Found && i.Status != ItemStatus.Handover 
+                && !(i.IsVerifiedByAdmin && claims.Any(c => c.FoundItemId == i.Id && c.Status != ClaimStatus.HandedOver))).ToList();
+
+            // 4. Select the active tab's set for pagination
+            var activeSet = tab.ToLower() switch {
+                "lost" => lostItems,
+                "matching" => matchingItems,
+                "found" => foundItems,
+                _ => allValidItems
+            };
+
+            // 5. Final pagination and ID selection
+            var finalListingSorted = activeSet.OrderByDescending(x => x.CreatedOn).ToList();
+            int totalCount = finalListingSorted.Count();
+            
+            var pagedIds = finalListingSorted
+                .Skip(start)
+                .Take(length)
+                .Select(x => x.Id)
+                .ToList();
+
+            // 6. Detailed fetch for the exact 10 records needed
+            var pagedItems = await _itemRepository.AsQueryable()
                 .Include(x => x.Location)
                 .Include(x => x.ItemType)
                 .Include(x => x.Attributes)
-                .Include(x=>x.CreatedByUser)
+                .Include(x => x.CreatedByUser)
+                .Where(x => pagedIds.Contains(x.Id))
+                .OrderByDescending(x => x.CreatedOn)
                 .ToListAsync();
 
-            var dtoList = _mapper.Map<List<GetItemDto>>(items);
+            var dtoList = _mapper.Map<List<GetItemDto>>(pagedItems);
+            var itemIds = pagedItems.Select(x => x.Id).ToList();
 
-            return Response<List<GetItemDto>>.SetSuccessResponse(dtoList);
+            var pagedMatches = matches.Where(m => itemIds.Contains(m.LostItemId) || itemIds.Contains(m.FoundItemId)).ToList();
+            var pagedClaims = claims.Where(c => (itemIds.Contains(c.LostItemId) || itemIds.Contains(c.FoundItemId))).ToList();
+
+            foreach (var dto in dtoList)
+            {
+                var match = pagedMatches.FirstOrDefault(m => m.LostItemId == dto.Id || m.FoundItemId == dto.Id);
+                if (match != null)
+                {
+                    dto.HasPotentialMatch = true;
+                    dto.MatchFoundItemId = match.LostItemId == dto.Id ? match.FoundItemId : match.LostItemId;
+
+                    // Support Admin UI with better labels
+                    var matchedId = dto.MatchFoundItemId;
+                    var matchedObj = await _itemRepository.AsQueryable().Include(x => x.ItemType).Include(x => x.CreatedByUser).FirstOrDefaultAsync(x => x.Id == matchedId);
+                    if (matchedObj != null)
+                    {
+                        dto.MatchItemType = matchedObj.ItemType?.Name;
+                        dto.MatchReporterName = matchedObj.CreatedByUser?.FirstName + " " + matchedObj.CreatedByUser?.LastName;
+                    }
+                }
+
+                var claim = pagedClaims.FirstOrDefault(c => (c.LostItemId == dto.Id || c.FoundItemId == dto.Id));
+                if (claim != null)
+                {
+                    dto.ClaimId = claim.Id;
+                    dto.LatestClaimStatus = claim.Status;
+                    dto.ClaimRejectionReason = claim.RejectionReason;
+                    dto.ClaimDescription = claim.ClaimDescription;
+                    dto.ClaimantName = claim.CreatedByUser?.FirstName + " " + claim.CreatedByUser?.LastName;
+                    dto.ClaimantEmail = claim.CreatedByUser?.Email;
+                }
+
+                if (dto.ReportType == ReportType.Found)
+                {
+                    dto.ActiveClaimCount = claims.Count(c => c.FoundItemId == dto.Id);
+                }
+            }
+
+            var result = new PagedItemResponseDto
+            {
+                Items = dtoList,
+                Total = totalCount,
+                LostCount = lostItems.Count,
+                FoundCount = foundItems.Count,
+                MatchCount = matchingItems.Count
+            };
+
+            return Response<PagedItemResponseDto>.SetSuccessResponse(result);
         }
 
         /// <summary>

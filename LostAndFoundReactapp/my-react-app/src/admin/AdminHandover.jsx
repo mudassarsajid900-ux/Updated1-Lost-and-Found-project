@@ -12,6 +12,7 @@ const AdminHandover = () => {
     const [pending, setPending] = useState([]);
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5197';
     const [activeTab, setActiveTab] = useState('pending');
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
@@ -64,6 +65,12 @@ const AdminHandover = () => {
         e.preventDefault();
         if (!handoverData.receiverName || !handoverData.receiverCnic || !handoverData.receiverPhone) {
             alert("Please fill in receiver name, CNIC, and phone number.");
+            return;
+        }
+
+        // PERFECTION GUARD: Force photo evidence for ALL handovers (Replacements/Claims)
+        if (!handoverData.cnicPhoto || !handoverData.personPhoto) {
+            alert("Security Protocol Violation: You MUST upload both a Photo of the CNIC and a Photo of the Receiver to finalize this release.");
             return;
         }
 
@@ -189,7 +196,7 @@ const AdminHandover = () => {
                                                     <div style={{ position: 'relative' }}>
                                                         <div style={{ width: '64px', height: '64px', borderRadius: '18px', overflow: 'hidden', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
                                                             {item.itemImageUrl ? (
-                                                                <img src={`http://localhost:5197${item.itemImageUrl}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                                <img src={`${API_BASE_URL}${item.itemImageUrl}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                             ) : (
                                                                 <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: label.color }}>
                                                                     {isReplacement ? <RefreshCw size={24} /> : isAuction ? <Wallet size={24} /> : isClaim ? <CheckCircle size={24} /> : <Package size={24} />}
@@ -273,7 +280,7 @@ const AdminHandover = () => {
                                             <div style={{ display: 'flex', gap: '1.25rem', marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px dashed #cbd5e0' }}>
                                                 <div style={{ width: '80px', height: '80px', borderRadius: '16px', overflow: 'hidden', border: '2px solid #fff', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
                                                     {selectedItem.itemImageUrl ? (
-                                                        <img src={`http://localhost:5197${selectedItem.itemImageUrl}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                        <img src={`${API_BASE_URL}${selectedItem.itemImageUrl}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                     ) : (
                                                         <div style={{ height: '100%', background: '#edf2f7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Package size={32} color="#a0aec0" /></div>
                                                     )}
@@ -493,7 +500,7 @@ const AdminHandover = () => {
                                                                         onClick={() => setSelectedHistoryItem(record)}
                                                                         style={{ width: '30px', height: '30px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #e2e8f0', cursor: 'pointer', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                                                     >
-                                                                        <img src={`http://localhost:5197${record.cnicImagePath}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                                        <img src={`${API_BASE_URL}${record.cnicImagePath}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                                     </div>
                                                                 ) : <div style={{ width: '30px', height: '30px', borderRadius: '6px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Camera size={14} color="#cbd5e0" /></div>}
                                                                 
@@ -605,13 +612,13 @@ const AdminHandover = () => {
                                             {selectedHistoryItem.cnicImagePath && (
                                                 <div style={{ background: '#fff', padding: '8px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
                                                      <div style={{ fontSize: '0.6rem', fontWeight: '900', color: '#94a3b8', marginBottom: '4px', textAlign: 'center' }}>CNIC PROOF</div>
-                                                     <img src={`http://localhost:5197${selectedHistoryItem.cnicImagePath}`} style={{ width: '100%', borderRadius: '10px', height: '120px', objectFit: 'cover' }} alt="CNIC" />
+                                                     <img src={`${API_BASE_URL}${selectedHistoryItem.cnicImagePath}`} style={{ width: '100%', borderRadius: '10px', height: '120px', objectFit: 'cover' }} alt="CNIC" />
                                                 </div>
                                             )}
                                             {selectedHistoryItem.personImagePath && (
                                                 <div style={{ background: '#fff', padding: '8px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
                                                      <div style={{ fontSize: '0.6rem', fontWeight: '900', color: '#94a3b8', marginBottom: '4px', textAlign: 'center' }}>RECEIVER PHOTO</div>
-                                                     <img src={`http://localhost:5197${selectedHistoryItem.personImagePath}`} style={{ width: '100%', borderRadius: '10px', height: '120px', objectFit: 'cover' }} alt="Person" />
+                                                     <img src={`${API_BASE_URL}${selectedHistoryItem.personImagePath}`} style={{ width: '100%', borderRadius: '10px', height: '120px', objectFit: 'cover' }} alt="Person" />
                                                 </div>
                                             )}
                                         </div>

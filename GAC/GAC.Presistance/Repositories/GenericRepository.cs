@@ -139,9 +139,18 @@ namespace GAC.Presistance.Repositories
                 {
                     var userId = _userData?.UserId ?? 0;
                     var now = DateTime.Now;
-                    if (b.CreatedBy == 0) b.CreatedBy = userId;
+                    if (userId > 0)
+                    {
+                         if (b.CreatedBy == 0) b.CreatedBy = userId;
+                         b.LastModifiedBy = userId;
+                    }
+                    else
+                    {
+                         // System Job Context Fallback (Prevents AspNetUsers FK crash for ID 0)
+                         if (b.CreatedBy == 0) b.CreatedBy = 1;
+                         b.LastModifiedBy = 1;
+                    }
                     b.CreatedOn = now;
-                    b.LastModifiedBy = userId;
                     b.LastModifiedOn = now;
                     b.IsDeleted = false;
                     b.IsActive = true;
@@ -166,9 +175,12 @@ namespace GAC.Presistance.Repositories
             {
                 if (entity is BaseEntity baseEntity)
                 {
-                    var currentUserId = _userData?.UserId;
-                    var currentTime = DateTime.Now;
-                    baseEntity.LastModifiedBy = currentUserId;
+                    var currentUserId = _userData?.UserId ?? 0;
+                    var currentTime = DateTime.UtcNow;
+                    if (currentUserId > 0)
+                    {
+                        baseEntity.LastModifiedBy = currentUserId;
+                    }
                     baseEntity.LastModifiedOn = currentTime;
                 }
 
@@ -647,35 +659,9 @@ namespace GAC.Presistance.Repositories
             return await query.ToListAsync();
         }
 
-        public async Task<TEntity?> GetByIdAsync(object id, QueryOptions<TEntity>? options = null)
-        {
-            IQueryable<TEntity> query = _dbSet;
-            if (options?.AsNoTracking == true) query = query.AsNoTracking();
-            if (options?.Includes != null) query = options.Includes(query);
-            return await query.FirstOrDefaultAsync(e => EF.Property<object>(e, "Id").Equals(id));
-        }
 
-        public async Task<IEnumerable<TEntity>> GetAllNewAsync(QueryOptions<TEntity>? options = null)
-        {
-            IQueryable<TEntity> query = _dbSet;
 
-            if (options?.AsNoTracking == true) query = query.AsNoTracking();
-            if (options?.AsSplitQuery == true) query = query.AsSplitQuery();
-            if (options?.Where != null) query = query.Where(options.Where);
-            if ((options?.AndFilters?.Any() == true) || (options?.OrFilters?.Any() == true))
-                query = query.Where(BuildMixedExpression(options.AndFilters, options.OrFilters));
-            if (options?.Includes != null) query = options.Includes(query);
 
-            query = ApplySorting(query, options?.SortDirection ?? "", options?.SortColumn ?? "");
-
-            if (options?.PageSize.HasValue == true && options?.PageNumber.HasValue == true)
-            {
-                int skip = (options.PageNumber.Value - 1) * options.PageSize.Value;
-                query = query.Skip(skip).Take(options.PageSize.Value);
-            }
-
-            return await query.ToListAsync();
-        }
 
         private static IQueryable<TEntity> ApplySorting(IQueryable<TEntity> query, string sortDirection, string sortColumn)
         {

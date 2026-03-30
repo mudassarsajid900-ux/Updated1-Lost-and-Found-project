@@ -25,8 +25,8 @@ namespace GAC.Core.Entities.LostItems
         [ForeignKey("AuctionRecordId")] 
         public AuctionRecord AuctionRecord { get; set; }
 
-        public string CnicImagePath { get; set; }
-        public string PersonImagePath { get; set; }
+        public string? CnicImagePath { get; set; }
+        public string? PersonImagePath { get; set; }
         
         public HandoverType HandoverType { get; set; }
         

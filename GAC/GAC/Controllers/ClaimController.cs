@@ -3,6 +3,7 @@ using GAC.Application.Services.ClaimRequests.Dtos;
 using GAC.Common.Responce;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using GAC.Common.Constants;
 
 namespace GAC.API.Controllers
 {
@@ -25,7 +26,7 @@ namespace GAC.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = ApplicationConstants.AdministratorRole)]
         [HttpPut("update-status")]
         public async Task<ActionResult<Response<GetClaimDto>>> UpdateStatus(UpdateClaimStatusDto dto)
         {
@@ -47,7 +48,7 @@ namespace GAC.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = ApplicationConstants.AdministratorRole)]
         [HttpGet("all")]
         public async Task<ActionResult<Response<List<GetClaimDto>>>> GetAllClaims()
         {

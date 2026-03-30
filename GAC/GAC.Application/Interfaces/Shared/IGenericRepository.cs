@@ -57,8 +57,7 @@ namespace GAC.Application.Interfaces.Shared
         Func<IQueryable<TEntity>, IQueryable<TEntity>> includeExpression = null);
 
 
-        Task<TEntity?> GetByIdAsync(object id, QueryOptions<TEntity>? options = null);
-        Task<IEnumerable<TEntity>> GetAllNewAsync(QueryOptions<TEntity>? options = null);
+
         Task<IEnumerable<TEntity>> GetByDynamicColumnNameAsync(string columnName, object id, bool asNoTracking = false, bool asSplitQuery = false, bool checkIsActive = false,
       Func<IQueryable<TEntity>, IQueryable<TEntity>> includeExpression = null);
     }
