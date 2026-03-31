@@ -55,6 +55,7 @@ namespace GAC.Application.Services.Handover.Dtos
         // Person details
         public string TargetPersonName { get; set; } = string.Empty;
         public string TargetPersonEmail { get; set; } = string.Empty;
+        public string TargetPersonPhone { get; set; } = string.Empty;
         public string ItemDescription { get; set; } = string.Empty;
         public string ItemLocation { get; set; } = string.Empty;
         public List<GAC.Application.Services.Item.Dtos.GetItemAttributes> Attributes { get; set; } = new();

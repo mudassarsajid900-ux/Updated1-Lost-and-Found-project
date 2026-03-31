@@ -23,7 +23,7 @@ namespace GAC.Application.Services.Replacement.Dtos
         public string AdminNotes { get; set; }
         public string ReporterName { get; set; }
         public DateTime? DecisionDate { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedOn { get; set; }
     }
 
     public class AdminProcessReplacementDto

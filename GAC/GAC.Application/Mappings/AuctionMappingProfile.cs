@@ -10,7 +10,8 @@ namespace GAC.Application.Mappings
         {
             CreateMap<AuctionRecord, GetAuctionDto>()
                 .ForMember(dest => dest.ItemTitle, opt => opt.MapFrom(src => src.FoundItem.ItemType.Name))
-                .ForMember(dest => dest.ItemImageUrl, opt => opt.MapFrom(src => src.FoundItem.ImageUrl));
+                .ForMember(dest => dest.ItemImageUrl, opt => opt.MapFrom(src => src.FoundItem.ImageUrl))
+                .ForMember(dest => dest.Attributes, opt => opt.MapFrom(src => src.FoundItem.Attributes));
             CreateMap<CreateAuctionDto, AuctionRecord>();
             CreateMap<Bid, GetBidDto>()
                 .ForMember(dest => dest.BidderName, opt => opt.MapFrom(src => src.Bidder.FirstName + " " + src.Bidder.LastName));

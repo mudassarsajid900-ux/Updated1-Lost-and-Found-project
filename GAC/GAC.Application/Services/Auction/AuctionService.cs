@@ -40,19 +40,24 @@ namespace GAC.Application.Services.Auction
             if (item == null)
                 return Response<GetAuctionDto>.SetCustomErrorResponse("Item not found", StatusCodes.Status404NotFound);
 
+            // BUG FIX: Prevent duplicate auctions for the same item
+            var existingActiveAuction = await _auctionRepository.AsQueryable()
+                .FirstOrDefaultAsync(x => x.FoundItemId == dto.FoundItemId && x.IsActive);
+            if (existingActiveAuction != null)
+                return Response<GetAuctionDto>.SetCustomErrorResponse("An active auction already exists for this item.", StatusCodes.Status409Conflict);
+
             var entity = new AuctionRecord
             {
                 FoundItemId = dto.FoundItemId,
                 HighestBid = dto.StartingPrice,
                 IsActive = true,
                 CreatedBy = _userData.UserId,
-                HighestBidderId = 0,
+                HighestBidderId = null,
                 EndDate = DateTime.UtcNow.AddHours(dto.DurationHours)
             };
 
             await _auctionRepository.AddAsync(entity);
 
-            // Update Item Status so it can't be used for replacement or matched anymore
             item.Status = ItemStatus.Auction;
             await _itemRepository.UpdateAsync(item);
 
@@ -74,6 +79,11 @@ namespace GAC.Application.Services.Auction
                 return Response<GetAuctionDto>.SetCustomErrorResponse("Auction is already ended", StatusCodes.Status400BadRequest);
 
             entity.IsActive = false;
+            if (entity.FoundItem != null)
+            {
+                entity.FoundItem.Status = ItemStatus.AuctionHandover;
+                entity.FoundItem.LastModifiedOn = DateTime.UtcNow;
+            }
             await _auctionRepository.UpdateAsync(entity);
 
             var result = _mapper.Map<GetAuctionDto>(entity);
@@ -119,6 +129,8 @@ namespace GAC.Application.Services.Auction
             var entity = await _auctionRepository.AsQueryable()
                 .Include(x => x.FoundItem)
                 .ThenInclude(i => i.ItemType)
+                .Include(x => x.FoundItem)
+                .ThenInclude(i => i.Attributes)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             if (entity == null)
@@ -133,10 +145,21 @@ namespace GAC.Application.Services.Auction
             var auctions = await _auctionRepository.AsQueryable()
                 .Include(x => x.FoundItem)
                 .ThenInclude(i => i.ItemType)
+                .Include(x => x.FoundItem)
+                .ThenInclude(i => i.Attributes)
+                .Include(x => x.HighestBidder)  // BUG FIX: Was missing — bidder name was always null
                 .Where(x => x.IsActive)
                 .ToListAsync();
 
-            var result = _mapper.Map<List<GetAuctionDto>>(auctions);
+            // BUG FIX: Manually set HighestBidderName (same pattern as GetCompletedAuctionsAsync)
+            var result = auctions.Select(x => {
+                var dto = _mapper.Map<GetAuctionDto>(x);
+                dto.HighestBidderName = x.HighestBidder != null
+                    ? (x.HighestBidder.FirstName + " " + x.HighestBidder.LastName)
+                    : "No Bids";
+                return dto;
+            }).ToList();
+
             return Response<List<GetAuctionDto>>.SetSuccessResponse(result);
         }
 

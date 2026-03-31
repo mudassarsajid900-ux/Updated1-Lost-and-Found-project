@@ -110,7 +110,7 @@ namespace GAC.Application.Services.ClaimRequests
 
                     // PERFECTION: Automatically reject all OTHER pending claims for this Found item
                     var otherClaims = await _claimRepository.AsQueryable()
-                        .Where(c => c.FoundItemId == entity.FoundItemId && c.Id != entity.ClaimId && c.Status == ClaimStatus.VerificationPending)
+                        .Where(c => c.FoundItemId == entity.FoundItemId && c.Id != entity.Id && c.Status == ClaimStatus.VerificationPending)
                         .ToListAsync();
 
                     foreach (var otherClaim in otherClaims)
@@ -152,7 +152,7 @@ namespace GAC.Application.Services.ClaimRequests
                 return Response<GetClaimDto>.NotFoundResponse();
 
             // IDOR Protection: Students only see their own claim records (Admins see all)
-            if (_userData != null && _userData.Role != "Admin" && entity.CreatedBy != _userData.UserId)
+            if (_userData != null && !_userData.Roles.Contains("Admin") && entity.CreatedBy != _userData.UserId)
             {
                 return Response<GetClaimDto>.SetCustomErrorResponse("Access Denied: You do not have permission to view this claim.", StatusCodes.Status403Forbidden);
             }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Home, Folder, PlusCircle, Settings, LogOut, ChevronLeft, Gavel, Search, Clock, DollarSign, TrendingUp, Award, Zap, Shield, Loader, AlertCircle, Flame, ArrowUpCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import api from '../api/axios';
@@ -145,6 +145,35 @@ const Auction = () => {
         }
     }, [selectedItem, isModalOpen]);
 
+    // Handle deep-linking from Admin (e.g. ?activeId=123)
+    const location = useLocation();
+    useEffect(() => {
+        if (!loading && auctions.length > 0) {
+            const params = new URLSearchParams(location.search);
+            const activeId = params.get('activeId');
+            if (activeId) {
+                const item = auctions.find(a => a.id === parseInt(activeId));
+                if (item) {
+                    setSelectedItem(item);
+                    // Instead of just 'detail' view, let's open the Modal directly
+                    // so the admin sees exactly what the student sees.
+                    const currentPrice = Number(item.highestBid || item.HighestBid || 0);
+                    const increment = getMinIncrement(currentPrice);
+                    setBidAmount(currentPrice + increment);
+                    setIsModalOpen(true);
+                    
+                    // Small delay to ensure render then scroll
+                    setTimeout(() => {
+                        const element = document.getElementById(`auction-card-${activeId}`);
+                        if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }, 100);
+                }
+            }
+        }
+    }, [loading, auctions, location.search]);
+
     // ========================================== //
     // HANDLERS
     // ========================================== //
@@ -267,6 +296,21 @@ const Auction = () => {
                                             <span className="v">Unclaimed</span>
                                         </div>
                                     </div>
+
+                                    {/* TECHNICAL SPECIFICATIONS SECTION */}
+                                    {selectedItem.attributes && selectedItem.attributes.length > 0 && (
+                                        <div className="tech-specs-modal-zone" style={{ marginTop: '2rem', textAlign: 'left', background: '#f8fafc', padding: '1.5rem', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                                            <h5 style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', fontWeight: '900', color: '#64748b', textTransform: 'uppercase' }}>Technical Specifications</h5>
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                                {selectedItem.attributes.map((attr, idx) => (
+                                                    <div key={idx} style={{ display: 'flex', flexDirection: 'column' }}>
+                                                        <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase' }}>{attr.fieldName}</span>
+                                                        <span style={{ fontSize: '0.95rem', fontWeight: '800', color: '#1e293b' }}>{attr.fieldValue}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -476,6 +520,21 @@ const Auction = () => {
                                     <span>Time Left: {getTimeRemaining(selectedItem.endDate || selectedItem.EndDate)}</span>
                                 </div>
                             </div>
+
+                            {/* ITEM ATTRIBUTES IN DETAIL VIEW */}
+                            {selectedItem.attributes && selectedItem.attributes.length > 0 && (
+                                <div className="detail-specs-card" style={{ marginTop: '1.5rem', padding: '1.5rem', background: 'white', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                                    <h5 style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>Item Details</h5>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                        {selectedItem.attributes.map((attr, idx) => (
+                                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.5rem', borderBottom: '1px solid #f1f5f9' }}>
+                                                <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '600' }}>{attr.fieldName}</span>
+                                                <span style={{ fontSize: '0.85rem', color: '#0f172a', fontWeight: '800' }}>{attr.fieldValue}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="bid-entry-zone mt-8">
                                 <p className="bid-hint-top text-center mb-4">Click below to place your bid</p>

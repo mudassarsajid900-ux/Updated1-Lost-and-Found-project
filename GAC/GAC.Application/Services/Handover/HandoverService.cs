@@ -72,7 +72,8 @@ namespace GAC.Application.Services.Handover
             {
                 case HandoverType.FoundItemToAdmin:
                     item.Status = ItemStatus.Found; 
-                    item.IsVerifiedByAdmin = true; // Essential: Unlocks notifications for matchers
+                    item.IsVerifiedByAdmin = true; 
+                    item.VerifiedDate = DateTime.UtcNow; // PHYSICAL ARRIVAL DATE
                     await _itemRepository.UpdateAsync(item);
                     break;
                 case HandoverType.AdminToClaimant:
@@ -227,6 +228,7 @@ namespace GAC.Application.Services.Handover
                     HandoverType = HandoverType.FoundItemToAdmin,
                     TargetPersonName = item.CreatedByUser?.FirstName + " " + item.CreatedByUser?.LastName,
                     TargetPersonEmail = item.CreatedByUser?.Email,
+                    TargetPersonPhone = item.CreatedByUser?.PhoneNumber ?? "",
                     ItemLocation = item.Location?.Name,
                     Attributes = item.Attributes.Select(a => new GAC.Application.Services.Item.Dtos.GetItemAttributes { Id = a.Id, FieldName = a.FieldName, FieldValue = a.FieldValue }).ToList()
                 });
@@ -252,6 +254,7 @@ namespace GAC.Application.Services.Handover
                     ClaimRequestId = claim.Id,
                     TargetPersonName = claim.CreatedByUser?.FirstName + " " + claim.CreatedByUser?.LastName,
                     TargetPersonEmail = claim.CreatedByUser?.Email,
+                    TargetPersonPhone = claim.CreatedByUser?.PhoneNumber ?? "",
                     ItemLocation = claim.FoundItem.Location?.Name,
                     Attributes = claim.FoundItem.Attributes.Select(a => new GAC.Application.Services.Item.Dtos.GetItemAttributes { Id = a.Id, FieldName = a.FieldName, FieldValue = a.FieldValue }).ToList()
                 });
@@ -277,6 +280,7 @@ namespace GAC.Application.Services.Handover
                     ReplacementRecordId = rep.Id,
                     TargetPersonName = rep.CreatedByUser?.FirstName + " " + rep.CreatedByUser?.LastName,
                     TargetPersonEmail = rep.CreatedByUser?.Email,
+                    TargetPersonPhone = rep.CreatedByUser?.PhoneNumber ?? "",
                     ItemLocation = rep.FoundItem?.Location?.Name,
                     Attributes = rep.FoundItem?.Attributes.Select(a => new GAC.Application.Services.Item.Dtos.GetItemAttributes { Id = a.Id, FieldName = a.FieldName, FieldValue = a.FieldValue }).ToList() ?? new()
                 });
@@ -307,6 +311,7 @@ namespace GAC.Application.Services.Handover
                     AuctionRecordId = auction.Id,
                     TargetPersonName = auction.HighestBidder?.FirstName + " " + auction.HighestBidder?.LastName,
                     TargetPersonEmail = auction.HighestBidder?.Email,
+                    TargetPersonPhone = auction.HighestBidder?.PhoneNumber ?? "",
                     ItemLocation = auction.FoundItem.Location?.Name,
                     Attributes = auction.FoundItem.Attributes.Select(a => new GAC.Application.Services.Item.Dtos.GetItemAttributes { Id = a.Id, FieldName = a.FieldName, FieldValue = a.FieldValue }).ToList()
                 });

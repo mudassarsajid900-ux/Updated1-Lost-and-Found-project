@@ -89,14 +89,17 @@ namespace GAC.Application.Services.BackgroundJobs
             // STEP 2: Found → Replacement
             // Find all Found items older than FoundToReplacementThreshold
             // ============================================================
+            // When threshold = 0: Admin set "Test Mode" — move ALL eligible items NOW
+            // When threshold > 0: Only move items older than X days
             var replacementCutoff = foundToReplacementDays == 0 
-                ? DateTime.UtcNow.AddYears(1) // 0 implies instant "Test Mode", instantly moving everything 
+                ? DateTime.UtcNow          // 0 = Test Mode: everything verified is eligible
                 : DateTime.UtcNow.AddDays(-foundToReplacementDays);
 
             var foundItemsToMove = await itemRepo.AsQueryable()
                 .Where(x => x.ReportType == ReportType.Found &&
                            x.Status == ItemStatus.Found &&
-                           x.CreatedOn <= replacementCutoff)
+                           x.IsVerifiedByAdmin == true &&
+                           x.VerifiedDate <= replacementCutoff)
                 .ToListAsync();
 
             foreach (var item in foundItemsToMove)
@@ -117,39 +120,22 @@ namespace GAC.Application.Services.BackgroundJobs
             // STEP 3: Replacement → Auction
             // Find all Replacement items older than ReplacementToAuctionThreshold
             // ============================================================
+            // When threshold = 0: Admin set "Test Mode" — move ALL eligible items NOW
+            // When threshold > 0: Only move items older than X days
             var auctionCutoff = replacementToAuctionDays == 0 
-                ? DateTime.UtcNow.AddYears(1) // 0 implies instant "Test Mode", instantly moving everything
+                ? DateTime.UtcNow          // 0 = Test Mode: everything in replacement is eligible
                 : DateTime.UtcNow.AddDays(-replacementToAuctionDays);
 
             var replacementItemsToAuction = await itemRepo.AsQueryable()
                 .Where(x => x.ReportType == ReportType.Found &&
                            x.Status == ItemStatus.Replacement &&
-                           x.LastModifiedOn <= auctionCutoff)
+                           x.IsVerifiedByAdmin == true &&
+                           x.VerifiedDate <= auctionCutoff)
                 .ToListAsync();
 
             foreach (var item in replacementItemsToAuction)
             {
-                // Check if an AuctionRecord already exists for this item
-                var existingAuction = await auctionRepo.AsQueryable()
-                    .FirstOrDefaultAsync(a => a.FoundItemId == item.Id);
-
-                if (existingAuction == null)
-                {
-                    // Auto-create an AuctionRecord
-                    var auctionRecord = new AuctionRecord
-                    {
-                        FoundItemId = item.Id,
-                        HighestBid = 0,
-                        HighestBidderId = 0,
-                        IsActive = true,
-                        CreatedBy = item.CreatedBy,  // Use the original reporter
-                        CreatedOn = DateTime.UtcNow,
-                        EndDate = DateTime.UtcNow.AddDays(7) // Setting a default 7-day auction duration
-                    };
-                    await auctionRepo.AddAsync(auctionRecord);
-                }
-
-                // Update item status to Auction
+                // Update item status to Auction - Admin will manually price it from the dashboard
                 item.Status = ItemStatus.Auction;
                 item.LastModifiedOn = DateTime.UtcNow;
                 await itemRepo.UpdateAsync(item);

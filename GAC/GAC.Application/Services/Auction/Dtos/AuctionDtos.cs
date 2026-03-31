@@ -1,3 +1,4 @@
+using GAC.Application.Services.Item.Dtos;
 using GAC.Core.Enums;
 
 namespace GAC.Application.Services.Auction.Dtos
@@ -32,6 +33,8 @@ namespace GAC.Application.Services.Auction.Dtos
         public string ItemImageUrl { get; set; }
         public DateTime EndDate { get; set; }
         public string HighestBidderName { get; set; }
+        public DateTime CreatedOn { get; set; }
+        public List<GetItemAttributes> Attributes { get; set; } = new();
     }
 
     public class GetBidDto

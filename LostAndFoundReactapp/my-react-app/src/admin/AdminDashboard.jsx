@@ -58,8 +58,15 @@ const AdminDashboard = () => {
         action: a.action,
         role: a.role,
         time: a.time,
-        icon: a.type === 'system' ? <Activity size={16} color="#10b981" /> : (a.type === 'found' ? <CheckCircle size={16} color="#10b981" /> : <Bell size={16} color="#3b82f6" />),
-        bg: a.type === 'found' ? '#f0fdf4' : '#eff6ff'
+        icon: a.type === 'system' ? <Activity size={16} color="#10b981" /> : 
+              a.type === 'found' ? <CheckCircle size={16} color="#10b981" /> : 
+              a.type === 'replacement' ? <RefreshCw size={16} color="#8b5cf6" /> :
+              a.type === 'auction' ? <Gavel size={16} color="#f43f5e" /> :
+              <Bell size={16} color="#3b82f6" />,
+        bg: a.type === 'found' ? '#f0fdf4' : 
+            a.type === 'replacement' ? '#f5f3ff' :
+            a.type === 'auction' ? '#fff1f2' :
+            '#eff6ff'
     })) : [
         { user: 'System', action: 'Stats refreshed successfully', time: 'Just now', icon: <Activity size={16} color="#10b981" />, bg: '#f0fdf4' },
         { user: 'Sarah K.', action: 'approved Claim Silver Watch', role: 'Admin', time: '30 mins ago', icon: <CheckCircle size={16} color="#10b981" />, bg: '#f0fdf4' },

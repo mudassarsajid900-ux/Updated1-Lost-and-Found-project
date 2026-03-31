@@ -269,7 +269,7 @@ namespace GAC.Application.Services.Item
                 return Response<GetItemDto>.NotFoundResponse();
 
             // IDOR Protection: Students can only view their own items (Admins see all)
-            if (_userData != null && _userData.Role != "Admin" && entity.CreatedBy != _userData.UserId)
+            if (_userData != null && !_userData.Roles.Contains("Admin") && entity.CreatedBy != _userData.UserId)
             {
                 return Response<GetItemDto>.SetCustomErrorResponse("Access Denied: You do not have permission to view this report.", StatusCodes.Status403Forbidden);
             }
@@ -326,7 +326,7 @@ namespace GAC.Application.Services.Item
             // 1. Unified truth: Get basic metadata for ALL non-deleted items with valid Locations
             // This INNER JOIN on Location ensures orphaned items are EXCLUDED from all counts and lists.
             var allValidItems = await _itemRepository.AsQueryable()
-                .Where(x => x.Status == ItemStatus.Lost || x.Status == ItemStatus.Found || x.Status == ItemStatus.Replacement)
+                .Where(x => x.Status == ItemStatus.Lost || x.Status == ItemStatus.Found || x.Status == ItemStatus.Replacement || x.Status == ItemStatus.Auction)
                 .Where(x => x.Location != null && !x.Location.IsDeleted)
                 .Select(x => new { 
                     x.Id, 

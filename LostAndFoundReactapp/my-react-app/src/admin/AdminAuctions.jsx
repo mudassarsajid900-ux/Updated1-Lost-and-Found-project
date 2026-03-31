@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
-    Gavel, Box, Calendar, MapPin, 
+    Gavel, Box, Calendar, MapPin, Clock,
     ChevronRight, PlusCircle, AlertCircle,
-    CheckCircle2, TrendingUp, Info, Award, ShieldCheck
+    CheckCircle2, TrendingUp, Info, Award, ShieldCheck, RefreshCw
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
@@ -22,28 +22,79 @@ const AdminAuctions = () => {
     const [startingPrice, setStartingPrice] = useState('500');
     const [durationHours, setDurationHours] = useState('24');
 
+    // Helper: Calculate remaining time in human-readable format
+    const getTimeRemaining = (endDateStr) => {
+        if (!endDateStr) return 'Active';
+        const total = Date.parse(endDateStr) - Date.parse(new Date());
+        if (total <= 0) return 'Ended';
+        
+        const seconds = Math.floor((total / 1000) % 60);
+        const minutes = Math.floor((total / 1000 / 60) % 60);
+        const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
+        const days = Math.floor(total / (1000 * 60 * 60 * 24));
+
+        if (days > 0) return `${days}d ${hours}h left`;
+        if (hours > 0) return `${hours}h ${minutes}m left`;
+        if (minutes > 0) return `${minutes}m ${seconds}s left`;
+        return `${seconds}s left`;
+    };
+
     const fetchData = async () => {
         setLoading(true);
+        console.log("AdminAuctions: Starting data fetch...");
         try {
-            // Unclaimed Found items (Status 1 and no potential match)
-            const allItemsRes = await api.get('Item/all');
-            const foundItems = (allItemsRes.data.data || []).filter(i => 
-                (i.status === 1 || i.Status === 1) && 
-                !(i.hasPotentialMatch || i.HasPotentialMatch)
+            // 1. Fetch Inventory (Status 3: Auction Staging)
+            const allItemsRes = await api.get('Item/get-all');
+            console.log("AdminAuctions: Item data received", allItemsRes.data);
+            
+            // Handle nested vs direct data (defensive)
+            const rawItems = allItemsRes.data?.data?.items || allItemsRes.data?.data || [];
+            if (!Array.isArray(rawItems)) {
+                console.error("AdminAuctions: Item data is not an array", rawItems);
+            }
+            
+            const auctionStagedItems = (Array.isArray(rawItems) ? rawItems : []).filter(i => 
+                i && (i.status === 3 || i.Status === 3)
             );
-            setUnclaimedItems(foundItems);
+            console.log(`AdminAuctions: Found ${auctionStagedItems.length} items in staging phase.`);
 
-            // Active auctions
+            // 2. Fetch Active Auctions
             const auctionsRes = await api.get('Auction/active');
-            setActiveAuctions(auctionsRes.data.data || []);
+            let activeList = auctionsRes.data?.data || auctionsRes.data || [];
+            // If data is nested in an 'items' property (defensive)
+            if (activeList && !Array.isArray(activeList) && activeList.items) {
+                activeList = activeList.items;
+            }
+            const activeArray = Array.isArray(activeList) ? activeList : [];
+            setActiveAuctions(activeArray);
+            console.log(`AdminAuctions: ${activeArray.length} active auctions loaded.`);
 
-            // Completed auctions
+            // 3. Fetch Completed Auctions
             const completedRes = await api.get('Auction/completed');
-            setCompletedAuctions(completedRes.data.data || []);
+            let completedList = completedRes.data?.data || completedRes.data || [];
+             if (completedList && !Array.isArray(completedList) && completedList.items) {
+                completedList = completedList.items;
+            }
+            const completedArray = Array.isArray(completedList) ? completedList : [];
+            setCompletedAuctions(completedArray);
+            console.log(`AdminAuctions: ${completedArray.length} completed auctions loaded.`);
+
+            // 4. Compute staging queue (Filter out items already live or handled)
+            const readyForPricing = auctionStagedItems.filter(item => {
+                const itemId = item.id || item.Id || 0;
+                const isLive = activeArray.some(auc => (auc.foundItemId || auc.FoundItemId) === itemId);
+                const isDone = completedArray.some(auc => (auc.foundItemId || auc.FoundItemId) === itemId);
+                return !isLive && !isDone;
+            });
+            
+            setUnclaimedItems(readyForPricing);
+            console.log(`AdminAuctions: ${readyForPricing.length} items ready for initial pricing.`);
+            
         } catch (err) {
-            console.error("Failed to fetch auction data", err);
+            console.error("AdminAuctions: Critical data fetch error", err);
         } finally {
             setLoading(false);
+            console.log("AdminAuctions: Fetch cycle complete.");
         }
     };
 
@@ -84,10 +135,18 @@ const AdminAuctions = () => {
         setProcessingId(`end-${auctionId}`);
         try {
             await api.post(`Auction/${auctionId}/end`);
-            alert("Auction ended successfully! Highest bidder secured.");
-            fetchData();
+            
+            // Immediate State Sync: Move to Completed locally for better UX
+            const endingAuction = activeAuctions.find(a => a.id === auctionId);
+            if (endingAuction) {
+                setCompletedAuctions(prev => [{...endingAuction, IsActive: false, endDate: new Date().toISOString()}, ...prev]);
+                setActiveAuctions(prev => prev.filter(a => a.id !== auctionId));
+            }
+            
+            alert("Auction ended successfully! Item moved to Handover queue.");
         } catch (err) {
-            alert("Failed to end auction.");
+            alert("Failed to end auction. It may already be closed.");
+            fetchData();
         } finally {
             setProcessingId(null);
         }
@@ -99,9 +158,21 @@ const AdminAuctions = () => {
 
             <main className="main-content premium-bg" style={{ background: '#f8fafc', padding: '2.5rem' }}>
                 <Header 
-                    title="Auction Management" 
-                    subtitle="Monitor active bidding or convert unclaimed inventory into public auctions."
+                    title="Auction Management Control" 
+                    subtitle="Convert unclaimed inventory into public auctions and monitor real-time bidding activity."
                 />
+
+                {/* INFORMATIONAL BANNER: HOW IT WORKS */}
+                <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '24px', padding: '1.5rem', marginBottom: '2.5rem', display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
+                    <div style={{ background: '#0ea5e9', color: '#fff', padding: '12px', borderRadius: '16px' }}><Info size={24} /></div>
+                    <div style={{ flex: 1 }}>
+                        <h4 style={{ margin: 0, color: '#0369a1', fontWeight: '800' }}>Where do items come from?</h4>
+                        <p style={{ margin: '4px 0 0 0', color: '#0ea5e9', fontSize: '0.85rem', lineHeight: '1.5' }}>
+                            Found items that were <b>verified</b> by admin but <b>never claimed</b> by an owner automatically move here after their Replacement period expires. 
+                            You must manually set a <b>Starting Price</b> below to launch them to students.
+                        </p>
+                    </div>
+                </div>
 
                 {/* MODAL: START AUCTION W/ PRICING */}
                 {startingAuctionItem && (
@@ -166,9 +237,17 @@ const AdminAuctions = () => {
                             <div style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '700', marginBottom: '0.5rem' }}>ACTIVE AUCTIONS</div>
                             <div style={{ fontSize: '2rem', fontWeight: '800', color: '#f43f5e' }}>{activeAuctions.length}</div>
                         </div>
-                        <div className="stat-card" style={{ background: '#fff', padding: '1.5rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
-                            <div style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '700', marginBottom: '0.5rem' }}>INVENTORY READY</div>
-                            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#0ea5e9' }}>{unclaimedItems.length}</div>
+                        <div className="stat-card" style={{ background: '#fff', padding: '1.5rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                                <div style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '700', marginBottom: '0.5rem' }}>PENDING PRICING</div>
+                                <div style={{ fontSize: '2rem', fontWeight: '800', color: '#0ea5e9' }}>{unclaimedItems?.length || 0}</div>
+                            </div>
+                            <button 
+                                onClick={fetchData}
+                                style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '8px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: '700', color: '#64748b' }}
+                            >
+                                <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Sync
+                            </button>
                         </div>
                     </div>
 
@@ -177,62 +256,78 @@ const AdminAuctions = () => {
                         {/* LEFT COLUMN: UNCLAIMED INVENTORY */}
                         <section>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                                <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '800', color: '#1e293b' }}>Eligible Inventory</h3>
-                                <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '4px 12px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: '800' }}>
-                                    FOUND & UNCLAIMED
-                                </span>
+                                <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '800', color: '#1e293b' }}>Pricing & Staging Center</h3>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '4px 12px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: '800' }}>
+                                        {unclaimedItems.length} ITEMS AWAITING PRICE
+                                    </span>
+                                </div>
                             </div>
 
                             {loading ? (
-                                <p>Loading inventory...</p>
+                                <p>Checking inventory for price tags...</p>
                             ) : unclaimedItems.length === 0 ? (
                                 <div style={{ background: '#fff', padding: '3rem', borderRadius: '24px', textAlign: 'center', border: '2px dashed #e2e8f0' }}>
                                     <Box size={40} color="#cbd5e0" style={{ marginBottom: '1rem' }} />
-                                    <h4 style={{ margin: 0, color: '#475569' }}>No items ready for auction</h4>
-                                    <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>All found items are either claimed or already in auction.</p>
+                                    <h4 style={{ margin: 0, color: '#475569' }}>The Pricing Center is Clear</h4>
+                                    <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Items will appear here once as soon as they become eligible for auction.</p>
                                 </div>
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                     {unclaimedItems.map((item) => (
                                         <div key={item.id} className="inventory-card" style={{ 
                                             background: '#fff', 
-                                            borderRadius: '20px', 
-                                            padding: '1.25rem', 
+                                            borderRadius: '24px', 
+                                            padding: '1.5rem', 
                                             border: '1px solid #e2e8f0',
+                                            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)',
                                             display: 'flex',
-                                            alignItems: 'center',
+                                            flexDirection: 'column',
                                             gap: '1.25rem'
                                         }}>
-                                            <div style={{ width: '60px', height: '60px', borderRadius: '12px', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <Box size={24} color="#94a3b8" />
-                                            </div>
-                                            <div style={{ flex: 1 }}>
-                                                <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#1e293b' }}>{item.type}</h4>
-                                                <div style={{ display: 'flex', gap: '1rem', marginTop: '4px', fontSize: '0.85rem', color: '#64748b' }}>
-                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={14}/> {item.locationName}</span>
-                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={14}/> {new Date(item.eventTime).toLocaleDateString()}</span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                                                <div style={{ width: '50px', height: '50px', borderRadius: '14px', background: '#f0f9ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <Box size={22} color="#0ea5e9" />
+                                                </div>
+                                                <div style={{ flex: 1 }}>
+                                                    <h4 style={{ margin: 0, fontSize: '1.15rem', fontWeight: '900', color: '#1e293b' }}>{item.type || 'Unknown Asset'}</h4>
+                                                    <div style={{ display: 'flex', gap: '1rem', marginTop: '4px', fontSize: '0.85rem', color: '#64748b' }}>
+                                                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}><MapPin size={14} color="#94a3b8"/> {item.locationName}</span>
+                                                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}><Calendar size={14} color="#94a3b8"/> Verified {new Date(item.eventTime).toLocaleDateString()}</span>
+                                                    </div>
+                                                </div>
+                                                <div style={{ textAlign: 'right' }}>
+                                                    <span style={{ display: 'block', fontSize: '0.7rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase' }}>Ready To Launch</span>
+                                                    <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#0ea5e9' }}>Status: Awaiting Price</span>
                                                 </div>
                                             </div>
-                                            <button 
-                                                onClick={() => handleOpenStartAuctionModal(item)}
-                                                disabled={processingId === `start-${item.id}`}
-                                                style={{
-                                                    background: '#0ea5e9',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    padding: '0.75rem 1.5rem',
-                                                    borderRadius: '12px',
-                                                    fontWeight: '700',
-                                                    fontSize: '0.85rem',
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '8px',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                            >
-                                                {processingId === `start-${item.id}` ? "Moving..." : <><TrendingUp size={16} /> Start Auction</>}
-                                            </button>
+
+                                            <div style={{ display: 'flex', gap: '12px', background: '#f8fafc', padding: '12px', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
+                                                <div style={{ flex: 1 }}>
+                                                    <label style={{ fontSize: '0.7rem', fontWeight: '800', color: '#64748b', display: 'block', marginBottom: '4px' }}>Recommended Starting Price</label>
+                                                    <div style={{ fontWeight: '800', color: '#0f172a' }}>Rs. 500</div>
+                                                </div>
+                                                <button 
+                                                    onClick={() => handleOpenStartAuctionModal(item)}
+                                                    disabled={processingId === `start-${item.id}`}
+                                                    style={{
+                                                        background: '#0ea5e9',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        padding: '0 1.25rem',
+                                                        borderRadius: '12px',
+                                                        fontWeight: '800',
+                                                        fontSize: '0.85rem',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '8px',
+                                                        boxShadow: '0 4px 10px -2px rgba(14, 165, 233, 0.4)'
+                                                    }}
+                                                >
+                                                    {processingId === `start-${item.id}` ? "Launching..." : <><TrendingUp size={16} /> Set Price & Launch</>}
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -248,21 +343,35 @@ const AdminAuctions = () => {
                                     <p style={{ color: '#94a3b8', textAlign: 'center', margin: '2rem 0' }}>No active auctions at the moment.</p>
                                 ) : (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                        {activeAuctions.map((auction) => (
+                                        {activeAuctions.filter(a => a && a.id).map((auction) => (
                                             <div key={auction.id} style={{ paddingBottom: '1.5rem', borderBottom: '1px solid #f1f5f9' }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                                     <div>
-                                                        <h5 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>{auction.itemTitle}</h5>
+                                                        <h5 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>{auction.itemTitle || auction.ItemTitle || 'Unknown Item'}</h5>
                                                         <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Auction ID: #{auction.id}</span>
                                                     </div>
                                                     <div style={{ textAlign: 'right' }}>
-                                                        <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#10b981' }}>Rs. {auction.highestBid.toLocaleString()}</div>
+                                                        <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#10b981' }}>Rs. {(auction.highestBid || 0).toLocaleString()}</div>
                                                         <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '700' }}>CURRENT HIGH</span>
                                                     </div>
                                                 </div>
+
+                                                <div style={{ margin: '1rem 0', padding: '0.75rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <Clock size={14} color="#64748b" />
+                                                        <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#64748b' }}>
+                                                            {getTimeRemaining(auction.endDate || auction.EndDate)}
+                                                        </span>
+                                                    </div>
+                                                    <div style={{ fontSize: '0.8rem', color: '#475569' }}>
+                                                        <span style={{ fontWeight: '800' }}>Bidder:</span> {auction.highestBidderName || auction.HighestBidderName || 'No Bids'}
+                                                    </div>
+                                                </div>
+
                                                 <div style={{ display: 'flex', gap: '8px', marginTop: '1rem' }}>
                                                     <button 
-                                                        onClick={() => navigate('/auction')}
+                                                        onClick={() => navigate(`/auction?activeId=${auction.id}`)}
+                                                        className="secondary-btn-sm"
                                                         style={{ 
                                                             flex: 1, padding: '0.6rem', borderRadius: '10px', 
                                                             background: '#f8fafc', border: '1px solid #e2e8f0', color: '#475569', 
@@ -273,7 +382,11 @@ const AdminAuctions = () => {
                                                     </button>
                                                     <button 
                                                         disabled={processingId === `end-${auction.id}`}
-                                                        onClick={() => handleEndAuction(auction.id)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleEndAuction(auction.id);
+                                                        }}
+                                                        className="danger-btn-sm"
                                                         style={{ 
                                                             flex: 1, padding: '0.6rem', borderRadius: '10px', 
                                                             background: '#fef2f2', border: '1px solid #fee2e2', color: '#ef4444', 

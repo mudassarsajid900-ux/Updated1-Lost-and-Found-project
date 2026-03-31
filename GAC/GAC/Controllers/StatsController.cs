@@ -73,6 +73,41 @@ namespace GAC.API.Controllers
                     }
                 }
 
+                if (pendingReplacements.IsSucceeded && pendingReplacements.Data != null)
+                {
+                    foreach (var rep in pendingReplacements.Data.OrderByDescending(x => x.CreatedOn).Take(5))
+                    {
+                        var timeSpan = DateTime.UtcNow - rep.CreatedOn;
+                        string timeStr = timeSpan.TotalMinutes < 1 ? "Just now" :
+                                         timeSpan.TotalMinutes < 60 ? $"{(int)timeSpan.TotalMinutes} mins ago" :
+                                         timeSpan.TotalHours < 24 ? $"{(int)timeSpan.TotalHours} hours ago" :
+                                         $"{(int)timeSpan.TotalDays} days ago";
+
+                        activities.Add(new {
+                            user = rep.ReporterName ?? "Student",
+                            action = $"requested replacement for {rep.LostItemTitle}",
+                            time = timeStr,
+                            type = "replacement",
+                            role = ApplicationConstants.UserRole
+                        });
+                    }
+                }
+
+                if (activeAuctions.IsSucceeded && activeAuctions.Data != null)
+                {
+                    foreach (var auc in activeAuctions.Data.OrderByDescending(x => x.CreatedOn).Take(5))
+                    {
+                        var timeStr = "Live";
+                        activities.Add(new {
+                            user = "System",
+                            action = $"launched Auction for {auc.ItemTitle}",
+                            time = timeStr,
+                            type = "auction",
+                            role = ApplicationConstants.AdministratorRole
+                        });
+                    }
+                }
+
                 return Ok(new
                 {
                     totalUsers = totalUsers,
@@ -80,7 +115,7 @@ namespace GAC.API.Controllers
                     pendingMatches = allItems.Data?.MatchCount ?? 0,
                     activeAuctions = activeAuctions.Data?.Count ?? 0,
                     pendingReplacements = pendingReplacements.Data?.Count ?? 0,
-                    recentActivities = activities
+                    recentActivities = activities.OrderByDescending(x => x.GetType().GetProperty("time")?.GetValue(x)?.ToString() == "Just now" ? 0 : 1).Take(10)
                 });
             }
             catch (Exception ex)

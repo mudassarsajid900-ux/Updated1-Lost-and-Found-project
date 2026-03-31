@@ -28,6 +28,26 @@ const AdminHandover = () => {
         personPhoto: null
     });
 
+    // AUTO-FILL LOGIC: Pre-populate known recipient data
+    useEffect(() => {
+        if (selectedItem) {
+            setHandoverData(prev => ({
+                ...prev,
+                receiverName: selectedItem.targetPersonName || '',
+                receiverPhone: selectedItem.targetPersonPhone || ''
+            }));
+        } else {
+            setHandoverData({
+                receiverName: '',
+                receiverCnic: '',
+                receiverPhone: '',
+                adminNotes: '',
+                cnicPhoto: null,
+                personPhoto: null
+            });
+        }
+    }, [selectedItem]);
+
     useEffect(() => {
         if (activeTab === 'pending') fetchPending();
         else fetchHistory();
@@ -111,12 +131,11 @@ const AdminHandover = () => {
     };
 
     const getHandoverLabel = (type) => {
-        // Handle both integer (0,1,2,3) and string enum values from .NET
         const t = typeof type === 'string' ? type.toLowerCase() : type;
         if (t === 0 || t === 'founditemtoadmin')   return { text: "Student to Office", color: "#319795", bg: "#e6fffa", process: "FOUND ITEM HANDOVER" };
         if (t === 1 || t === 'admintoclaimant')     return { text: "Return to Owner",   color: "#3182ce", bg: "#ebf8ff", process: "RETURNED TO ORIGINAL OWNER" };
         if (t === 2 || t === 'admintoreplacementuser') return { text: "Replacement Issue", color: "#805ad5", bg: "#faf5ff", process: "REPLACEMENT SENT TO OWNER" };
-        if (t === 3 || t === 'admintoanctionwinner' || t === 'admintoacuctionwinner' || t === 'admintoacutionwinner' || t === 'admintoauctionwinner') return { text: "Auction Delivery", color: "#dd6b20", bg: "#fffaf0", process: "AUCTION HANDOVER TO WINNER" };
+        if (t === 3 || t === 'admintoauctionwinner') return { text: "Auction Delivery", color: "#dd6b20", bg: "#fffaf0", process: "AUCTION HANDOVER TO WINNER" };
         return { text: "Standard", color: "#718096", bg: "#f7fafc", process: "STANDARD DISPOSAL" };
     };
 

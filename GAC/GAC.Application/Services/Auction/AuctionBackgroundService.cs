@@ -51,6 +51,7 @@ namespace GAC.Application.Services.Auction
                 var now = DateTime.UtcNow;
 
                 var expiredAuctions = await auctionRepo.AsQueryable()
+                    .Include(a => a.FoundItem)
                     .Where(a => a.IsActive && now >= a.EndDate)
                     .ToListAsync();
 
@@ -60,6 +61,11 @@ namespace GAC.Application.Services.Auction
                     foreach (var auction in expiredAuctions)
                     {
                         auction.IsActive = false;
+                        if (auction.FoundItem != null)
+                        {
+                            auction.FoundItem.Status = GAC.Core.Enums.ItemStatus.AuctionHandover;
+                            auction.FoundItem.LastModifiedOn = DateTime.UtcNow;
+                        }
                         await auctionRepo.UpdateAsync(auction);
                         _logger.LogInformation($"Closed Auction ID: {auction.Id}");
                     }

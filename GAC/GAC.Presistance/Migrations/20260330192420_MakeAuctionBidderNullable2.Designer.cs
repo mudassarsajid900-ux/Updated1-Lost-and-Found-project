@@ -4,6 +4,7 @@ using GAC.Presistance.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GAC.Presistance.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260330192420_MakeAuctionBidderNullable2")]
+    partial class MakeAuctionBidderNullable2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,6 +34,7 @@ namespace GAC.Presistance.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("CnicImagePath")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CreatedBy")
@@ -70,6 +74,7 @@ namespace GAC.Presistance.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("PersonImagePath")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -462,7 +467,7 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 1,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "e735b228-162f-42a5-bf7e-9778e52ebd28",
+                            ConcurrencyStamp = "e37ca361-8e98-4ee2-bc6b-6e3297cb0b13",
                             Email = "admin@gmail.com",
                             EmailConfirmed = true,
                             FirstName = "Admin",
@@ -471,11 +476,11 @@ namespace GAC.Presistance.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@GMAIL.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEN5dDioGtiPrlElE8x4IMV7Tsrq4WQOfg/Z1JzrCOTWteNVgI9UBfuAuqvN+JPMaug==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEDZH7SE3UD66EL24NNXjrUVF3rh+wMqWRuFHrSRsbl6gTMVCJlicruxTpUeM3w+41g==",
                             PhoneNumberConfirmed = false,
                             RefreshToken = "",
-                            RefreshTokenExpiryTime = new DateTime(2025, 3, 30, 19, 35, 6, 675, DateTimeKind.Utc).AddTicks(2523),
-                            SecurityStamp = "6bb7cbc9-5a4b-4af2-9a36-3258a908594f",
+                            RefreshTokenExpiryTime = new DateTime(2025, 3, 30, 19, 24, 7, 162, DateTimeKind.Utc).AddTicks(4309),
+                            SecurityStamp = "94384571-b826-466b-a34e-6186b65fd0a5",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });
@@ -681,441 +686,441 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 1L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(3540),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(5109),
                             FieldName = "Brand",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 1L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(3542)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(5115)
                         },
                         new
                         {
                             Id = 2L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4813),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6812),
                             FieldName = "Model",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 1L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4815)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6820)
                         },
                         new
                         {
                             Id = 3L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4817),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6825),
                             FieldName = "Color",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 1L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4818)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6825)
                         },
                         new
                         {
                             Id = 4L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4903),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6827),
                             FieldName = "IMEI (last 4 digits)",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 1L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4904)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6828)
                         },
                         new
                         {
                             Id = 5L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4906),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6830),
                             FieldName = "Has Case",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 1L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4906)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6831)
                         },
                         new
                         {
                             Id = 10L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4908),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6946),
                             FieldName = "Color",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 2L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4908)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6950)
                         },
                         new
                         {
                             Id = 11L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4910),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6952),
                             FieldName = "Material",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 2L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4910)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6953)
                         },
                         new
                         {
                             Id = 12L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4912),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6955),
                             FieldName = "Brand",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 2L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4913)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6956)
                         },
                         new
                         {
                             Id = 13L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4914),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6958),
                             FieldName = "Contains Cards/ID",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 2L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4915)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6959)
                         },
                         new
                         {
                             Id = 20L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4916),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6962),
                             FieldName = "Brand",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 3L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4917)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6962)
                         },
                         new
                         {
                             Id = 21L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4918),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6964),
                             FieldName = "Model",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 3L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4918)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6965)
                         },
                         new
                         {
                             Id = 22L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4920),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6967),
                             FieldName = "Color",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 3L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4920)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6968)
                         },
                         new
                         {
                             Id = 23L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4922),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6970),
                             FieldName = "Screen Size",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 3L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4922)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6971)
                         },
                         new
                         {
                             Id = 24L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4924),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6973),
                             FieldName = "Has Sticker(s)",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 3L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4924)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6974)
                         },
                         new
                         {
                             Id = 30L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4925),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6976),
                             FieldName = "Number of Keys",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 4L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4926)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6977)
                         },
                         new
                         {
                             Id = 31L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4927),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6979),
                             FieldName = "Key Type",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 4L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4928)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6980)
                         },
                         new
                         {
                             Id = 32L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4929),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6982),
                             FieldName = "Has Keychain",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 4L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4930)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6982)
                         },
                         new
                         {
                             Id = 33L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4931),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6985),
                             FieldName = "Color of Keychain",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 4L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4932)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6986)
                         },
                         new
                         {
                             Id = 40L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4933),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6988),
                             FieldName = "Type",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 5L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4934)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6989)
                         },
                         new
                         {
                             Id = 41L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4935),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6991),
                             FieldName = "Color",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 5L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4935)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6992)
                         },
                         new
                         {
                             Id = 42L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4937),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6994),
                             FieldName = "Brand",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 5L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4937)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6995)
                         },
                         new
                         {
                             Id = 43L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4939),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6997),
                             FieldName = "Has Logo",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 5L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4939)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(6998)
                         },
                         new
                         {
                             Id = 50L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4941),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7000),
                             FieldName = "Brand",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 6L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4941)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7001)
                         },
                         new
                         {
                             Id = 51L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4943),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7003),
                             FieldName = "Color",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 6L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4943)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7004)
                         },
                         new
                         {
                             Id = 52L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4944),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7006),
                             FieldName = "Strap Material",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 6L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4945)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7007)
                         },
                         new
                         {
                             Id = 53L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4946),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7009),
                             FieldName = "Has Date Display",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 6L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4947)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7010)
                         },
                         new
                         {
                             Id = 60L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4948),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7013),
                             FieldName = "Document Type",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 7L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4949)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7013)
                         },
                         new
                         {
                             Id = 61L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4950),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7016),
                             FieldName = "Issuing Country",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 7L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4951)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7016)
                         },
                         new
                         {
                             Id = 62L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4952),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7018),
                             FieldName = "Color of Cover",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 7L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4953)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7019)
                         },
                         new
                         {
                             Id = 70L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4954),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7058),
                             FieldName = "Type",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 8L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4955)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7059)
                         },
                         new
                         {
                             Id = 71L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4956),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7062),
                             FieldName = "Material",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 8L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4956)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7064)
                         },
                         new
                         {
                             Id = 72L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4958),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7066),
                             FieldName = "Color",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 8L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4958)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7067)
                         },
                         new
                         {
                             Id = 80L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4960),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7069),
                             FieldName = "Brand",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 9L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4960)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7070)
                         },
                         new
                         {
                             Id = 81L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4961),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7072),
                             FieldName = "Type",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 9L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4962)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7073)
                         },
                         new
                         {
                             Id = 82L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4963),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7075),
                             FieldName = "Color",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 9L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4964)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7075)
                         },
                         new
                         {
                             Id = 83L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4965),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7077),
                             FieldName = "Has Case",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 9L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4966)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7078)
                         },
                         new
                         {
                             Id = 90L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4967),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7080),
                             FieldName = "Main Color",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 10L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4968)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7081)
                         },
                         new
                         {
                             Id = 91L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4969),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7083),
                             FieldName = "Secondary Color",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 10L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4970)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7084)
                         },
                         new
                         {
                             Id = 92L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4971),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7086),
                             FieldName = "Size / Dimensions",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 10L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4972)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7086)
                         },
                         new
                         {
                             Id = 93L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4973),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7089),
                             FieldName = "Brand / Logo",
                             IsActive = true,
                             IsDeleted = false,
                             ItemTypeId = 10L,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(4974)
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(7090)
                         });
                 });
 
@@ -1229,100 +1234,100 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 1L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(1523),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(2383),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(1529),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(2400),
                             Name = "Mobile Phone"
                         },
                         new
                         {
                             Id = 2L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(2322),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(3608),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(2327),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(3616),
                             Name = "Wallet"
                         },
                         new
                         {
                             Id = 3L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(2330),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(3620),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(2331),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(3621),
                             Name = "Laptop"
                         },
                         new
                         {
                             Id = 4L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(2332),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(3622),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(2333),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(3623),
                             Name = "Keys"
                         },
                         new
                         {
                             Id = 5L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(2334),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(3624),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(2335),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(3624),
                             Name = "Bag / Backpack"
                         },
                         new
                         {
                             Id = 6L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(2336),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(3626),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(2337),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(3626),
                             Name = "Watch"
                         },
                         new
                         {
                             Id = 7L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(2338),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(3627),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(2338),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(3628),
                             Name = "Passport / ID Card"
                         },
                         new
                         {
                             Id = 8L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(2340),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(3629),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(2340),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(3629),
                             Name = "Jewelry"
                         },
                         new
                         {
                             Id = 9L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(2341),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(3631),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(2342),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(3631),
                             Name = "Earphones / Headphones"
                         },
                         new
                         {
                             Id = 10L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(2343),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(3632),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 846, DateTimeKind.Local).AddTicks(2344),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 298, DateTimeKind.Local).AddTicks(3633),
                             Name = "Other"
                         });
                 });
@@ -1379,160 +1384,160 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 1L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(883),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 303, DateTimeKind.Local).AddTicks(7819),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(894),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 303, DateTimeKind.Local).AddTicks(7831),
                             Name = "Samsung"
                         },
                         new
                         {
                             Id = 2L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1786),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 303, DateTimeKind.Local).AddTicks(9994),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1789),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(3),
                             Name = "Apple"
                         },
                         new
                         {
                             Id = 3L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1796),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(11),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1797),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(12),
                             Name = "Oppo"
                         },
                         new
                         {
                             Id = 4L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1799),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(15),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1800),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(16),
                             Name = "Redmi"
                         },
                         new
                         {
                             Id = 5L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1802),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(18),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1803),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(19),
                             Name = "Infinix"
                         },
                         new
                         {
                             Id = 6L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1815),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(40),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1816),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(42),
                             Name = "Realme"
                         },
                         new
                         {
                             Id = 7L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1818),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(44),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1819),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(45),
                             Name = "Vivo"
                         },
                         new
                         {
                             Id = 8L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1821),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(46),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1821),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(47),
                             Name = "Xiaomi"
                         },
                         new
                         {
                             Id = 9L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1823),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(49),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1824),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(50),
                             Name = "Google"
                         },
                         new
                         {
                             Id = 10L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1827),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(55),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1828),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(56),
                             Name = "OnePlus"
                         },
                         new
                         {
                             Id = 11L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1851),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(58),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1852),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(58),
                             Name = "Tecno"
                         },
                         new
                         {
                             Id = 12L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1854),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(61),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1854),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(62),
                             Name = "Huawei"
                         },
                         new
                         {
                             Id = 13L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1856),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(64),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1856),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(65),
                             Name = "Itel"
                         },
                         new
                         {
                             Id = 14L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1858),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(67),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1858),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(68),
                             Name = "Sparx"
                         },
                         new
                         {
                             Id = 15L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1860),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(70),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1860),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(71),
                             Name = "VgoTel"
                         },
                         new
                         {
                             Id = 16L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1862),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(73),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(1862),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(73),
                             Name = "Nokia"
                         });
                 });
@@ -1594,10 +1599,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 1L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(5515),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(4003),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(5521),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(4010),
                             MobileCompanyId = 1L,
                             Name = "S24 Ultra"
                         },
@@ -1605,10 +1610,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 2L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7699),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5939),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7703),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5944),
                             MobileCompanyId = 1L,
                             Name = "S23 Ultra"
                         },
@@ -1616,10 +1621,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 3L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7706),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5947),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7707),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5948),
                             MobileCompanyId = 1L,
                             Name = "S22 Ultra"
                         },
@@ -1627,10 +1632,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 4L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7707),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5949),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7708),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5949),
                             MobileCompanyId = 1L,
                             Name = "A54"
                         },
@@ -1638,10 +1643,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 5L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7709),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5950),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7709),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5951),
                             MobileCompanyId = 1L,
                             Name = "A34"
                         },
@@ -1649,10 +1654,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 6L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7716),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5960),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7717),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5961),
                             MobileCompanyId = 1L,
                             Name = "A24"
                         },
@@ -1660,10 +1665,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 7L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7718),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5962),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7719),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5962),
                             MobileCompanyId = 1L,
                             Name = "A14"
                         },
@@ -1671,10 +1676,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 8L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7719),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5963),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7720),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5964),
                             MobileCompanyId = 1L,
                             Name = "A05s"
                         },
@@ -1682,10 +1687,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 9L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7721),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5965),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7721),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5965),
                             MobileCompanyId = 1L,
                             Name = "A05"
                         },
@@ -1693,10 +1698,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 10L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7724),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5968),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7725),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5968),
                             MobileCompanyId = 1L,
                             Name = "A04"
                         },
@@ -1704,10 +1709,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 11L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7725),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5969),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7726),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5970),
                             MobileCompanyId = 1L,
                             Name = "M54"
                         },
@@ -1715,10 +1720,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 12L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7727),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5971),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7727),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5972),
                             MobileCompanyId = 1L,
                             Name = "M34"
                         },
@@ -1726,10 +1731,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 13L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7728),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5973),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7729),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5973),
                             MobileCompanyId = 1L,
                             Name = "M14"
                         },
@@ -1737,10 +1742,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 14L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7749),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5974),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7750),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5974),
                             MobileCompanyId = 1L,
                             Name = "Grand Prime Plus"
                         },
@@ -1748,10 +1753,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 15L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7755),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5978),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7755),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5979),
                             MobileCompanyId = 2L,
                             Name = "iPhone 15 Pro Max"
                         },
@@ -1759,10 +1764,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 16L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7756),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5980),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7757),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5981),
                             MobileCompanyId = 2L,
                             Name = "iPhone 15 Pro"
                         },
@@ -1770,10 +1775,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 17L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7758),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5982),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7758),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5982),
                             MobileCompanyId = 2L,
                             Name = "iPhone 14 Pro Max"
                         },
@@ -1781,10 +1786,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 18L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7760),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5984),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7761),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5985),
                             MobileCompanyId = 2L,
                             Name = "iPhone 14"
                         },
@@ -1792,10 +1797,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 19L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7762),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5986),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7762),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5986),
                             MobileCompanyId = 2L,
                             Name = "iPhone 13 Pro Max"
                         },
@@ -1803,10 +1808,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 20L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7763),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5987),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7764),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5987),
                             MobileCompanyId = 2L,
                             Name = "iPhone 13"
                         },
@@ -1814,10 +1819,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 21L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7764),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5988),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7765),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5989),
                             MobileCompanyId = 2L,
                             Name = "iPhone 12 Pro Max"
                         },
@@ -1825,10 +1830,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 22L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7766),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5990),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7766),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5990),
                             MobileCompanyId = 2L,
                             Name = "iPhone 12"
                         },
@@ -1836,10 +1841,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 23L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7768),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5991),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7768),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5991),
                             MobileCompanyId = 2L,
                             Name = "iPhone 11 Pro Max"
                         },
@@ -1847,10 +1852,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 24L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7769),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5992),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7770),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5993),
                             MobileCompanyId = 2L,
                             Name = "iPhone 11"
                         },
@@ -1858,10 +1863,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 25L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7770),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5994),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7771),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5995),
                             MobileCompanyId = 2L,
                             Name = "iPhone X"
                         },
@@ -1869,10 +1874,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 26L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7772),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5996),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7772),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5996),
                             MobileCompanyId = 2L,
                             Name = "iPhone 8 Plus"
                         },
@@ -1880,10 +1885,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 27L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7773),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5997),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7774),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5997),
                             MobileCompanyId = 2L,
                             Name = "iPhone 7 Plus"
                         },
@@ -1891,10 +1896,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 28L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7775),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5999),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7776),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(5999),
                             MobileCompanyId = 3L,
                             Name = "Reno 11"
                         },
@@ -1902,10 +1907,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 29L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7777),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6000),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7777),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6001),
                             MobileCompanyId = 3L,
                             Name = "Reno 10"
                         },
@@ -1913,10 +1918,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 30L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7778),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6001),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7779),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6002),
                             MobileCompanyId = 3L,
                             Name = "A78"
                         },
@@ -1924,10 +1929,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 31L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7779),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6003),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7780),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6003),
                             MobileCompanyId = 3L,
                             Name = "A58"
                         },
@@ -1935,10 +1940,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 32L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7781),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6004),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7781),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6004),
                             MobileCompanyId = 3L,
                             Name = "A38"
                         },
@@ -1946,10 +1951,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 33L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7782),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6005),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7783),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6006),
                             MobileCompanyId = 3L,
                             Name = "A18"
                         },
@@ -1957,10 +1962,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 34L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7785),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6008),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7785),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6008),
                             MobileCompanyId = 3L,
                             Name = "A17"
                         },
@@ -1968,10 +1973,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 35L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7787),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6027),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7787),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6028),
                             MobileCompanyId = 3L,
                             Name = "A16"
                         },
@@ -1979,10 +1984,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 36L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7788),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6029),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7788),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6029),
                             MobileCompanyId = 3L,
                             Name = "F21 Pro"
                         },
@@ -1990,10 +1995,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 37L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7789),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6030),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7790),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6031),
                             MobileCompanyId = 3L,
                             Name = "F19 Pro"
                         },
@@ -2001,10 +2006,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 38L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7791),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6032),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7792),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6032),
                             MobileCompanyId = 4L,
                             Name = "Note 13 Pro"
                         },
@@ -2012,10 +2017,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 39L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7793),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6033),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7793),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6034),
                             MobileCompanyId = 4L,
                             Name = "Note 13"
                         },
@@ -2023,10 +2028,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 40L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7794),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6035),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7794),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6035),
                             MobileCompanyId = 4L,
                             Name = "Note 12"
                         },
@@ -2034,10 +2039,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 41L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7795),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6036),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7796),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6037),
                             MobileCompanyId = 4L,
                             Name = "Note 11"
                         },
@@ -2045,10 +2050,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 42L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7796),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6037),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7797),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6038),
                             MobileCompanyId = 4L,
                             Name = "Note 10"
                         },
@@ -2056,10 +2061,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 43L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7798),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6039),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7798),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6039),
                             MobileCompanyId = 4L,
                             Name = "13C"
                         },
@@ -2067,10 +2072,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 44L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7799),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6040),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7800),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6040),
                             MobileCompanyId = 4L,
                             Name = "12C"
                         },
@@ -2078,10 +2083,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 45L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7800),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6041),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7801),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6042),
                             MobileCompanyId = 4L,
                             Name = "10C"
                         },
@@ -2089,10 +2094,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 46L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7802),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6042),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7803),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6043),
                             MobileCompanyId = 4L,
                             Name = "A2+"
                         },
@@ -2100,10 +2105,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 47L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7803),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6044),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7804),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6044),
                             MobileCompanyId = 4L,
                             Name = "A3"
                         },
@@ -2111,10 +2116,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 48L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7805),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6046),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7806),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6047),
                             MobileCompanyId = 5L,
                             Name = "Note 40 Pro"
                         },
@@ -2122,10 +2127,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 49L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7807),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6048),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7807),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6048),
                             MobileCompanyId = 5L,
                             Name = "Note 30 Pro"
                         },
@@ -2133,10 +2138,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 50L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7808),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6049),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7809),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6049),
                             MobileCompanyId = 5L,
                             Name = "Note 30"
                         },
@@ -2144,10 +2149,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 51L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7809),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6050),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7810),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6051),
                             MobileCompanyId = 5L,
                             Name = "Note 12"
                         },
@@ -2155,10 +2160,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 52L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7811),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6052),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7811),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6052),
                             MobileCompanyId = 5L,
                             Name = "Hot 40 Pro"
                         },
@@ -2166,10 +2171,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 53L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7812),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6053),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7812),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6053),
                             MobileCompanyId = 5L,
                             Name = "Hot 40i"
                         },
@@ -2177,10 +2182,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 54L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7814),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6054),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7814),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6055),
                             MobileCompanyId = 5L,
                             Name = "Hot 30"
                         },
@@ -2188,10 +2193,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 55L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7815),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6055),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7815),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6056),
                             MobileCompanyId = 5L,
                             Name = "Hot 30i"
                         },
@@ -2199,10 +2204,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 56L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7816),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6057),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7817),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6057),
                             MobileCompanyId = 5L,
                             Name = "Hot 20"
                         },
@@ -2210,10 +2215,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 57L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7818),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6058),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7818),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6059),
                             MobileCompanyId = 5L,
                             Name = "Hot 12"
                         },
@@ -2221,10 +2226,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 58L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7819),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6059),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7819),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6060),
                             MobileCompanyId = 5L,
                             Name = "Smart 8"
                         },
@@ -2232,10 +2237,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 59L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7820),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6061),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7821),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6061),
                             MobileCompanyId = 5L,
                             Name = "Smart 7"
                         },
@@ -2243,10 +2248,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 60L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7821),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6062),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7822),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6063),
                             MobileCompanyId = 5L,
                             Name = "Smart 6"
                         },
@@ -2254,10 +2259,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 61L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7823),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6064),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7824),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6065),
                             MobileCompanyId = 6L,
                             Name = "12 Pro"
                         },
@@ -2265,10 +2270,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 62L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7825),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6066),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7825),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6066),
                             MobileCompanyId = 6L,
                             Name = "11 Pro"
                         },
@@ -2276,10 +2281,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 63L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7826),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6067),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7827),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6067),
                             MobileCompanyId = 6L,
                             Name = "C67"
                         },
@@ -2287,10 +2292,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 64L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7827),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6068),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7828),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6069),
                             MobileCompanyId = 6L,
                             Name = "C53"
                         },
@@ -2298,10 +2303,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 65L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7829),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6069),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7829),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6070),
                             MobileCompanyId = 6L,
                             Name = "C51"
                         },
@@ -2309,10 +2314,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 66L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7839),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6072),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7840),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6073),
                             MobileCompanyId = 6L,
                             Name = "C35"
                         },
@@ -2320,10 +2325,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 67L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7841),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6074),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7841),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6074),
                             MobileCompanyId = 6L,
                             Name = "C33"
                         },
@@ -2331,10 +2336,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 68L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7842),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6075),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7843),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6075),
                             MobileCompanyId = 6L,
                             Name = "Note 50"
                         },
@@ -2342,10 +2347,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 69L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7844),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6077),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7845),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6077),
                             MobileCompanyId = 7L,
                             Name = "V30"
                         },
@@ -2353,10 +2358,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 70L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7845),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6078),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7846),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6078),
                             MobileCompanyId = 7L,
                             Name = "V29"
                         },
@@ -2364,10 +2369,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 71L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7847),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6079),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7847),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6080),
                             MobileCompanyId = 7L,
                             Name = "V27e"
                         },
@@ -2375,10 +2380,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 72L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7848),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6080),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7849),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6081),
                             MobileCompanyId = 7L,
                             Name = "V23e"
                         },
@@ -2386,10 +2391,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 73L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7849),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6082),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7850),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6082),
                             MobileCompanyId = 7L,
                             Name = "Y100"
                         },
@@ -2397,10 +2402,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 74L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7851),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6083),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7851),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6083),
                             MobileCompanyId = 7L,
                             Name = "Y36"
                         },
@@ -2408,10 +2413,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 75L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7852),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6084),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7853),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6085),
                             MobileCompanyId = 7L,
                             Name = "Y27"
                         },
@@ -2419,10 +2424,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 76L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7854),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6086),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7854),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6086),
                             MobileCompanyId = 7L,
                             Name = "Y17s"
                         },
@@ -2430,10 +2435,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 77L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7855),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6087),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7856),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6087),
                             MobileCompanyId = 7L,
                             Name = "Y02s"
                         },
@@ -2441,10 +2446,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 78L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7857),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6089),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7857),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6089),
                             MobileCompanyId = 8L,
                             Name = "14 Pro"
                         },
@@ -2452,10 +2457,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 79L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7858),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6090),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7859),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6090),
                             MobileCompanyId = 8L,
                             Name = "13T"
                         },
@@ -2463,10 +2468,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 80L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7860),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6092),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7860),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6092),
                             MobileCompanyId = 8L,
                             Name = "12T"
                         },
@@ -2474,10 +2479,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 81L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7861),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6093),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7862),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6093),
                             MobileCompanyId = 8L,
                             Name = "Mi 11"
                         },
@@ -2485,10 +2490,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 82L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7862),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6094),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7863),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6095),
                             MobileCompanyId = 8L,
                             Name = "Poco X6 Pro"
                         },
@@ -2496,10 +2501,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 83L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7864),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6095),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7864),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6096),
                             MobileCompanyId = 8L,
                             Name = "Poco F5"
                         },
@@ -2507,10 +2512,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 84L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7865),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6097),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7866),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6097),
                             MobileCompanyId = 8L,
                             Name = "Poco X3 Pro"
                         },
@@ -2518,10 +2523,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 85L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7867),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6098),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7867),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6098),
                             MobileCompanyId = 8L,
                             Name = "Poco M3"
                         },
@@ -2529,10 +2534,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 86L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7868),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6100),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7869),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6100),
                             MobileCompanyId = 9L,
                             Name = "Pixel 8 Pro"
                         },
@@ -2540,10 +2545,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 87L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7870),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6101),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7870),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6102),
                             MobileCompanyId = 9L,
                             Name = "Pixel 7 Pro"
                         },
@@ -2551,10 +2556,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 88L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7871),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6102),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7871),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6103),
                             MobileCompanyId = 9L,
                             Name = "Pixel 6 Pro"
                         },
@@ -2562,10 +2567,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 89L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7872),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6104),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7873),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6104),
                             MobileCompanyId = 9L,
                             Name = "Pixel 6a"
                         },
@@ -2573,10 +2578,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 90L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7874),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6105),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7874),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6105),
                             MobileCompanyId = 9L,
                             Name = "Pixel 4 XL"
                         },
@@ -2584,10 +2589,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 91L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7875),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6115),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7876),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6115),
                             MobileCompanyId = 10L,
                             Name = "OnePlus 12"
                         },
@@ -2595,10 +2600,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 92L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7877),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6116),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7877),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6117),
                             MobileCompanyId = 10L,
                             Name = "OnePlus 11"
                         },
@@ -2606,10 +2611,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 93L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7878),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6117),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7879),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6118),
                             MobileCompanyId = 10L,
                             Name = "OnePlus 10 Pro"
                         },
@@ -2617,10 +2622,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 94L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7880),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6119),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7880),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6119),
                             MobileCompanyId = 10L,
                             Name = "Nord CE 3 Lite"
                         },
@@ -2628,10 +2633,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 95L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7881),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6120),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7881),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6121),
                             MobileCompanyId = 10L,
                             Name = "OnePlus 8T"
                         },
@@ -2639,10 +2644,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 96L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7883),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6122),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7883),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6122),
                             MobileCompanyId = 11L,
                             Name = "Phantom V Fold"
                         },
@@ -2650,10 +2655,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 97L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7884),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6123),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7885),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6124),
                             MobileCompanyId = 11L,
                             Name = "Camon 20"
                         },
@@ -2661,10 +2666,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 98L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7886),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6125),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7886),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6125),
                             MobileCompanyId = 11L,
                             Name = "Camon 19 Neo"
                         },
@@ -2672,10 +2677,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 99L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7887),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6126),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7888),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6127),
                             MobileCompanyId = 11L,
                             Name = "Spark 20 Pro"
                         },
@@ -2683,10 +2688,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 100L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7888),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6127),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7889),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6128),
                             MobileCompanyId = 11L,
                             Name = "Spark 10 Pro"
                         },
@@ -2694,10 +2699,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 101L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7890),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6129),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7890),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6129),
                             MobileCompanyId = 11L,
                             Name = "Spark 9"
                         },
@@ -2705,10 +2710,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 102L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7891),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6130),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7892),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6131),
                             MobileCompanyId = 11L,
                             Name = "Spark 8C"
                         },
@@ -2716,10 +2721,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 103L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7893),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6131),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7894),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6132),
                             MobileCompanyId = 11L,
                             Name = "Pova 5"
                         },
@@ -2727,10 +2732,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 104L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7894),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6133),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7895),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6133),
                             MobileCompanyId = 11L,
                             Name = "Pop 7"
                         },
@@ -2738,10 +2743,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 105L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7896),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6135),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7897),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6135),
                             MobileCompanyId = 12L,
                             Name = "Mate 60"
                         },
@@ -2749,10 +2754,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 106L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7898),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6136),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7898),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6137),
                             MobileCompanyId = 12L,
                             Name = "P60"
                         },
@@ -2760,10 +2765,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 107L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7899),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6137),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7900),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6138),
                             MobileCompanyId = 12L,
                             Name = "Nova 11"
                         },
@@ -2771,10 +2776,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 108L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7901),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6139),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7901),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6139),
                             MobileCompanyId = 12L,
                             Name = "Nova 9"
                         },
@@ -2782,10 +2787,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 109L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7902),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6140),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7903),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6141),
                             MobileCompanyId = 12L,
                             Name = "Y9a"
                         },
@@ -2793,10 +2798,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 110L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7903),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6141),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7904),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6142),
                             MobileCompanyId = 12L,
                             Name = "Y7p"
                         },
@@ -2804,10 +2809,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 111L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7905),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6144),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7906),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6144),
                             MobileCompanyId = 13L,
                             Name = "S23+"
                         },
@@ -2815,10 +2820,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 112L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7907),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6145),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7907),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6146),
                             MobileCompanyId = 13L,
                             Name = "P40"
                         },
@@ -2826,10 +2831,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 113L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7908),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6146),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7909),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6147),
                             MobileCompanyId = 13L,
                             Name = "A70"
                         },
@@ -2837,10 +2842,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 114L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7909),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6148),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7910),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6148),
                             MobileCompanyId = 13L,
                             Name = "A60"
                         },
@@ -2848,10 +2853,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 115L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7911),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6149),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7911),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6150),
                             MobileCompanyId = 13L,
                             Name = "Vision 5"
                         },
@@ -2859,10 +2864,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 116L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7912),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6150),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7913),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6151),
                             MobileCompanyId = 13L,
                             Name = "Vision 3"
                         },
@@ -2870,10 +2875,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 117L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7914),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6153),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7915),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6154),
                             MobileCompanyId = 14L,
                             Name = "Neo 7 Ultra"
                         },
@@ -2881,10 +2886,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 118L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7916),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6155),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7916),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6155),
                             MobileCompanyId = 14L,
                             Name = "Neo 7"
                         },
@@ -2892,10 +2897,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 119L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7917),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6156),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7918),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6156),
                             MobileCompanyId = 14L,
                             Name = "Note 20"
                         },
@@ -2903,10 +2908,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 120L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7918),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6157),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7919),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6158),
                             MobileCompanyId = 14L,
                             Name = "S9"
                         },
@@ -2914,10 +2919,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 121L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7920),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6158),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7921),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6159),
                             MobileCompanyId = 14L,
                             Name = "S3"
                         },
@@ -2925,10 +2930,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 122L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7922),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6160),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7922),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6161),
                             MobileCompanyId = 15L,
                             Name = "New 7"
                         },
@@ -2936,10 +2941,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 123L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7923),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6161),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7924),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6162),
                             MobileCompanyId = 15L,
                             Name = "New 5"
                         },
@@ -2947,10 +2952,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 124L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7925),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6163),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7925),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6163),
                             MobileCompanyId = 15L,
                             Name = "Note 24"
                         },
@@ -2958,10 +2963,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 125L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7926),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6164),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7927),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6165),
                             MobileCompanyId = 15L,
                             Name = "S12"
                         },
@@ -2969,10 +2974,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 126L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7927),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6165),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7928),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6166),
                             MobileCompanyId = 15L,
                             Name = "i850"
                         },
@@ -2980,10 +2985,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 127L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7938),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6168),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7938),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6168),
                             MobileCompanyId = 16L,
                             Name = "Nokia 3.4"
                         },
@@ -2991,10 +2996,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 128L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7939),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6169),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7940),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6169),
                             MobileCompanyId = 16L,
                             Name = "Nokia 2.4"
                         },
@@ -3002,10 +3007,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 129L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7941),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6170),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7941),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6171),
                             MobileCompanyId = 16L,
                             Name = "G20"
                         },
@@ -3013,10 +3018,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 130L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7945),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6174),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7945),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6177),
                             MobileCompanyId = 16L,
                             Name = "G10"
                         },
@@ -3024,10 +3029,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 131L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7946),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6178),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7947),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6178),
                             MobileCompanyId = 16L,
                             Name = "105 (Feature Phone)"
                         },
@@ -3035,10 +3040,10 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 132L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7948),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6179),
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 849, DateTimeKind.Local).AddTicks(7948),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 304, DateTimeKind.Local).AddTicks(6179),
                             MobileCompanyId = 16L,
                             Name = "210 (Feature Phone)"
                         });
@@ -3101,374 +3106,374 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 1L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 841, DateTimeKind.Local).AddTicks(5390),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 292, DateTimeKind.Local).AddTicks(6287),
                             Description = "LT 1",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(3761),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 294, DateTimeKind.Local).AddTicks(9905),
                             Name = "LT1"
                         },
                         new
                         {
                             Id = 2L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7475),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(4606),
                             Description = "LT 2",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7481),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(4619),
                             Name = "LT2"
                         },
                         new
                         {
                             Id = 3L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7890),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5014),
                             Description = "LT 3",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7892),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5016),
                             Name = "LT3"
                         },
                         new
                         {
                             Id = 4L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7909),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5030),
                             Description = "LT 4",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7910),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5031),
                             Name = "LT4"
                         },
                         new
                         {
                             Id = 5L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7914),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5036),
                             Description = "LT 5",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7915),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5036),
                             Name = "LT5"
                         },
                         new
                         {
                             Id = 6L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7943),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5058),
                             Description = "LT 6",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7944),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5059),
                             Name = "LT6"
                         },
                         new
                         {
                             Id = 7L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7948),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5064),
                             Description = "LT 7",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7949),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5065),
                             Name = "LT7"
                         },
                         new
                         {
                             Id = 8L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7957),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5070),
                             Description = "LT 8",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7958),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5071),
                             Name = "LT8"
                         },
                         new
                         {
                             Id = 9L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7967),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5076),
                             Description = "LT 9",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7968),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5077),
                             Name = "LT9"
                         },
                         new
                         {
                             Id = 10L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7973),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5085),
                             Description = "LT 10",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7973),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5086),
                             Name = "LT10"
                         },
                         new
                         {
                             Id = 11L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7989),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5096),
                             Description = "LT 11",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7989),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5100),
                             Name = "LT11"
                         },
                         new
                         {
                             Id = 12L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7993),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5105),
                             Description = "LT 12",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7993),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5107),
                             Name = "LT12"
                         },
                         new
                         {
                             Id = 13L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7996),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5112),
                             Description = "LT 13",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 843, DateTimeKind.Local).AddTicks(7997),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(5114),
                             Name = "LT13"
                         },
                         new
                         {
                             Id = 14L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(564),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(7879),
                             Description = "Lab 1",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(567),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(7886),
                             Name = "LAB-1"
                         },
                         new
                         {
                             Id = 15L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(613),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(7944),
                             Description = "Lab 2",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(614),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(7945),
                             Name = "LAB-2"
                         },
                         new
                         {
                             Id = 16L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(620),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(7952),
                             Description = "Lab 3",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(620),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(7952),
                             Name = "LAB-3"
                         },
                         new
                         {
                             Id = 17L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(624),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(7959),
                             Description = "Lab 4",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(624),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(7959),
                             Name = "LAB-4"
                         },
                         new
                         {
                             Id = 18L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(642),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(7989),
                             Description = "Lab 5",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(643),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(7991),
                             Name = "LAB-5"
                         },
                         new
                         {
                             Id = 19L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(646),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(7999),
                             Description = "Lab 6",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(647),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8000),
                             Name = "LAB-6"
                         },
                         new
                         {
                             Id = 20L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(650),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8007),
                             Description = "Lab 7",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(650),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8008),
                             Name = "LAB-7"
                         },
                         new
                         {
                             Id = 21L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(653),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8013),
                             Description = "Lab 8",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(654),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8014),
                             Name = "LAB-8"
                         },
                         new
                         {
                             Id = 22L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(657),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8020),
                             Description = "Lab 9",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(658),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8021),
                             Name = "LAB-9"
                         },
                         new
                         {
                             Id = 23L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(661),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8027),
                             Description = "Lab 10",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(661),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8028),
                             Name = "LAB-10"
                         },
                         new
                         {
                             Id = 24L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(667),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8040),
                             Description = "Lab 11",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(667),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8041),
                             Name = "LAB-11"
                         },
                         new
                         {
                             Id = 25L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(670),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8046),
                             Description = "Lab 12",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(671),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8047),
                             Name = "LAB-12"
                         },
                         new
                         {
                             Id = 26L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(677),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8058),
                             Description = "Parking Area",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(678),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8059),
                             Name = "Parking"
                         },
                         new
                         {
                             Id = 27L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(679),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8061),
                             Description = "Ground Floor Corridor",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(680),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8061),
                             Name = "Corridor Ground"
                         },
                         new
                         {
                             Id = 28L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(681),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8063),
                             Description = "First Floor Corridor",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(682),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8064),
                             Name = "Corridor First"
                         },
                         new
                         {
                             Id = 29L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(683),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8066),
                             Description = "Second Floor Corridor",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(684),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8067),
                             Name = "Corridor Second"
                         },
                         new
                         {
                             Id = 30L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(685),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8069),
                             Description = "Third Floor Corridor",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(686),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8069),
                             Name = "Corridor Third"
                         },
                         new
                         {
                             Id = 31L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(687),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8071),
                             Description = "Stairs – Ground Floor",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(688),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8072),
                             Name = "Stairs Ground"
                         },
                         new
                         {
                             Id = 32L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(689),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8109),
                             Description = "Stairs – First Floor",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(690),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8110),
                             Name = "Stairs First"
                         },
                         new
                         {
                             Id = 33L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(691),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8112),
                             Description = "Stairs – Second Floor",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(691),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8113),
                             Name = "Stairs Second"
                         },
                         new
                         {
                             Id = 34L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(693),
+                            CreatedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8115),
                             Description = "Stairs – Third Floor",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 844, DateTimeKind.Local).AddTicks(693),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 295, DateTimeKind.Local).AddTicks(8116),
                             Name = "Stairs Third"
                         });
                 });
@@ -3704,11 +3709,11 @@ namespace GAC.Presistance.Migrations
                         {
                             Id = 1L,
                             CreatedBy = 1,
-                            CreatedOn = new DateTime(2026, 3, 30, 19, 35, 6, 850, DateTimeKind.Utc).AddTicks(5013),
+                            CreatedOn = new DateTime(2026, 3, 30, 19, 24, 7, 305, DateTimeKind.Utc).AddTicks(4600),
                             Description = "Number of days a lost item remains missing before replacement eligibility opens.",
                             IsActive = true,
                             IsDeleted = false,
-                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 35, 6, 850, DateTimeKind.Local).AddTicks(2924),
+                            LastModifiedOn = new DateTime(2026, 3, 31, 0, 24, 7, 305, DateTimeKind.Local).AddTicks(2592),
                             SettingKey = "ReplacementThresholdDays",
                             SettingValue = "90"
                         });

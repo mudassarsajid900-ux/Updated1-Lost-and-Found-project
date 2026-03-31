@@ -1,4 +1,4 @@
-﻿using GAC.Core.Enums;
+using GAC.Core.Enums;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 namespace GAC.Application.Helper
@@ -33,6 +33,9 @@ namespace GAC.Application.Helper
             ApplicationUserOrganzationId = long.TryParse(appUserOrgIdClaim, out var appUserOrgId) ? appUserOrgId : null;
 
             UserPosition = claims?.FirstOrDefault(x => x.Type == "UserPosition")?.Value;
+
+            // Extract role from JWT claims
+            Roles = claims?.FirstOrDefault(x => x.Type == ClaimTypes.Role || x.Type == "role")?.Value ?? string.Empty;
 
         }
 

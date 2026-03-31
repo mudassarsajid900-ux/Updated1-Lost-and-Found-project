@@ -98,7 +98,7 @@ namespace GAC.Application.Services.Replacement
                 return Response<GetReplacementDto>.NotFoundResponse();
 
             // IDOR Protection: Students only see their own records (Admins see all)
-            if (_userData != null && _userData.Role != "Admin" && entity.CreatedBy != _userData.UserId)
+            if (_userData != null && !_userData.Roles.Contains("Admin") && entity.CreatedBy != _userData.UserId)
             {
                 return Response<GetReplacementDto>.SetCustomErrorResponse("Access Denied: You do not have permission to view this replacement record.", StatusCodes.Status403Forbidden);
             }
@@ -184,6 +184,7 @@ namespace GAC.Application.Services.Replacement
             var candidates = await _itemRepository.AsQueryable()
                 .Include(x => x.Attributes)
                 .Where(x => x.ReportType == ReportType.Found && 
+                           x.IsVerifiedByAdmin == true && // MUST BE PHYSICALLY IN ADMIN
                            (x.Status == ItemStatus.Found || x.Status == ItemStatus.Replacement) && 
                            x.ItemTypeId == request.LostItem.ItemTypeId)
                 .OrderBy(x => x.EventTime)
@@ -252,7 +253,9 @@ namespace GAC.Application.Services.Replacement
             var items = await _itemRepository.AsQueryable()
                 .Include(x => x.ItemType)
                 .Include(x => x.Location)
-                .Where(x => x.Status == ItemStatus.Replacement && x.ReportType == ReportType.Found)
+                .Where(x => x.Status == ItemStatus.Replacement && 
+                           x.ReportType == ReportType.Found &&
+                           x.IsVerifiedByAdmin == true)
                 .ToListAsync();
 
             var result = items.Select(x => new ReplacementPoolItemDto
