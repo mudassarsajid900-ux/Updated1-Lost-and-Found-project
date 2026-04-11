@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import ProtectedRoute from './components/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
 import Dashboard from './pages/Dashboard';
 import ReportFound from './pages/ReportFound';
@@ -30,33 +31,39 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* PUBLIC ROUTES */}
         <Route path="/" element={<Welcome />} />
         <Route path="/login" element={<AuthPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/admin-users" element={<AdminManageUsers />} />
-        <Route path="/admin-settings" element={<AdminSettings />} />
-        <Route path="/admin-replacements" element={<AdminReplacements />} />
-        <Route path="/admin-handover" element={<AdminHandover />} />
-        <Route path="/admin-auctions" element={<AdminAuctions />} />
-        <Route path="/admin-reports" element={<AdminInventory />} />
-        <Route path="/admin-categories" element={<AdminCategories />} />
-        <Route path="/admin-report-control/:id" element={<AdminReportControl />} />
-        <Route path="/report-found" element={<ReportFound />} />
-        <Route path="/report-lost" element={<ReportLost />} />
-        <Route path="/my-items" element={<MyItems />} />
 
-        <Route path="/auction" element={<Auction />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/item-replacement" element={<ItemReplacement />} />
-        <Route path="/match-details" element={<MatchDetails />} />
-        <Route path="/match-details/:lostItemId/:foundItemId" element={<MatchDetails />} />
-        <Route path="/claim-item" element={<ClaimItem />} />
-        <Route path="/claim-item/:lostItemId/:foundItemId" element={<ClaimItem />} />
-        <Route path="/claim-status" element={<ClaimStatus />} />
-        <Route path="/review-claim" element={<ReviewClaim />} />
-        <Route path="/report-details/:id" element={<ReportDetails />} />
+        {/* USER PROTECTED ROUTES */}
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/report-found" element={<ProtectedRoute><ReportFound /></ProtectedRoute>} />
+        <Route path="/report-lost" element={<ProtectedRoute><ReportLost /></ProtectedRoute>} />
+        <Route path="/my-items" element={<ProtectedRoute><MyItems /></ProtectedRoute>} />
+        <Route path="/auction" element={<ProtectedRoute><Auction /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/item-replacement" element={<ProtectedRoute><ItemReplacement /></ProtectedRoute>} />
+        <Route path="/match-details" element={<ProtectedRoute><MatchDetails /></ProtectedRoute>} />
+        <Route path="/match-details/:lostItemId/:foundItemId" element={<ProtectedRoute><MatchDetails /></ProtectedRoute>} />
+        <Route path="/claim-item" element={<ProtectedRoute><ClaimItem /></ProtectedRoute>} />
+        <Route path="/claim-item/:lostItemId/:foundItemId" element={<ProtectedRoute><ClaimItem /></ProtectedRoute>} />
+        <Route path="/claim-status" element={<ProtectedRoute><ClaimStatus /></ProtectedRoute>} />
+        <Route path="/review-claim" element={<ProtectedRoute><ReviewClaim /></ProtectedRoute>} />
+        <Route path="/report-details/:id" element={<ProtectedRoute><ReportDetails /></ProtectedRoute>} />
 
+        {/* ADMIN PROTECTED ROUTES */}
+        <Route path="/admin-dashboard" element={<ProtectedRoute adminOnly={true}><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin-users" element={<ProtectedRoute adminOnly={true}><AdminManageUsers /></ProtectedRoute>} />
+        <Route path="/admin-settings" element={<ProtectedRoute adminOnly={true}><AdminSettings /></ProtectedRoute>} />
+        <Route path="/admin-replacements" element={<ProtectedRoute adminOnly={true}><AdminReplacements /></ProtectedRoute>} />
+        <Route path="/admin-handover" element={<ProtectedRoute adminOnly={true}><AdminHandover /></ProtectedRoute>} />
+        <Route path="/admin-auctions" element={<ProtectedRoute adminOnly={true}><AdminAuctions /></ProtectedRoute>} />
+        <Route path="/admin-reports" element={<ProtectedRoute adminOnly={true}><AdminInventory /></ProtectedRoute>} />
+        <Route path="/admin-categories" element={<ProtectedRoute adminOnly={true}><AdminCategories /></ProtectedRoute>} />
+        <Route path="/admin-report-control/:id" element={<ProtectedRoute adminOnly={true}><AdminReportControl /></ProtectedRoute>} />
+
+        {/* CATCH ALL - Redirect to Welcome */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

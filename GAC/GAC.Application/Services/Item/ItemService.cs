@@ -661,5 +661,20 @@ namespace GAC.Application.Services.Item
 
             return Response<bool>.SetSuccessResponse(true, "Item receipt verified successfully.");
         }
+
+        public async Task<Response<bool>> MoveToAuctionAsync(long id)
+        {
+            var item = await _itemRepository.GetByIdAsync(id);
+            if (item == null) return Response<bool>.NotFoundResponse();
+
+            if (item.ReportType != ReportType.Found)
+                return Response<bool>.SetCustomErrorResponse("Only found items can be moved to auction.", 400);
+
+            item.Status = ItemStatus.Auction;
+            item.LastModifiedOn = DateTime.UtcNow;
+            await _itemRepository.UpdateAsync(item);
+
+            return Response<bool>.SetSuccessResponse(true, "Item moved to auction staging.");
+        }
     }
 }

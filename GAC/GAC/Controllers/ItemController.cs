@@ -48,6 +48,10 @@ namespace GAC.API.Controllers
         [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
         public async Task<IActionResult> Verify(long id) => Ok(await _itemService.VerifyItemAsync(id));
 
+        [HttpPut("move-to-auction/{id}")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+        public async Task<IActionResult> MoveToAuction(long id) => Ok(await _itemService.MoveToAuctionAsync(id));
+
         [HttpGet("my-items")]
         public async Task<IActionResult> GetMyItems()
         {

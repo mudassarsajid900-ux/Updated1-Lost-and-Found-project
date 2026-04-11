@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Home, Folder, PlusCircle, Settings, LogOut, ChevronLeft, Calendar, MapPin, Clock, Camera, Search, Gavel, UploadCloud } from 'lucide-react';
+import { User, Home, Folder, PlusCircle, Settings, LogOut, ChevronLeft, Calendar, MapPin, Clock, Camera, Search, Gavel, UploadCloud, Laptop, Smartphone, Wallet as WalletIcon, Watch, Briefcase, Gem, Headphones, HelpCircle } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
@@ -676,13 +676,43 @@ const ReportLost = () => {
                         <div className="form-column">
                             <h3 className="column-title">Item Specification</h3>
 
-                            {/* Main Category Dropdown */}
-                            <div className="input-card">
-                                <label className="field-label">What did you lose?</label>
-                                <select className="custom-select"
+                            {/* form steps indicator */}
+                            <div className="form-steps-indicator">
+                                <div className={`step-dot ${selectedCategory ? 'active' : ''}`}>1<span>Spec</span></div>
+                                <div className="step-line"></div>
+                                <div className={`step-dot ${formData.dateLost && formData.lastSeenLocation ? 'active' : ''}`}>2<span>Logistics</span></div>
+                                <div className="step-line"></div>
+                                <div className={`step-dot ${formData.description ? 'active' : ''}`}>3<span>Notes</span></div>
+                            </div>
+
+                            {/* Main Category Selection (Icon Grid) */}
+                            <div className="category-selection-grid">
+                                {itemTypes.slice(0, 6).map(cat => {
+                                    const Icon = {
+                                        "Mobile Phone": Smartphone,
+                                        "Laptop": Laptop,
+                                        "Wallet": WalletIcon,
+                                        "Keys": Folder,
+                                        "Bag / Backpack": Briefcase,
+                                        "Watch": Watch
+                                    }[cat.name] || HelpCircle;
+
+                                    return (
+                                        <div 
+                                            key={cat.id} 
+                                            className={`category-icon-card ${selectedCategory === cat.name ? 'active' : ''}`}
+                                            onClick={() => handleCategoryChange({ target: { value: cat.name } })}
+                                        >
+                                            <Icon size={24} />
+                                            <span>{cat.name}</span>
+                                        </div>
+                                    );
+                                })}
+
+                                <select className="custom-select category-pill-dropdown"
                                     value={selectedCategory}
                                     onChange={handleCategoryChange}>
-                                    <option value="" disabled>Select item type...</option>
+                                    <option value="" disabled>Search more categories...</option>
                                     {itemTypes.map(cat => (
                                         <option key={cat.id} value={cat.name}>{cat.name}</option>
                                     ))}

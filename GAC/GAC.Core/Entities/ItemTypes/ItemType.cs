@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace GAC.Core.Entities.ItemTypes
 {
@@ -6,8 +6,7 @@ namespace GAC.Core.Entities.ItemTypes
     {
         [StringLength(50)]
         public string Name { get; set; }
-        [StringLength(100)]
-        public ICollection<Fields> Fields { get; set; }
 
+        public ICollection<Fields> Fields { get; set; }
     }
 }

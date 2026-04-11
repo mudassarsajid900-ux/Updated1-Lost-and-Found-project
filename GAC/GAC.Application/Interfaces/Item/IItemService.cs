@@ -13,5 +13,6 @@ namespace GAC.Application.Interfaces.Item
         Task<Response<List<GetItemDto>>> GetPublicFoundItemsAsync();
         Task<Response<string>> DeleteAsync(long id);
         Task<Response<bool>> VerifyItemAsync(long id);
+        Task<Response<bool>> MoveToAuctionAsync(long id);
     }
 }

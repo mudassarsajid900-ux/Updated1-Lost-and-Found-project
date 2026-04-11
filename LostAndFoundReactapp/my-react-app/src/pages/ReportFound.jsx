@@ -234,6 +234,21 @@ const ReportFound = () => {
         };
     };
 
+    /**
+     * Helper: Gets a Lucide React icon based on the string category/type name.
+     */
+    const getCategoryIcon = (itemType, size = 18) => {
+        if (!itemType) return <Folder size={size} />;
+        const typeLabel = itemType.toLowerCase();
+        if (typeLabel.includes('wallet')) return <PlusCircle size={size} />; // Fallback or distinct icons
+        if (typeLabel.includes('laptop')) return <Sliders size={size} />; 
+        if (typeLabel.includes('phone') || typeLabel.includes('mobile')) return <Camera size={size} />;
+        if (typeLabel.includes('bag')) return <Folder size={size} />;
+        if (typeLabel.includes('key')) return <Gavel size={size} />;
+        if (typeLabel.includes('watch')) return <Clock size={size} />;
+        return <PlusCircle size={size} />;
+    };
+
     // The rest of the form answers
     const [formData, setFormData] = useState(getInitialFormData());
 
@@ -651,10 +666,20 @@ const ReportFound = () => {
 
                 <div className="content-wrapper">
                     {submitStatus.message && (
-                        <div className={`notification-banner ${submitStatus.type}`}>
+                        <div className={`notification-banner ${submitStatus.type} animate-fade-in`}>
+                            {submitStatus.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
                             {submitStatus.message}
                         </div>
                     )}
+
+                    {/* NEW: STEP INDICATOR */}
+                    <div className="form-steps-indicator">
+                        <div className={`step-dot ${selectedCategory ? 'active' : ''}`}>1<span>Spec</span></div>
+                        <div className="step-line"></div>
+                        <div className={`step-dot ${formData.dateFound && formData.venue ? 'active' : ''}`}>2<span>Logistics</span></div>
+                        <div className="step-line"></div>
+                        <div className={`step-dot ${photo ? 'active' : ''}`}>3<span>Proof</span></div>
+                    </div>
 
                     <form className="report-form-grid" onSubmit={handleSubmit}>
 
@@ -664,19 +689,27 @@ const ReportFound = () => {
                         <div className="form-column">
                             <h3 className="column-title">Item Specification</h3>
 
-                            {/* Main Category Dropdown ('What did you find?') */}
+                            {/* Main Category Grid Selection */}
                             <div className="form-section">
-                                <label className="section-label">Item Type</label>
-                                <div className="input-card">
-                                    <label className="field-label">What did you find?</label>
+                                <label className="section-label">1. Primary Classification</label>
+                                <div className="category-selection-grid">
+                                    {itemTypes.slice(0, 6).map(cat => (
+                                        <div 
+                                            key={cat.id} 
+                                            className={`category-icon-card ${selectedCategory === cat.name ? 'active' : ''}`}
+                                            onClick={() => handleCategoryChange({ target: { value: cat.name } })}
+                                        >
+                                            {getCategoryIcon(cat.name, 24)}
+                                            <span>{cat.name}</span>
+                                        </div>
+                                    ))}
                                     <select
-                                        className="custom-select"
-                                        value={selectedCategory}
+                                        className="category-pill-dropdown"
+                                        value={categories.includes(selectedCategory) ? "" : selectedCategory}
                                         onChange={handleCategoryChange}
-                                        style={{ width: '100%' }}
                                     >
-                                        <option value="" disabled>Select item type...</option>
-                                        {itemTypes.map(cat => (
+                                        <option value="">More Categories...</option>
+                                        {itemTypes.slice(6).map(cat => (
                                             <option key={cat.id} value={cat.name}>{cat.name}</option>
                                         ))}
                                     </select>

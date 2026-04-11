@@ -16,9 +16,16 @@ import api from '../api/axios';
 // ========================================== //
 const AuthPage = () => {
     const location = useLocation();
-
-    // 'navigate' allows us to redirect the user to other pages programmatically
     const navigate = useNavigate();
+
+    // Auto-redirect if already logged in
+    React.useEffect(() => {
+        const token = localStorage.getItem('token');
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        if (token) {
+            navigate(isAdmin ? '/admin-dashboard' : '/dashboard', { replace: true });
+        }
+    }, [navigate]);
 
     return (
         <div className="auth-container">

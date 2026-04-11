@@ -84,6 +84,20 @@ const AdminReportControl = () => {
         }
     };
 
+    const handleMoveToAuction = async () => {
+        if (!window.confirm("Move this item to the Auction list? This will make it eligible for public bidding once you set a price.")) return;
+        setIsUpdating(true);
+        try {
+            await api.put(`Item/move-to-auction/${id}`);
+            alert("Item moved to auction staging.");
+            navigate('/admin-auctions');
+        } catch (err) {
+            alert("Failed to move to auction.");
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
     const handleHandoverSubmit = async (e) => {
         e.preventDefault();
         setIsUpdating(true);
@@ -377,6 +391,14 @@ const AdminReportControl = () => {
                          </div>
 
                          <div style={{ display: 'flex', gap: '1rem' }}>
+                              {isFoundItem && (item.isVerifiedByAdmin || item.IsVerifiedByAdmin) && (item.status === 1 || item.Status === 1) && (
+                                 <button 
+                                     onClick={handleMoveToAuction}
+                                     style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', background: '#ea580c', color: '#fff', border: 'none', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                 >
+                                    <Gavel size={18} /> Move to Auction
+                                 </button>
+                             )}
                              {isFoundItem && (item.isVerifiedByAdmin || item.IsVerifiedByAdmin) && (
                                  <button 
                                      onClick={() => setShowHandoverModal(true)}
