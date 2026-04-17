@@ -1,7 +1,13 @@
+/**
+ * @file AdminCategories.jsx
+ * @description Master category management module for the GAC system.
+ * Allows administrators to define dynamic item archetypes with custom forensic attributes.
+ * These categories are reflected in real-time across the student reporting interface.
+ */
 import React, { useState, useEffect } from 'react';
 import { 
     Plus, Trash2, Box, Tag, Settings, Save, X, 
-    Layers, ChevronRight, Hash, Type, Info, CheckCircle2, AlertCircle
+    Layers, ChevronRight, Hash, Type, Info, CheckCircle2, AlertCircle, Edit2
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
@@ -12,11 +18,12 @@ const AdminCategories = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [editingId, setEditingId] = useState(null);
 
-    // New Category State
-    const [newCategory, setNewCategory] = useState({
+    // New/Edit Category State
+    const [categoryForm, setCategoryForm] = useState({
         name: '',
-        fields: [] // Array of { name: '', type: 'text' }
+        fields: [] 
     });
 
     useEffect(() => {
@@ -36,73 +43,99 @@ const AdminCategories = () => {
     };
 
     const handleAddAttribute = () => {
-        setNewCategory({
-            ...newCategory,
-            fields: [...newCategory.fields, { fieldName: '', type: 'text' }]
+        setCategoryForm({
+            ...categoryForm,
+            fields: [...categoryForm.fields, { fieldName: '' }]
         });
     };
 
     const handleRemoveAttribute = (index) => {
-        const updatedFields = [...newCategory.fields];
+        const updatedFields = [...categoryForm.fields];
         updatedFields.splice(index, 1);
-        setNewCategory({ ...newCategory, fields: updatedFields });
+        setCategoryForm({ ...categoryForm, fields: updatedFields });
     };
 
     const handleAttributeChange = (index, value) => {
-        const updatedFields = [...newCategory.fields];
+        const updatedFields = [...categoryForm.fields];
         updatedFields[index].fieldName = value;
-        setNewCategory({ ...newCategory, fields: updatedFields });
+        setCategoryForm({ ...categoryForm, fields: updatedFields });
+    };
+
+    const handleEdit = (cat) => {
+        setEditingId(cat.id);
+        setCategoryForm({
+            name: cat.name,
+            fields: cat.fields ? cat.fields.map(f => ({ fieldName: f.fieldName })) : []
+        });
+        setShowModal(true);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // 1. Basic Name Validation
-        if (!newCategory.name.trim()) {
-            alert("Please enter a category name (e.g., 'Charger').");
+        if (!categoryForm.name.trim()) {
+            alert("Please enter a category name.");
             return;
         }
 
-        // 2. Attribute Validation (Ensures no empty forensic fields)
-        const emptyFields = newCategory.fields.some(f => !f.fieldName.trim());
+        const emptyFields = categoryForm.fields.some(f => !f.fieldName.trim());
         if (emptyFields) {
-            alert("Please provide a name for all attributes or remove the empty ones.");
+            alert("Please provide a name for all attributes.");
+            return;
+        }
+
+        const names = categoryForm.fields.map(f => f.fieldName.trim().toLowerCase());
+        if (new Set(names).size !== names.length) {
+            alert("Duplicate attribute names detected. Each forensic field must be unique to ensure accurate reporting.");
             return;
         }
         
         setSubmitting(true);
         try {
             const payload = {
-                name: newCategory.name,
-                fields: newCategory.fields.map(f => ({ fieldName: f.fieldName.trim() }))
+                name: categoryForm.name,
+                fields: categoryForm.fields.map(f => ({ fieldName: f.fieldName.trim() }))
             };
             
-            const response = await api.post('ItemType/create', payload);
+            let response;
+            if (editingId) {
+                response = await api.put('ItemType/update', { ...payload, id: editingId });
+            } else {
+                response = await api.post('ItemType/create', payload);
+            }
             
             if (response.data.isSucceeded || response.data.IsSucceeded) {
                 setShowModal(false);
-                setNewCategory({ name: '', fields: [] });
+                resetForm();
                 fetchCategories();
             } else {
-                alert(response.data.message || "Failed to create category.");
+                alert(response.data.message || "Operation failed.");
             }
         } catch (error) {
-            console.error("Error creating category:", error);
-            const errMsg = error.response?.data?.message || "Failed to communicate with the architectural engine. Please check your connection.";
-            alert(errMsg);
+            console.error("Error saving category:", error);
+            alert(error.response?.data?.message || "Communication failure.");
         } finally {
             setSubmitting(false);
         }
+    };
+
+    const resetForm = () => {
+        setEditingId(null);
+        setCategoryForm({ name: '', fields: [] });
     };
 
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure? This will hide the category from all future reports.")) return;
         
         try {
-            await api.delete(`ItemType/${id}`);
-            fetchCategories();
+            const res = await api.delete(`ItemType/${id}`);
+            if (res.data.isSucceeded || res.data.IsSucceeded) {
+                fetchCategories();
+            } else {
+                alert(res.data.message || "Failed to delete.");
+            }
         } catch (error) {
-            console.error("Error deleting category:", error);
+            alert(error.response?.data?.message || "Error deleting category.");
         }
     };
 
@@ -147,12 +180,22 @@ const AdminCategories = () => {
                                             </div>
                                             <h3 style={{ margin: 0, fontWeight: '900', color: '#1e293b', fontSize: '1.1rem' }}>{cat.name}</h3>
                                         </div>
-                                        <button 
-                                            onClick={() => handleDelete(cat.id)}
-                                            style={{ color: '#ef4444', background: '#fef2f2', border: 'none', padding: '8px', borderRadius: '10px', cursor: 'pointer' }}
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button 
+                                                onClick={() => handleEdit(cat)}
+                                                style={{ color: '#3b82f6', background: '#eff6ff', border: 'none', padding: '8px', borderRadius: '10px', cursor: 'pointer' }}
+                                                title="Edit Category"
+                                            >
+                                                <Edit2 size={16} />
+                                            </button>
+                                            <button 
+                                                onClick={() => handleDelete(cat.id)}
+                                                style={{ color: '#ef4444', background: '#fef2f2', border: 'none', padding: '8px', borderRadius: '10px', cursor: 'pointer' }}
+                                                title="Delete Category"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
                                     </div>
                                     <div style={{ padding: '1.5rem' }}>
                                         <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>Forensic Attributes</div>
@@ -188,8 +231,8 @@ const AdminCategories = () => {
                                         <Box size={18} color="#94a3b8" style={{ position: 'absolute', left: '16px', top: '16px' }} />
                                         <input 
                                             required
-                                            value={newCategory.name}
-                                            onChange={(e) => setNewCategory({...newCategory, name: e.target.value})}
+                                            value={categoryForm.name}
+                                            onChange={(e) => setCategoryForm({...categoryForm, name: e.target.value})}
                                             placeholder="e.g. Wireless Charger, Lab Equipment..." 
                                             style={{ width: '100%', padding: '14px 14px 14px 48px', borderRadius: '14px', border: '2px solid #e2e8f0', fontSize: '1rem', fontWeight: '700', outline: 'none' }}
                                         />
@@ -209,7 +252,7 @@ const AdminCategories = () => {
                                     </div>
 
                                     <div style={{ maxHeight: '200px', overflowY: 'auto', paddingRight: '10px' }}>
-                                        {newCategory.fields.map((field, idx) => (
+                                        {categoryForm.fields.map((field, idx) => (
                                             <div key={idx} style={{ display: 'flex', gap: '10px', marginBottom: '10px', animation: 'fadeInRight 0.2s ease-out' }}>
                                                 <div style={{ flex: 1, position: 'relative' }}>
                                                     <Tag size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '12px' }} />
@@ -231,7 +274,7 @@ const AdminCategories = () => {
                                             </div>
                                         ))}
 
-                                        {newCategory.fields.length === 0 && (
+                                        {categoryForm.fields.length === 0 && (
                                             <div style={{ padding: '20px', textAlign: 'center', background: '#f8fafc', borderRadius: '16px', border: '1px dashed #e2e8f0' }}>
                                                 <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8', fontStyle: 'italic' }}>No custom attributes. Every report will only have a general description.</p>
                                             </div>

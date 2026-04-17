@@ -1,3 +1,8 @@
+/**
+ * @file ItemTypeController.cs
+ * @description Administrator interface for defining dynamic item archetypes.
+ * Allows the system to evolve with new categories and forensic attributes in real-time.
+ */
 using GAC.Application.Extensions;
 using GAC.Application.Interfaces.Item;
 using GAC.Application.Services.Item.Dtos;
@@ -18,7 +23,7 @@ namespace GAC.API.Controllers
             _itemTypeService = itemTypeService;
         }
 
-        [HttpGet(ApiConstatnts.GetAll)]
+        [HttpGet(ApiConstants.GetAll)]
         public async Task<IActionResult> GetAll()
         {
             var response = await _itemTypeService.GetAllAsync();
@@ -30,6 +35,14 @@ namespace GAC.API.Controllers
         public async Task<IActionResult> Create([FromBody] CreateItemTypeDto dto)
         {
             var response = await _itemTypeService.CreateAsync(dto);
+            return response.ToHttpResult();
+        }
+
+        [HttpPut("update")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Update([FromBody] UpdateItemTypeDto dto)
+        {
+            var response = await _itemTypeService.UpdateAsync(dto);
             return response.ToHttpResult();
         }
 

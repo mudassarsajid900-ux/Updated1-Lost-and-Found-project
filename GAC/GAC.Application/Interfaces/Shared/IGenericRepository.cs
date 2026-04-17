@@ -1,11 +1,13 @@
 using GAC.Application.Services.Identity.Dtos.Shared;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace GAC.Application.Interfaces.Shared
 {
     public interface IGenericRepository<TEntity> where TEntity : class
     {
         // Single Entity Operations
+        Task<IDbContextTransaction> BeginTransactionAsync();
         Task<TEntity> GetByIdAsync(long id);
         Task<TEntity> GetByDynamicColumnsAsync(Dictionary<string, object> columnFiltersEqual, Dictionary<string, object> columnFiltersContains, bool asNoTracking = false, bool asSplitQuery = false, bool checkIsActive = false,
                Func<IQueryable<TEntity>, IQueryable<TEntity>> includeExpression = null);

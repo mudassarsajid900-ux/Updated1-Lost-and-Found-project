@@ -8,6 +8,7 @@ using GAC.Core.Enums;
 using GAC.Presistance.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
@@ -32,15 +33,27 @@ namespace GAC.Presistance.Repositories
             _serviceProvider = serviceProvider;
         }
 
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await _context.Database.BeginTransactionAsync();
+        }
+
         private bool HasModelProperty(string propertyName)
         {
             var entityType = _context.Model.FindEntityType(typeof(TEntity));
             return entityType != null && entityType.FindProperty(propertyName) != null;
         }
 
-        public async Task<TEntity> GetByIdAsync(long id)
+        public async Task<TEntity?> GetByIdAsync(long id)
         {
-            var keyType = _context.Model.FindEntityType(typeof(TEntity))?.FindPrimaryKey()?.Properties[0].ClrType;
+            var entityType = _context.Model.FindEntityType(typeof(TEntity));
+            var primaryKey = entityType?.FindPrimaryKey();
+            if (primaryKey == null || !primaryKey.Properties.Any())
+            {
+                return await _dbSet.FindAsync(id);
+            }
+
+            var keyType = primaryKey.Properties[0].ClrType;
             if (keyType == typeof(int))
             {
                 return await _dbSet.FindAsync((int)id);
@@ -116,10 +129,14 @@ namespace GAC.Presistance.Repositories
                 var property = Expression.Property(parameter, filter.Key);
                 var constant = Expression.Constant(filter.Value.ToString(), typeof(string));
                 var containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) });
-                var containsExpression = Expression.Call(property, containsMethod, constant);
-                finalExpression = finalExpression == null
-                    ? containsExpression
-                    : Expression.OrElse(finalExpression, containsExpression);
+                
+                if (containsMethod != null)
+                {
+                    var containsExpression = Expression.Call(property, containsMethod, constant);
+                    finalExpression = finalExpression == null
+                        ? containsExpression
+                        : Expression.OrElse(finalExpression, containsExpression);
+                }
             }
 
             if (finalExpression != null)
@@ -135,28 +152,26 @@ namespace GAC.Presistance.Repositories
         {
             try
             {
-                if (entity is BaseEntity b)
-                {
-                    var userId = _userData?.UserId ?? 0;
-                    var now = DateTime.Now;
-                    if (userId > 0)
-                    {
-                         if (b.CreatedBy == 0) b.CreatedBy = userId;
-                         b.LastModifiedBy = userId;
-                    }
-                    else
-                    {
-                         // System Job Context Fallback (Prevents AspNetUsers FK crash for ID 0)
-                         if (b.CreatedBy == 0) b.CreatedBy = 1;
-                         b.LastModifiedBy = 1;
-                    }
-                    b.CreatedOn = now;
-                    b.LastModifiedOn = now;
-                    b.IsDeleted = false;
-                    b.IsActive = true;
-                }
+                var userId = _userData?.UserId ?? 0;
+                if (userId == 0) userId = 1; // System/Admin Fallback
+                var now = DateTime.Now;
 
+                // 1. ADD first so EF Core begins tracking the entire object graph
                 await _dbSet.AddAsync(entity);
+
+                // 2. Intercept and enrich all nested tracking entries
+                foreach (var entry in _context.ChangeTracker.Entries<BaseEntity>())
+                {
+                    if (entry.State == EntityState.Added)
+                    {
+                        if (entry.Entity.CreatedBy == 0) entry.Entity.CreatedBy = userId;
+                        entry.Entity.LastModifiedBy = userId;
+                        if (entry.Entity.CreatedOn == default) entry.Entity.CreatedOn = now;
+                        entry.Entity.LastModifiedOn = now;
+                        entry.Entity.IsDeleted = false;
+                        entry.Entity.IsActive = true; 
+                    }
+                }
                 await _context.SaveChangesAsync();
 
                 // Save audit log after successful save (separate transaction)
@@ -173,18 +188,34 @@ namespace GAC.Presistance.Repositories
         {
             try
             {
-                if (entity is BaseEntity baseEntity)
-                {
-                    var currentUserId = _userData?.UserId ?? 0;
-                    var currentTime = DateTime.UtcNow;
-                    if (currentUserId > 0)
-                    {
-                        baseEntity.LastModifiedBy = currentUserId;
-                    }
-                    baseEntity.LastModifiedOn = currentTime;
-                }
+                var currentUserId = _userData?.UserId ?? 0;
+                if (currentUserId == 0) currentUserId = 1;
+                var currentTime = DateTime.Now;
 
+                // 1. UPDATE first so EF Core begins tracking the entire object graph
                 _dbSet.Update(entity);
+
+                // 2. Intercept and enrich all nested tracking entries
+                foreach (var entry in _context.ChangeTracker.Entries<BaseEntity>())
+                {
+                    if (entry.State == EntityState.Added)
+                    {
+                        if (entry.Entity.CreatedBy == 0) entry.Entity.CreatedBy = currentUserId;
+                        entry.Entity.LastModifiedBy = currentUserId;
+                        if (entry.Entity.CreatedOn == default) entry.Entity.CreatedOn = currentTime;
+                        entry.Entity.LastModifiedOn = currentTime;
+                        entry.Entity.IsDeleted = false;
+                        entry.Entity.IsActive = true;
+                    }
+                    else if (entry.State == EntityState.Modified)
+                    {
+                        entry.Entity.LastModifiedBy = currentUserId;
+                        entry.Entity.LastModifiedOn = currentTime;
+                        // Prevent accidental modification of CreatedBy/CreatedOn if omitted in DTO mapping
+                        entry.Property(x => x.CreatedBy).IsModified = false;
+                        entry.Property(x => x.CreatedOn).IsModified = false;
+                    }
+                }
                 await _context.SaveChangesAsync();
 
                 // Save audit log after successful save (separate transaction)
@@ -237,7 +268,26 @@ namespace GAC.Presistance.Repositories
         {
             try
             {
-                _dbSet.RemoveRange(entities);
+                var userId = _userData?.UserId ?? 0;
+                var now = DateTime.Now;
+
+                foreach (var entity in entities)
+                {
+                    if (entity is BaseEntity b)
+                    {
+                        // Soft delete — consistent with DeleteAsync(long id)
+                        b.IsDeleted = true;
+                        b.IsActive = false;
+                        b.DeletedOn = now;
+                        b.DeletedBy = userId;
+                        _dbSet.Update(entity);
+                    }
+                    else
+                    {
+                        _dbSet.Remove(entity);
+                    }
+                }
+
                 var result = await _context.SaveChangesAsync() > 0;
 
                 // Save audit log after successful save (separate transaction)

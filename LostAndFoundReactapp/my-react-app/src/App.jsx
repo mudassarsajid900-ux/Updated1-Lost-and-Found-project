@@ -1,3 +1,8 @@
+/**
+ * @file App.jsx
+ * @description Main application entry point and routing orchestrator.
+ * Configures the application navigation structure and security boundaries (Protected Routes).
+ */
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -25,6 +30,7 @@ import AdminInventory from './admin/AdminInventory';
 import AdminCategories from './admin/AdminCategories';
 import AdminReportControl from './admin/AdminReportControl';
 import ReportDetails from './pages/ReportDetails';
+import PublicFoundWall from './pages/PublicFoundWall';
 
 
 function App() {
@@ -50,6 +56,7 @@ function App() {
         <Route path="/claim-status" element={<ProtectedRoute><ClaimStatus /></ProtectedRoute>} />
         <Route path="/review-claim" element={<ProtectedRoute><ReviewClaim /></ProtectedRoute>} />
         <Route path="/report-details/:id" element={<ProtectedRoute><ReportDetails /></ProtectedRoute>} />
+        <Route path="/public-found" element={<ProtectedRoute><PublicFoundWall /></ProtectedRoute>} />
 
         {/* ADMIN PROTECTED ROUTES */}
         <Route path="/admin-dashboard" element={<ProtectedRoute adminOnly={true}><AdminDashboard /></ProtectedRoute>} />

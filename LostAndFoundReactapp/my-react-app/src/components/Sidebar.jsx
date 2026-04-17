@@ -8,10 +8,33 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/axios';
 
 // ========================================== //
-// SECTION 2: MAIN SIDEBAR COMPONENT
-// This is the left-side navigation menu seen on almost every page.
-// It changes its layout depending on if an Admin is logged in or a regular student.
+// PENDING HANDOVER BADGE COMPONENT
+// Extracted from Sidebar to comply with React Rules of Hooks.
+// Fetches and displays a live count of pending handovers every minute.
 // ========================================== //
+const PendingHandoverBadge = () => {
+    const [count, setCount] = React.useState(0);
+
+    React.useEffect(() => {
+        const fetchCount = async () => {
+            try {
+                const res = await api.get('Handover/pending');
+                setCount(res.data.data?.length || 0);
+            } catch (e) {}
+        };
+        fetchCount();
+        const interval = setInterval(fetchCount, 60000); // Refresh every minute
+        return () => clearInterval(interval);
+    }, []);
+
+    if (count <= 0) return null;
+    return (
+        <span style={{ marginLeft: 'auto', background: '#ef4444', color: '#fff', padding: '2px 8px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '900' }}>
+            {count}
+        </span>
+    );
+};
+
 const Sidebar = ({ isAdmin: propIsAdmin }) => {
     // Allows us to navigate between pages when a link is clicked
     const navigate = useNavigate();
@@ -73,13 +96,6 @@ const Sidebar = ({ isAdmin: propIsAdmin }) => {
                             <span>Admin Home</span>
                         </button>
                         <button
-                            className={`nav-item ${isActive('/admin-users') ? 'active' : ''}`}
-                            onClick={() => navigate('/admin-users')}
-                        >
-                            <User size={20} />
-                            <span>Manage Users</span>
-                        </button>
-                        <button
                             className={`nav-item ${isActive('/admin-reports') ? 'active' : ''}`}
                             onClick={() => navigate('/admin-reports')}
                         >
@@ -98,36 +114,29 @@ const Sidebar = ({ isAdmin: propIsAdmin }) => {
                             onClick={() => navigate('/admin-replacements')}
                         >
                             <RefreshCw size={20} />
-                            <span>Manage Replacements</span>
+                            <span>Item Replacement</span>
                         </button>
                         <button
                             className={`nav-item ${isActive('/admin-handover') ? 'active' : ''}`}
                             onClick={() => navigate('/admin-handover')}
                         >
                             <ShieldCheck size={20} />
-                            <span>Manage Handovers</span>
-                            {(() => {
-                                const [count, setCount] = React.useState(0);
-                                React.useEffect(() => {
-                                    const fetchCount = async () => {
-                                        try {
-                                            const res = await api.get('Handover/pending');
-                                            setCount(res.data.data?.length || 0);
-                                        } catch (e) {}
-                                    };
-                                    fetchCount();
-                                    const interval = setInterval(fetchCount, 60000); // Check every minute
-                                    return () => clearInterval(interval);
-                                }, []);
-                                return count > 0 && <span style={{ marginLeft: 'auto', background: '#ef4444', color: '#fff', padding: '2px 8px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '900' }}>{count}</span>;
-                            })()}
+                            <span>Item Handover</span>
+                            <PendingHandoverBadge />
+                        </button>
+                        <button
+                            className={`nav-item ${isActive('/admin-users') ? 'active' : ''}`}
+                            onClick={() => navigate('/admin-users')}
+                        >
+                            <User size={20} />
+                            <span>Manage Users</span>
                         </button>
                         <button
                             className={`nav-item ${isActive('/admin-settings') ? 'active' : ''}`}
                             onClick={() => navigate('/admin-settings')}
                         >
                             <Settings size={20} />
-                            <span>System Settings</span>
+                            <span>System settings</span>
                         </button>
                         <button
                             className={`nav-item ${isActive('/admin-categories') ? 'active' : ''}`}
@@ -162,7 +171,14 @@ const Sidebar = ({ isAdmin: propIsAdmin }) => {
                             onClick={() => navigate('/report-lost')}
                         >
                             <PlusCircle size={20} />
-                            <span>Add New</span>
+                            <span>Report Lost</span>
+                        </button>
+                        <button
+                            className={`nav-item ${isActive('/report-found') ? 'active' : ''}`}
+                            onClick={() => navigate('/report-found')}
+                        >
+                            <Eye size={20} />
+                            <span>Report Found</span>
                         </button>
 
                         <button
@@ -196,10 +212,8 @@ const Sidebar = ({ isAdmin: propIsAdmin }) => {
             {/* ------------------------------------------- */}
             <div className="sidebar-footer">
                 <button className="nav-item logout" onClick={() => {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('username');
-                    localStorage.removeItem('userEmail');
-                    localStorage.removeItem('isAdmin');
+                    // Clear ALL session data to prevent stale auth state
+                    localStorage.clear();
                     navigate('/login');
                 }}>
                     <LogOut size={20} />

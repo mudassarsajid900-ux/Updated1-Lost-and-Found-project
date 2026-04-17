@@ -1,3 +1,7 @@
+// ========================================== //
+// SECTION: AUCTION OPERATIONS SERVICES
+// DESCRIPTION: Liquidation of unclaimed verified found assets through internal bidding.
+// ========================================== //
 using AutoMapper;
 using GAC.Application.Helper;
 using GAC.Application.Interfaces.Auction;
@@ -9,9 +13,17 @@ using GAC.Core.Entities.Item;
 using GAC.Core.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GAC.Application.Services.Auction
 {
+    /// <summary>
+    /// The AuctionService manages the 'End of Life' cycle for unclaimed campus assets.
+    /// It facilitates a competitive bidding environment for verified found items,
+    /// ensuring fair redistribution of property while maintaining a complete audit trail of offers.
+    /// </summary>
     public class AuctionService : IAuctionService
     {
         private readonly IGenericRepository<AuctionRecord> _auctionRepository;
@@ -34,17 +46,23 @@ namespace GAC.Application.Services.Auction
             _userData = userData;
         }
 
+        /// <summary>
+        /// Initiates a new auction for an unclaimed found asset.
+        /// Enforces concurrency checks to prevent duplicate auction events for a single item.
+        /// </summary>
+        /// <param name="dto">Auction configuration including starting price and duration.</param>
         public async Task<Response<GetAuctionDto>> CreateAuctionAsync(CreateAuctionDto dto)
         {
             var item = await _itemRepository.GetByIdAsync(dto.FoundItemId);
             if (item == null)
-                return Response<GetAuctionDto>.SetCustomErrorResponse("Item not found", StatusCodes.Status404NotFound);
+                return Response<GetAuctionDto>.SetCustomErrorResponse("Validation Error: Underlying asset not found.", StatusCodes.Status404NotFound);
 
-            // BUG FIX: Prevent duplicate auctions for the same item
+            // Constraint: Prevent overlapping auction events for the same unique asset
             var existingActiveAuction = await _auctionRepository.AsQueryable()
                 .FirstOrDefaultAsync(x => x.FoundItemId == dto.FoundItemId && x.IsActive);
+            
             if (existingActiveAuction != null)
-                return Response<GetAuctionDto>.SetCustomErrorResponse("An active auction already exists for this item.", StatusCodes.Status409Conflict);
+                return Response<GetAuctionDto>.SetCustomErrorResponse("Conflict: Asset is already involved in an active auction event.", StatusCodes.Status409Conflict);
 
             var entity = new AuctionRecord
             {
@@ -52,139 +70,159 @@ namespace GAC.Application.Services.Auction
                 HighestBid = dto.StartingPrice,
                 IsActive = true,
                 CreatedBy = _userData.UserId,
+                CreatedOn = DateTime.UtcNow,
                 HighestBidderId = null,
                 EndDate = DateTime.UtcNow.AddHours(dto.DurationHours)
             };
 
             await _auctionRepository.AddAsync(entity);
 
+            // Sync: Transition asset status to 'Auction' to hide from public found list and matching logic
             item.Status = ItemStatus.Auction;
+            item.LastModifiedOn = DateTime.UtcNow;
             await _itemRepository.UpdateAsync(item);
 
             var result = _mapper.Map<GetAuctionDto>(entity);
-            return Response<GetAuctionDto>.SetSuccessResponse(result, "Auction created successfully", StatusCodes.Status201Created);
+            return Response<GetAuctionDto>.SetSuccessResponse(result, "Success: Asset is now live in the auction pool.", StatusCodes.Status201Created);
         }
 
+        /// <summary>
+        /// Forcefully or naturally concludes an auction event.
+        /// Transitions the item to the final handover staging area for the winner.
+        /// </summary>
         public async Task<Response<GetAuctionDto>> EndAuctionAsync(long auctionId)
         {
             var entity = await _auctionRepository.AsQueryable()
-                .Include(x => x.FoundItem)
-                .ThenInclude(i => i.ItemType)
+                .Include(x => x.FoundItem).ThenInclude(i => i.ItemType)
                 .FirstOrDefaultAsync(x => x.Id == auctionId);
                 
-            if (entity == null)
-                return Response<GetAuctionDto>.NotFoundResponse();
+            if (entity == null) return Response<GetAuctionDto>.NotFoundResponse();
 
             if (!entity.IsActive)
-                return Response<GetAuctionDto>.SetCustomErrorResponse("Auction is already ended", StatusCodes.Status400BadRequest);
+                return Response<GetAuctionDto>.SetCustomErrorResponse("Lifecycle Error: Auction has already been finalized.", StatusCodes.Status400BadRequest);
 
+            // Finalize State
             entity.IsActive = false;
+            entity.LastModifiedOn = DateTime.UtcNow;
+
             if (entity.FoundItem != null)
             {
                 entity.FoundItem.Status = ItemStatus.AuctionHandover;
                 entity.FoundItem.LastModifiedOn = DateTime.UtcNow;
             }
+
             await _auctionRepository.UpdateAsync(entity);
 
             var result = _mapper.Map<GetAuctionDto>(entity);
-            return Response<GetAuctionDto>.SetSuccessResponse(result, "Auction ended successfully");
+            return Response<GetAuctionDto>.SetSuccessResponse(result, "Success: Auction finalized. Asset staged for handover.");
         }
 
+        /// <summary>
+        /// Process logic for placing a new competitive bid.
+        /// Implements 'High-Water Mark' validation to ensure bids strictly increase in value.
+        /// </summary>
         public async Task<Response<GetAuctionDto>> PlaceBidAsync(PlaceBidDto dto)
         {
             var entity = await _auctionRepository.GetByIdAsync(dto.AuctionId);
-            if (entity == null)
-                return Response<GetAuctionDto>.NotFoundResponse();
+            if (entity == null) return Response<GetAuctionDto>.NotFoundResponse();
 
+            // Guard: Temporal and Logic validity checks
             if (!entity.IsActive)
-                return Response<GetAuctionDto>.SetCustomErrorResponse("Auction is not active", StatusCodes.Status400BadRequest);
+                return Response<GetAuctionDto>.SetCustomErrorResponse("Bid Rejected: Auction event is closed.", StatusCodes.Status400BadRequest);
 
             if (DateTime.UtcNow > entity.EndDate)
-                return Response<GetAuctionDto>.SetCustomErrorResponse("Auction has already ended", StatusCodes.Status400BadRequest);
+                return Response<GetAuctionDto>.SetCustomErrorResponse("Bid Rejected: Auction timeframe has expired.", StatusCodes.Status400BadRequest);
 
             if (dto.BidAmount <= entity.HighestBid)
-                return Response<GetAuctionDto>.SetCustomErrorResponse("Bid must be higher than current highest bid", StatusCodes.Status400BadRequest);
+                return Response<GetAuctionDto>.SetCustomErrorResponse("Bid Rejected: Offer must exceed the current highest bid.", StatusCodes.Status400BadRequest);
 
-            // 1. Update Auction Record
+            // Execution: Update Current Standing
             entity.HighestBid = dto.BidAmount;
             entity.HighestBidderId = _userData.UserId;
+            entity.LastModifiedOn = DateTime.UtcNow;
             await _auctionRepository.UpdateAsync(entity);
 
-            // 2. Save to Bid History
+            // Persistence: Append to forensic history of all offers
             var bid = new Bid
             {
                 FoundItemId = entity.FoundItemId,
                 BidderId = _userData.UserId,
                 BidAmount = dto.BidAmount,
-                CreatedBy = _userData.UserId
+                CreatedBy = _userData.UserId,
+                CreatedOn = DateTime.UtcNow
             };
             await _bidRepository.AddAsync(bid);
 
             var result = _mapper.Map<GetAuctionDto>(entity);
-            return Response<GetAuctionDto>.SetSuccessResponse(result, "Bid placed successfully");
+            return Response<GetAuctionDto>.SetSuccessResponse(result, "Success: Your bid is currently the highest.");
         }
 
         public async Task<Response<GetAuctionDto>> GetByIdAsync(long id)
         {
             var entity = await _auctionRepository.AsQueryable()
-                .Include(x => x.FoundItem)
-                .ThenInclude(i => i.ItemType)
-                .Include(x => x.FoundItem)
-                .ThenInclude(i => i.Attributes)
+                .Include(x => x.FoundItem).ThenInclude(i => i.ItemType)
+                .Include(x => x.FoundItem).ThenInclude(i => i.Attributes)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
-            if (entity == null)
-                return Response<GetAuctionDto>.NotFoundResponse();
+            if (entity == null) return Response<GetAuctionDto>.NotFoundResponse();
 
-            var result = _mapper.Map<GetAuctionDto>(entity);
-            return Response<GetAuctionDto>.SetSuccessResponse(result);
+            return Response<GetAuctionDto>.SetSuccessResponse(_mapper.Map<GetAuctionDto>(entity));
         }
 
+        /// <summary>
+        /// Retrieves all auctions currently accepting new bids.
+        /// Populates human-readable bidder names for admin/public transparency.
+        /// </summary>
         public async Task<Response<List<GetAuctionDto>>> GetAllActiveAuctionsAsync()
         {
             var auctions = await _auctionRepository.AsQueryable()
-                .Include(x => x.FoundItem)
-                .ThenInclude(i => i.ItemType)
-                .Include(x => x.FoundItem)
-                .ThenInclude(i => i.Attributes)
-                .Include(x => x.HighestBidder)  // BUG FIX: Was missing — bidder name was always null
+                .Include(x => x.FoundItem).ThenInclude(i => i.ItemType)
+                .Include(x => x.FoundItem).ThenInclude(i => i.Attributes)
+                .Include(x => x.HighestBidder)
                 .Where(x => x.IsActive)
                 .ToListAsync();
 
-            // BUG FIX: Manually set HighestBidderName (same pattern as GetCompletedAuctionsAsync)
             var result = auctions.Select(x => {
                 var dto = _mapper.Map<GetAuctionDto>(x);
                 dto.HighestBidderName = x.HighestBidder != null
-                    ? (x.HighestBidder.FirstName + " " + x.HighestBidder.LastName)
-                    : "No Bids";
+                    ? $"{x.HighestBidder.FirstName} {x.HighestBidder.LastName}"
+                    : "Opening Bid";
                 return dto;
             }).ToList();
 
             return Response<List<GetAuctionDto>>.SetSuccessResponse(result);
         }
 
+        /// <summary>
+        /// Retrieves history of concluded auctions.
+        /// Used for auditing asset redistribution and reporting.
+        /// </summary>
         public async Task<Response<List<GetAuctionDto>>> GetCompletedAuctionsAsync()
         {
             var auctions = await _auctionRepository.AsQueryable()
-                .Include(x => x.FoundItem)
-                .ThenInclude(i => i.ItemType)
+                .Include(x => x.FoundItem).ThenInclude(i => i.ItemType)
                 .Include(x => x.HighestBidder)
                 .Where(x => !x.IsActive)
                 .ToListAsync();
 
             var result = auctions.Select(x => {
                 var dto = _mapper.Map<GetAuctionDto>(x);
-                dto.HighestBidderName = x.HighestBidder != null ? (x.HighestBidder.FirstName + " " + x.HighestBidder.LastName) : "No Bidder";
+                dto.HighestBidderName = x.HighestBidder != null 
+                    ? $"{x.HighestBidder.FirstName} {x.HighestBidder.LastName}" 
+                    : "No successful bids";
                 return dto;
             }).ToList();
 
             return Response<List<GetAuctionDto>>.SetSuccessResponse(result);
         }
+
+        /// <summary>
+        /// Fetches the chronological offer history for a specific auction event.
+        /// </summary>
         public async Task<Response<List<GetBidDto>>> GetBidHistoryAsync(long auctionId)
         {
             var auction = await _auctionRepository.GetByIdAsync(auctionId);
-            if (auction == null)
-                return Response<List<GetBidDto>>.NotFoundResponse();
+            if (auction == null) return Response<List<GetBidDto>>.NotFoundResponse();
 
             var bids = await _bidRepository.AsQueryable()
                 .Include(x => x.Bidder)
@@ -192,22 +230,22 @@ namespace GAC.Application.Services.Auction
                 .OrderByDescending(x => x.CreatedOn)
                 .ToListAsync();
 
-            var result = _mapper.Map<List<GetBidDto>>(bids);
-            return Response<List<GetBidDto>>.SetSuccessResponse(result);
+            return Response<List<GetBidDto>>.SetSuccessResponse(_mapper.Map<List<GetBidDto>>(bids));
         }
 
+        /// <summary>
+        /// Student Portal: Retrieves a summary of all active auctions where the user has placed a bid.
+        /// Includes a 'Highest Bidder' status indicator for UI awareness.
+        /// </summary>
         public async Task<Response<List<MyBidDto>>> GetMyActiveBidsAsync()
         {
             var userId = _userData.UserId;
+            if (userId == 0) return Response<List<MyBidDto>>.SetCustomErrorResponse("Unauthorized", 401);
 
-            // 1. Find all active auctions the user has bid on
             var activeUserBids = await _bidRepository.AsQueryable()
-                .Include(b => b.FoundItem)
-                    .ThenInclude(i => i.ItemType)
-                .Join(_auctionRepository.AsQueryable().Where(ar => ar.IsActive),
-                    bid => bid.FoundItemId,
-                    auction => auction.FoundItemId,
-                    (bid, auction) => new { bid, auction })
+                .Include(b => b.FoundItem).ThenInclude(i => i.ItemType)
+                .Join(_auctionRepository.AsQueryable().Include(ar => ar.FoundItem).Where(ar => ar.IsActive),
+                    bid => bid.FoundItemId, auction => auction.FoundItemId, (bid, auction) => new { bid, auction })
                 .Where(x => x.bid.BidderId == userId)
                 .GroupBy(x => x.auction.Id)
                 .Select(g => new MyBidDto
@@ -225,14 +263,17 @@ namespace GAC.Application.Services.Auction
             return Response<List<MyBidDto>>.SetSuccessResponse(activeUserBids);
         }
 
+        /// <summary>
+        /// Student Portal: Retrieves a history of auctions successfully won by the user.
+        /// Formats an internal 'Order Number' for collection reference.
+        /// </summary>
         public async Task<Response<List<MyWinDto>>> GetMyWonAuctionsAsync()
         {
             var userId = _userData.UserId;
+            if (userId == 0) return Response<List<MyWinDto>>.SetCustomErrorResponse("Unauthorized", 401);
 
-            // 1. Find all ended auctions where user is the highest bidder
             var wonAuctions = await _auctionRepository.AsQueryable()
-                .Include(ar => ar.FoundItem)
-                    .ThenInclude(i => i.ItemType)
+                .Include(ar => ar.FoundItem).ThenInclude(i => i.ItemType)
                 .Where(ar => !ar.IsActive && ar.HighestBidderId == userId)
                 .Select(ar => new MyWinDto
                 {
@@ -241,7 +282,7 @@ namespace GAC.Application.Services.Auction
                     ItemImageUrl = ar.FoundItem.ImageUrl,
                     WinningBid = ar.HighestBid,
                     EndDate = ar.LastModifiedOn,
-                    OrderNumber = "LF-" + ar.Id.ToString().PadLeft(4, '0')
+                    OrderNumber = $"GAC-AUC-{ar.Id:D4}"
                 })
                 .ToListAsync();
 

@@ -17,14 +17,14 @@ public class LocationController : ControllerBase
         _locationService = locationService;
     }
 
-    [HttpPost(ApiConstatnts.Create)]
+    [HttpPost(ApiConstants.Create)]
     public async Task<IActionResult> Create(CreateLocationDto dto)
     {
         var response = await _locationService.CreateAsync(dto);
         return response.ToHttpResult();
     }
 
-    [HttpPut(ApiConstatnts.Update)]
+    [HttpPut(ApiConstants.Update)]
     public async Task<IActionResult> Update(UpdateLocationDto dto)
     {
         var response = await _locationService.UpdateAsync(dto);
@@ -38,7 +38,7 @@ public class LocationController : ControllerBase
         return response.ToHttpResult();
     }
 
-    [HttpGet(ApiConstatnts.GetAll)]
+    [HttpGet(ApiConstants.GetAll)]
     public async Task<IActionResult> GetAll()
     {
         var response = await _locationService.GetAllAsync();

@@ -2,6 +2,7 @@ using GAC.Application.Extensions;
 using GAC.Application.Interfaces.Handover;
 using GAC.Application.Services.Handover.Dtos;
 using GAC.Common.Constants;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GAC.API.Controllers
@@ -18,6 +19,7 @@ namespace GAC.API.Controllers
             _handoverService = handoverService;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] CreateHandoverDto dto)
         {
@@ -25,6 +27,7 @@ namespace GAC.API.Controllers
             return response.ToHttpResult();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("all")]
         public async Task<IActionResult> GetAll()
         {

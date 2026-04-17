@@ -1,3 +1,8 @@
+/**
+ * @file Dashboard.jsx
+ * @description Central mission control for students. 
+ * Provides quick access to reporting workflows, match status, and personal inventory summary.
+ */
 // ========================================== //
 // SECTION 1: IMPORTS
 // React and UI layout components (Sidebar, Header)

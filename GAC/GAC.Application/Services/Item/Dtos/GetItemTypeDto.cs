@@ -25,4 +25,11 @@ namespace GAC.Application.Services.Item.Dtos
     {
         public string FieldName { get; set; } = string.Empty;
     }
+
+    public class UpdateItemTypeDto
+    {
+        public long Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public List<CreateFieldDto> Fields { get; set; } = new List<CreateFieldDto>();
+    }
 }

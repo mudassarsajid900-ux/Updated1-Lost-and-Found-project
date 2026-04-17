@@ -1,4 +1,4 @@
-﻿using GAC.Core.Entities.Identity;
+using GAC.Core.Entities.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -11,10 +11,10 @@ namespace GAC.Core.Entities
         public long Id { get; set; }
 
         [Required] public int CreatedBy { get; set; }
-        [Required] public DateTime CreatedOn { get; set; } = DateTime.Now;
+        [Required] public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
 
         public int? LastModifiedBy { get; set; }
-        public DateTime LastModifiedOn { get; set; } = DateTime.Now;
+        public DateTime LastModifiedOn { get; set; } = DateTime.UtcNow;
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedOn { get; set; } 
         public int? DeletedBy { get; set; }

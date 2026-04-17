@@ -31,7 +31,6 @@ const Auction = () => {
         if (minutes > 0) return <span style={{ color: '#ef4444', fontWeight: '900', animation: 'pulse-fast 1.5s infinite' }}>{minutes}m {seconds}s left</span>;
         return <span style={{ color: '#dc2626', fontWeight: '900', animation: 'pulse-fast 0.8s infinite' }}>{seconds}s left</span>;
     };
-    };
 
     // Helper: Dynamic Bid Increment based on current price
     const getMinIncrement = (currentPrice) => {

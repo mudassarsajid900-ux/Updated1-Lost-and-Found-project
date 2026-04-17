@@ -61,15 +61,15 @@ const ItemReplacement = () => {
 
     // Helper to get icon based on item title/category
     const getIcon = (title) => {
-        const lower = title.toLowerCase();
-        if (lower.includes('phone')) return <Smartphone size={28} />;
+        const lower = (title || "").toLowerCase();
+        if (lower.includes('device') || lower.includes('phone') || lower.includes('mobile')) return <Smartphone size={28} />;
         if (lower.includes('wallet')) return <Wallet size={28} />;
-        if (lower.includes('laptop')) return <Laptop size={28} />;
-        if (lower.includes('bag')) return <Briefcase size={28} />;
-        if (lower.includes('watch')) return <Watch size={28} />;
-        if (lower.includes('passport') || lower.includes('id')) return <FileText size={28} />;
-        if (lower.includes('jewelry')) return <Gem size={28} />;
-        if (lower.includes('earphone') || lower.includes('headphone')) return <Headphones size={28} />;
+        if (lower.includes('hardware') || lower.includes('laptop') || lower.includes('computing')) return <Laptop size={28} />;
+        if (lower.includes('luggage') || lower.includes('bag')) return <Briefcase size={28} />;
+        if (lower.includes('timepiece') || lower.includes('watch')) return <Watch size={28} />;
+        if (lower.includes('documentation') || lower.includes('passport') || lower.includes('id')) return <FileText size={28} />;
+        if (lower.includes('jewelry') || lower.includes('valuables')) return <Gem size={28} />;
+        if (lower.includes('audio') || lower.includes('earphone') || lower.includes('headphone')) return <Headphones size={28} />;
         return <Package size={28} />;
     };
 

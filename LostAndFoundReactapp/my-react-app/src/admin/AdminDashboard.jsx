@@ -1,3 +1,12 @@
+/**
+ * @file AdminDashboard.jsx
+ * @description The Mission Control Deck for the GAC system.
+ * Aggregates multi-service telemetry (Users, Items, Auctions, Replacements) into 
+ * a high-fidelity visual interface. Features:
+ * 1. KPI Telemetry: Real-time health metrics of the reporting ecosystem.
+ * 2. Activity Stream: Chronological audit trail of system events.
+ * 3. Priority Engine: Smart Task list generated from active pending counts.
+ */
 import React, { useState, useEffect } from 'react';
 import {
     Camera, Search, Gavel, RefreshCw, Settings,
@@ -10,14 +19,10 @@ import Header from '../components/Header';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 
-// ========================================== //
-// SECTION 2: MAIN ADMIN DASHBOARD COMPONENT
-// This page is restricted to administrators and shows a high-level overview.
-// ========================================== //
 const AdminDashboard = () => {
-    // Allows us to redirect or go back to previous pages
     const navigate = useNavigate();
 
+    // System Telemetry State
     const [stats, setStats] = useState({
         totalUsers: 0,
         pendingReports: 0,
@@ -27,13 +32,16 @@ const AdminDashboard = () => {
     });
     const [loading, setLoading] = useState(true);
 
+    /**
+     * Data Synthesis: Fetches unified dashboard metrics from the Stats hub.
+     */
     useEffect(() => {
         const fetchStats = async () => {
             try {
                 const res = await api.get('Stats/dashboard');
                 setStats(res.data);
             } catch (err) {
-                console.error("Failed to fetch dashboard stats", err);
+                console.error("Critical Failure: Dashboard telemetry fetch failed.", err);
             } finally {
                 setLoading(false);
             }
@@ -41,17 +49,20 @@ const AdminDashboard = () => {
         fetchStats();
     }, []);
 
-    // Quick Action Buttons Data
+    // Command Center Navigation Layout
     const quickActions = [
-        { title: 'Manage Users', icon: <Users size={28} />, color: '#0ea5e9', path: '/admin-users' },
         { title: 'All Reports', icon: <Search size={28} />, color: '#38bdf8', path: '/admin-reports' },
         { title: 'Manage Auctions', icon: <Gavel size={28} />, color: '#f43f5e', path: '/admin-auctions' },
         { title: 'Item Replacement', icon: <RefreshCw size={28} />, color: '#8b5cf6', path: '/admin-replacements' },
         { title: 'Item Handover', icon: <Handshake size={28} />, color: '#10b981', path: '/admin-handover' },
-        { title: 'System Settings', icon: <Settings size={28} />, color: '#64748b', path: '/admin-settings' },
+        { title: 'Manage Users', icon: <Users size={28} />, color: '#0ea5e9', path: '/admin-users' },
+        { title: 'System settings', icon: <Settings size={28} />, color: '#64748b', path: '/admin-settings' },
     ];
 
-    // Recent Activity Feed Data (Scaled to use Backend response if available)
+    /**
+     * Activity Stream Parser: Converts raw backend events into human-readable 
+     * audit trails with dynamic iconography and importance coloring.
+     */
     const backendActivities = stats.recentActivities || [];
     const activities = backendActivities.length > 0 ? backendActivities.map(a => ({
         user: a.user,
@@ -69,17 +80,14 @@ const AdminDashboard = () => {
             '#eff6ff'
     })) : [
         { user: 'System', action: 'Stats refreshed successfully', time: 'Just now', icon: <Activity size={16} color="#10b981" />, bg: '#f0fdf4' },
-        { user: 'Sarah K.', action: 'approved Claim Silver Watch', role: 'Admin', time: '30 mins ago', icon: <CheckCircle size={16} color="#10b981" />, bg: '#f0fdf4' },
-        { action: 'New bid placed on Unclaimed Laptop', time: '1 hour ago', icon: <Bell size={16} color="#3b82f6" />, bg: '#eff6ff' },
-        { user: 'Zafar', action: 'updated profile information', time: '2 hours ago', icon: <User size={16} color="#3b82f6" />, bg: '#eff6ff' },
     ];
 
-    // Admin Tasks Todo List Data
+    // Priority Task Engine: Highlights bottleneck areas requiring admin attention.
     const [tasks, setTaskData] = useState([
-        { id: 1, label: 'Review Pending Replacements', completed: false, count: 0 },
-        { id: 2, label: 'Unmatched Inventory', completed: false, count: 0 },
-        { id: 5, label: 'Review Potential Matches', completed: false, count: 0, priority: true },
-        { id: 4, label: 'Audit Auction Bid Logs', completed: false, count: 0 },
+        { id: 1, label: 'Audit Pending Replacements', completed: false, count: 0 },
+        { id: 2, label: 'Unverified Found Inventory', completed: false, count: 0 },
+        { id: 5, label: 'Review High-Confidence Matches', completed: false, count: 0, priority: true },
+        { id: 4, label: 'Finalize Auction Bidding Logs', completed: false, count: 0 },
     ]);
 
     useEffect(() => {
@@ -98,14 +106,12 @@ const AdminDashboard = () => {
 
     return (
         <div className="dashboard-container">
-            {/* Display the Sidebar. 'isAdmin={true}' forces it to show Admin links */}
             <Sidebar isAdmin={true} />
 
-            {/* Main right-side content area */}
             <main className="main-content" style={{ background: '#f8fafc', padding: '2.5rem' }}>
                 <Header
-                    title="Administrator Control Panel"
-                    subtitle="Monitor system activities, review reports, and manage settings."
+                    title="Administrative Command Deck"
+                    subtitle="Strategic overview of campus asset logistics and user engagement."
                 />
 
                 <div className="content-wrapper" style={{ marginTop: '2rem' }}>
@@ -119,15 +125,15 @@ const AdminDashboard = () => {
                             <ArrowLeft size={20} color="#64748b" />
                         </button>
                         <div>
-                            <h2 style={{ margin: 0, fontSize: '1.75rem', fontWeight: '800', color: '#1e293b', letterSpacing: '-0.5px' }}>Admin Overview</h2>
-                            <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '0.95rem' }}>Real-time health of your Lost & Found ecosystem.</p>
+                            <h2 style={{ margin: 0, fontSize: '1.75rem', fontWeight: '800', color: '#1e293b', letterSpacing: '-0.5px' }}>Operation Intelligence</h2>
+                            <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '0.95rem' }}>Real-time synchronization of physical and digital assets.</p>
                         </div>
                     </div>
 
                     <div style={{ marginBottom: '3.5rem' }}>
-                        <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#334155', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <h3 className="column-title" style={{ fontSize: '1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <Activity size={20} color="#3b82f6" />
-                            Quick Actions
+                            Unified Quick Actions
                         </h3>
 
                         <div style={{
@@ -139,6 +145,7 @@ const AdminDashboard = () => {
                                 <button
                                     key={idx}
                                     onClick={() => navigate(action.path)}
+                                    className="animate-fade-in"
                                     style={{
                                         background: `linear-gradient(135deg, ${action.color} 0%, ${action.color}dd 100%)`,
                                         height: '160px',
@@ -187,66 +194,54 @@ const AdminDashboard = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2.5rem' }}>
 
                         <section>
-                            <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#334155', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <h3 className="column-title" style={{ fontSize: '1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Activity size={20} color="#10b981" />
-                                System Health
+                                Ecosystem Telemetry
                             </h3>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
 
                                 <div style={{ background: 'white', padding: '1.75rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
-                                    <div style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Users</div>
+                                    <div style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Registered Identities</div>
                                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
-                                        <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#1e293b', lineHeight: '1' }}>
+                                        <div style={{ fontSize: '2.5rem', fontWeight: '900', color: '#1e293b', lineHeight: '1' }}>
                                             {loading ? '...' : stats.totalUsers.toLocaleString()}
                                         </div>
                                     </div>
                                 </div>
 
                                 <div style={{ background: 'white', padding: '1.75rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
-                                    <div style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Unclaimed Found</div>
+                                    <div style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Active Inventory</div>
                                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
-                                        <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#1e293b', lineHeight: '1' }}>
+                                        <div style={{ fontSize: '2.5rem', fontWeight: '900', color: '#1e293b', lineHeight: '1' }}>
                                             {loading ? '...' : stats.pendingReports}
-                                        </div>
-                                        <div style={{ color: stats.pendingReports > 10 ? '#f59e0b' : '#10b981', fontSize: '0.9rem', fontWeight: '600', marginBottom: '4px' }}>
-                                            {stats.pendingReports > 10 ? 'Action Needed' : 'Healthy'}
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div style={{ background: 'white', padding: '1.75rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
-                                    <div style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Active Auctions</div>
+                                    <div style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Live Bidding Cycles</div>
                                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
-                                        <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#1e293b', lineHeight: '1' }}>
+                                        <div style={{ fontSize: '2.5rem', fontWeight: '900', color: '#1e293b', lineHeight: '1' }}>
                                             {loading ? '...' : stats.activeAuctions}
                                         </div>
                                     </div>
                                 </div>
 
                                 <div style={{ background: 'white', padding: '1.75rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.02)', borderLeft: '4px solid #8b5cf6' }}>
-                                    <div style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        <Handshake size={14} color="#8b5cf6" /> Pending Matches
+                                    <div style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <Handshake size={14} color="#8b5cf6" /> Critical Matches
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
-                                        <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#1e293b', lineHeight: '1' }}>
+                                        <div style={{ fontSize: '2.5rem', fontWeight: '900', color: '#1e293b', lineHeight: '1' }}>
                                             {loading ? '...' : stats.pendingMatches}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div style={{ background: 'white', padding: '1.75rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
-                                    <div style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Replacement Requests</div>
-                                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
-                                        <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#1e293b', lineHeight: '1' }}>
-                                            {loading ? '...' : stats.pendingReplacements}
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#334155', marginTop: '3rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <h3 className="column-title" style={{ fontSize: '1.25rem', marginTop: '3rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Clock size={20} color="#8b5cf6" />
-                                Recent Activity 
+                                Operational Audit Trail
                             </h3>
                             <div style={{ background: 'white', borderRadius: '20px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
 
@@ -269,10 +264,10 @@ const AdminDashboard = () => {
 
                                         <div style={{ flex: 1 }}>
                                             <p style={{ margin: 0, fontSize: '0.95rem', color: '#334155', fontWeight: '400', lineHeight: '1.5' }}>
-                                                {item.role === 'Admin' ? <span style={{ color: '#8b5cf6', fontWeight: '700', fontSize: '0.8rem', background: '#ede9fe', padding: '2px 6px', borderRadius: '4px', marginRight: '6px' }}>ADMIN</span> : null}
-                                                <span style={{ fontWeight: '700', color: '#0f172a' }}>{item.user}</span> {item.action}
+                                                {item.role === 'Admin' ? <span style={{ color: '#8b5cf6', fontWeight: '800', fontSize: '0.75rem', background: '#ede9fe', padding: '2px 8px', borderRadius: '6px', marginRight: '8px' }}>AUDIT LOG</span> : null}
+                                                <span style={{ fontWeight: '800', color: '#0f172a' }}>{item.user}</span> {item.action}
                                             </p>
-                                            <span style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <span style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
                                                 <Clock size={12} /> {item.time}
                                             </span>
                                         </div>
@@ -282,9 +277,9 @@ const AdminDashboard = () => {
                         </section>
 
                         <section>
-                            <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#334155', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <h3 className="column-title" style={{ fontSize: '1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <ClipboardList size={20} color="#f43f5e" />
-                                Smart Tasks
+                                Smart Priority Tasks
                             </h3>
                             <div style={{ background: 'white', borderRadius: '20px', border: '1px solid #e2e8f0', padding: '0.5rem', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
 
@@ -310,13 +305,13 @@ const AdminDashboard = () => {
                                                     fontSize: '1rem',
                                                     color: task.completed ? '#94a3b8' : '#334155',
                                                     textDecoration: task.completed ? 'line-through' : 'none',
-                                                    fontWeight: task.completed ? '500' : '600'
+                                                    fontWeight: task.completed ? '600' : '800'
                                                 }}>
                                                     {task.label}
                                                 </span>
                                                 {task.count > 0 && !task.completed && (
-                                                    <span style={{ marginLeft: '8px', background: '#fecaca', color: '#b91c1c', padding: '2px 6px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '800' }}>
-                                                        {task.count} Active
+                                                    <span style={{ marginLeft: '12px', background: '#fef2f2', color: '#ef4444', padding: '4px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '900' }}>
+                                                        {task.count} PENDING
                                                     </span>
                                                 )}
                                             </div>
@@ -328,18 +323,18 @@ const AdminDashboard = () => {
                                                 if (task.id === 2 || task.id === 5) navigate('/admin-reports');
                                             }}
                                             style={{
-                                                padding: '0.5rem 1.25rem',
-                                                borderRadius: '8px',
-                                                background: task.completed ? '#f1f5f9' : '#eff6ff',
-                                                border: task.completed ? '1px solid #e2e8f0' : '1px solid #bfdbfe',
-                                                color: task.completed ? '#64748b' : '#3b82f6',
-                                                fontWeight: '600',
+                                                padding: '0.6rem 1.5rem',
+                                                borderRadius: '12px',
+                                                background: task.completed ? '#f1f5f9' : '#0f172a',
+                                                border: 'none',
+                                                color: task.completed ? '#64748b' : '#fff',
+                                                fontWeight: '800',
                                                 fontSize: '0.85rem',
                                                 cursor: 'pointer',
                                                 transition: 'all 0.2s'
                                             }}
                                         >
-                                            {task.completed ? 'Closed' : 'Action'}
+                                            {task.completed ? 'RESOLVED' : 'ADJUDICATE'}
                                         </button>
                                     </div>
                                 ))}

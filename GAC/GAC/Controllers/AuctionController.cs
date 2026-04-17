@@ -1,3 +1,8 @@
+/**
+ * @file AuctionController.cs
+ * @description Manages the lifecycle of auctioned items, including creation, 
+ * bidding, and completion workflows.
+ */
 using GAC.Application.Interfaces.Auction;
 using GAC.Application.Services.Auction.Dtos;
 using GAC.Common.Responce;

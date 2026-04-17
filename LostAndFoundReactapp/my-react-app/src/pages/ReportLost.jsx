@@ -1,20 +1,22 @@
+/**
+ * @file ReportLost.jsx
+ * @description Advanced student interface for reporting lost personal assets.
+ * Features a Hybrid Rendering Engine:
+ * 1. Static Configuration: Pre-optimized layouts for common high-value items (Phones, Laptops).
+ * 2. Dynamic Archetype Rendering: Real-time synchronization with administrator-defined 
+ *    categories and forensic attributes from the database.
+ */
 import React, { useState, useEffect } from 'react';
-import { User, Home, Folder, PlusCircle, Settings, LogOut, ChevronLeft, Calendar, MapPin, Clock, Camera, Search, Gavel, UploadCloud, Laptop, Smartphone, Wallet as WalletIcon, Watch, Briefcase, Gem, Headphones, HelpCircle } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import api from '../api/axios';
-
-// ========================================== //
-// SECTION 2: MAIN 'REPORT LOST ITEM' COMPONENT
-// This page allows a user to submit a lost item report.
-// Logic:
-// 1. Fetches item types, locations, and mobile data from API on mount.
-// 2. Uses a dynamic configuration object (itemConfigurations) to render 
-//    specific questions based on the category (e.g., Phone vs Laptop).
-// 3. Formats date/time for C# DateTime compatibility before submission.
-// 4. Uses FormData to allow image/file uploads and complex nested list binding.
-// ========================================== //
+import { sanitizeInput, validateFileUpload } from '../utils/security';
+import { 
+    Calendar, MapPin, Clock, Smartphone, 
+    Laptop, Wallet as WalletIcon, Folder, 
+    Briefcase, Watch, HelpCircle 
+} from 'lucide-react';
 const ReportLost = () => {
     // Allows us to redirect the user
     const navigate = useNavigate();
@@ -23,26 +25,32 @@ const ReportLost = () => {
     const location = useLocation();
     const editData = location.state?.itemData; // If we are editing, this holds the old data
 
+    // Check admin status at the top so it's available throughout the component
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
     const [mobileCompanies, setMobileCompanies] = useState([]);
     const [mobileModels, setMobileModels] = useState([]);
     const [loadingModels, setLoadingModels] = useState(false);
+    const [photoFile, setPhotoFile] = useState(null);
+    const [photoPreview, setPhotoPreview] = useState(null);
 
     // State for Dynamic Dropdowns (Fetched from Database)
     const [itemTypes, setItemTypes] = useState([
-        { id: 1, name: "Mobile Phone" },
-        { id: 2, name: "Wallet" },
-        { id: 3, name: "Laptop" },
-        { id: 4, name: "Keys" },
-        { id: 5, name: "Bag / Backpack" },
-        { id: 6, name: "Watch" },
-        { id: 7, name: "Passport / ID Card" },
-        { id: 8, name: "Jewelry" },
-        { id: 9, name: "Earphones / Headphones" },
-        { id: 10, name: "Other" }
+        { id: 1, name: "Mobile Device" },
+        { id: 2, name: "Personal Wallet" },
+        { id: 3, name: "Computing Hardware (Laptop)" },
+        { id: 4, name: "Security Keys" },
+        { id: 5, name: "Bag / Luggage" },
+        { id: 6, name: "Timepiece (Watch)" },
+        { id: 7, name: "Official Documentation (ID/Pass)" },
+        { id: 8, name: "Jewelry & Valuables" },
+        { id: 9, name: "Audio Peripheral (Headphones)" },
+        { id: 10, name: "Miscellaneous Asset" }
     ]);
     const [universityLocations, setUniversityLocations] = useState([
         { id: 1, name: "LT1" }, { id: 2, name: "LT2" }, { id: 3, name: "LT3" },
-        { id: 14, name: "LAB-1" }, { id: 15, name: "LAB-2" }, { id: 26, name: "Parking" }
+        { id: 14, name: "LAB-1" }, { id: 15, name: "LAB-2" }, { id: 26, name: "Parking Central" },
+        { id: 34, name: "Admin Office" }
     ]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitStatus, setSubmitStatus] = useState({ type: '', message: '' });
@@ -88,14 +96,13 @@ const ReportLost = () => {
     // E.g., If you pick 'Phone', it asks for Brand, IMEI. If you pick 'Wallet', it asks for Cards.
     // ========================================== //
     const itemConfigurations = {
-        "Mobile Phone": {
-            brand: { type: "dropdown", options: mobileCompanies.map(c => c.name) },
-            modelName: {
+        "Mobile Device": {
+            "Manufacturer Brand": { type: "dropdown", options: mobileCompanies.map(c => c.name) },
+            "Hardware Model": {
                 type: "dropdown",
                 options: mobileModels.map(m => m.name),
                 placeholder: loadingModels ? "Loading models..." : "Select model"
             },
-            // RAM and ROM shown side-by-side as text inputs (reference image style)
             ramRom: {
                 type: "row",
                 fields: {
@@ -103,18 +110,17 @@ const ReportLost = () => {
                     rom: { type: "text", label: "ROM", placeholder: "ROM" }
                 }
             },
-            colorOptions: { type: "radio", options: ["Black", "Blue", "Red", "Gold", "White", "Other"] },
-            approximateSize: { type: "radio", options: ["Small (Mini)", "Medium (Standard)", "Large (Pro Max/Plus)"] },
-            isLocked: { type: "radio", options: ["Yes (Locked)", "No (Unlocked)", "Unknown"] },
+            "Exterior Color": { type: "radio", options: ["Black", "Blue", "Red", "Gold", "White", "Other"] },
+            "approximateSize": { type: "radio", options: ["Small (Mini)", "Medium (Standard)", "Large (Pro Max/Plus)"] },
+            "Screen Status (Locked)": { type: "radio", options: ["Yes (Locked)", "No (Unlocked)", "Unknown"] },
             simCardPresent: { type: "radio", options: ["Yes", "No", "Unknown"] },
-            condition: { type: "dropdown", options: ["Good Condition", "Cracked Screen", "Scratched Body", "Heavy Wear"] },
-            imei_Visible: { type: "radio", options: ["Yes (on back/tray)", "No", "Unknown"] }
+            "Physical Condition": { type: "dropdown", options: ["Good Condition", "Cracked Screen", "Scratched Body", "Heavy Wear"] },
+            "IMEI indexing (Last 4)": { type: "radio", options: ["Yes (on back/tray)", "No", "Unknown"] }
         },
 
-        "Laptop": {
-            brand: { type: "dropdown", options: ["Apple", "Dell", "HP", "Lenovo", "Asus", "Other"] },
-            screenSize: { type: "radio", options: ["13 inch", "14 inch", "15-16 inch", "Unknown"] },
-            // RAM and ROM shown side-by-side as text inputs (reference image style)
+        "Computing Hardware (Laptop)": {
+            "OEM Brand": { type: "dropdown", options: ["Apple", "Dell", "HP", "Lenovo", "Asus", "Other"] },
+            "Display Specification": { type: "radio", options: ["13 inch", "14 inch", "15-16 inch", "Unknown"] },
             ramRom: {
                 type: "row",
                 fields: {
@@ -122,63 +128,69 @@ const ReportLost = () => {
                     rom: { type: "text", label: "ROM", placeholder: "ROM" }
                 }
             },
-            colorOptions: { type: "radio", options: ["Black", "Blue", "Red", "Gold", "White", "Other"] },
-            passwordLocked: { type: "radio", options: ["Yes", "No", "Unknown"] },
-            sticker_OR_AnyMark: { type: "text", placeholder: "e.g. Apple sticker, Blue ink mark on corner" },
+            "Chassis Color": { type: "radio", options: ["Black", "Blue", "Red", "Gold", "White", "Other"] },
+            "OS Security State": { type: "radio", options: ["Yes", "No", "Unknown"] },
+            "Visual Customizations (Stickers)": { type: "text", placeholder: "e.g. Apple sticker, Blue ink mark on corner" },
             chargerFound: { type: "radio", options: ["With Charger", "No Charger"] },
             serialNumberVisible: { type: "radio", options: ["Yes", "No"] }
         },
 
-        "Wallet": {
-            colorOptions: { type: "radio", options: ["Black", "Blue", "Red", "Gold", "White", "Other"] },
-            material: { type: "radio", options: ["Leather", "Fabric", "Synthetic"] },
-            idCardInside: { type: "radio", options: ["Yes", "No"] },
-            cashInside: { type: "radio", options: ["Yes", "No"] },
+        "Personal Wallet": {
+            "Primary Color": { type: "radio", options: ["Black", "Blue", "Red", "Gold", "White", "Other"] },
+            "Material Construction": { type: "radio", options: ["Leather", "Fabric", "Synthetic"] },
+            "Personal ID Inclusion": { type: "radio", options: ["Yes", "No"] },
+            "Currency Content Audit": { type: "radio", options: ["Yes", "No"] },
             numberOfCards: { type: "dropdown", options: ["None", "1-3 Cards", "4-7 Cards", "8+ Cards"] }
         },
 
         "Bottle": {
             brandName: { type: "text", placeholder: "e.g. Hydro Flask, Stanley" },
-            colorOptions: { type: "radio", options: ["Black", "Blue", "Red", "Gold", "White", "Other"] },
+            Color: { type: "radio", options: ["Black", "Blue", "Red", "Gold", "White", "Other"] },
             estimatedSize: { type: "radio", options: ["Small (250-500ml)", "Medium (750ml-1L)", "Large (1.5L+)"] },
             stickersOrName: { type: "text", placeholder: "e.g. Name sticker 'Sarah', Doraemon sticker" }
         },
 
-        "Bag / Backpack": {
-            brand: { type: "dropdown", options: ["Nike", "Adidas", "Puma", "Jansport", "Samsonite", "Other"] },
-            material: { type: "radio", options: ["Leather", "Canvas", "Nylon", "Synthetic"] },
-            colorOptions: { type: "radio", options: ["Black", "Blue", "Red", "Gold", "White", "Other"] },
+        "Bag / Luggage": {
+            Brand: { type: "dropdown", options: ["Nike", "Adidas", "Puma", "Jansport", "Samsonite", "Other"] },
+            Material: { type: "radio", options: ["Leather", "Canvas", "Nylon", "Synthetic"] },
+            Color: { type: "radio", options: ["Black", "Blue", "Red", "Gold", "White", "Other"] },
             size: { type: "radio", options: ["Small (Pouch/Crossbody)", "Medium (Backpack)", "Large (Duffel/Luggage)"] },
             visible_Items_Inside: { type: "text", placeholder: "e.g. Blue notebook, Umbrella" }
         },
 
-        "Keys": {
-            numberOfKeys: { type: "dropdown", options: ["1", "2", "3", "4+"] },
-            keyType: { type: "radio", options: ["Home Keys", "Car Key", "Bike Key", "Office Keys"] },
-            hasKeychain: { type: "radio", options: ["Yes", "No"] },
+        "Security Keys": {
+            "Number of Keys": { type: "dropdown", options: ["1", "2", "3", "4+"] },
+            "Key Type": { type: "radio", options: ["Home Keys", "Car Key", "Bike Key", "Office Keys"] },
+            "Has Keychain": { type: "radio", options: ["Yes", "No"] },
             keychainDescription: { type: "text", placeholder: "e.g. Red ribbon, Spiderman keychain" }
         },
 
-        "Watch": {
-            brand: { type: "dropdown", options: ["Rolex", "Casio", "Seiko", "Apple", "Samsung", "Other"] },
+        "Timepiece (Watch)": {
+            Brand: { type: "dropdown", options: ["Rolex", "Casio", "Seiko", "Apple", "Samsung", "Other"] },
             type: { type: "radio", options: ["Analog", "Digital", "Smartwatch"] },
-            strapMaterial: { type: "radio", options: ["Leather", "Metal", "Silicon", "Fabric"] },
-            colorOptions: { type: "radio", options: ["Black", "Blue", "Red", "Gold", "White", "Other"] }
+            "Strap Material": { type: "radio", options: ["Leather", "Metal", "Silicon", "Fabric"] },
+            Color: { type: "radio", options: ["Black", "Blue", "Red", "Gold", "White", "Other"] }
         },
 
-        "Jewelry": {
-            type: { type: "dropdown", options: ["Ring", "Necklace", "Bracelet", "Earrings", "Other"] },
-            material: { type: "radio", options: ["Gold", "Silver", "Platinum", "Artificial"] },
-            colorOptions: { type: "radio", options: ["Gold", "Silver", "Rose Gold", "Other"] }
+        "Jewelry & Valuables": {
+            Type: { type: "dropdown", options: ["Ring", "Necklace", "Bracelet", "Earrings", "Other"] },
+            Material: { type: "radio", options: ["Gold", "Silver", "Platinum", "Artificial"] },
+            Color: { type: "radio", options: ["Gold", "Silver", "Rose Gold", "Other"] }
         },
 
-        "Earphones / Headphones": {
-            brand: { type: "dropdown", options: ["Apple Airpods", "Samsung Buds", "Sony", "JBL", "Other"] },
-            type: { type: "radio", options: ["In-ear", "Over-ear", "Wireless", "Wired"] },
-            colorOptions: { type: "radio", options: ["Black", "White", "Blue", "Other"] }
+        "Audio Peripheral (Headphones)": {
+            Brand: { type: "dropdown", options: ["Apple Airpods", "Samsung Buds", "Sony", "JBL", "Other"] },
+            Type: { type: "radio", options: ["In-ear", "Over-ear", "Wireless", "Wired"] },
+            Color: { type: "radio", options: ["Black", "White", "Blue", "Other"] }
         },
 
-        "Other": {
+        "Official Documentation (ID/Pass)": {
+            "Document Classification": { type: "radio", options: ["National ID", "Student Card", "Passport", "Driving License"] },
+            "Legal Name on Document": { type: "text", placeholder: "Enter name as it appears..." },
+            "Document Identifier (Partial)": { type: "text", placeholder: "Last 4 digits or alpha code..." }
+        },
+
+        "Miscellaneous Asset": {
             visibleDescription: { type: "textarea", placeholder: "Please describe only visible marks, colors, or unique features..." }
         }
     };
@@ -257,7 +269,7 @@ const ReportLost = () => {
     // Fetch Models when Brand changes
     useEffect(() => {
         const fetchModels = async () => {
-            const brand = formData.attributes.brand;
+            const brand = formData.attributes.Brand;
             if (selectedCategory === "Mobile Phone" && brand) {
                 const company = mobileCompanies.find(c => c.name === brand);
                 if (company) {
@@ -278,9 +290,28 @@ const ReportLost = () => {
             }
         };
         fetchModels();
-    }, [formData.attributes.brand, selectedCategory, mobileCompanies]);
+    }, [formData.attributes.Brand, selectedCategory, mobileCompanies]);
 
     // When user changes the main Dropdown (e.g. switches from Phone to Bag)
+    const handlePhotoChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // Audited: Perform security validation before processing upload
+            const validation = validateFileUpload(file);
+            if (!validation.valid) {
+                 setSubmitStatus({ type: 'error', message: validation.message });
+                 return;
+            }
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPhotoPreview(reader.result);
+                setPhotoFile(file);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleCategoryChange = (e) => {
         const category = e.target.value;
         setSelectedCategory(category);
@@ -308,9 +339,9 @@ const ReportLost = () => {
                     : [...current, value];
             } else {
                 updated[name] = value;
-                // If brand changes, clear the modelName
-                if (name === "brand" && selectedCategory === "Mobile Phone") {
-                    delete updated["modelName"];
+                // If brand changes, clear the model
+                if (name === "Brand" && selectedCategory === "Mobile Phone") {
+                    delete updated["Model"];
                 }
             }
 
@@ -401,6 +432,8 @@ const ReportLost = () => {
 
             } else {
                 // CREATE LOGIC (Multipart Form Data)
+                // Security: Sanitize all forensic attributes before submission
+                // This neutralizes attempts to inject HTML/Script into the Matching engine
                 const data = new FormData();
                 data.append('eventTime', isoDateTime);
                 data.append('locationId', locationEntity?.id || 0);
@@ -408,10 +441,15 @@ const ReportLost = () => {
                 data.append('status', 0);      // Enum: 0 = Lost
                 data.append('reportType', 0);  // Enum: 0 = Lost Report
 
+                if (photoFile) {
+                    data.append('photo', photoFile);
+                }
+
                 let attrIndex = 0;
                 Object.entries(formData.attributes).forEach(([key, val]) => {
+                    const sanitizedValue = sanitizeInput(val);
                     data.append(`Attributes[${attrIndex}].FieldName`, key);
-                    data.append(`Attributes[${attrIndex}].FieldValue`, String(val));
+                    data.append(`Attributes[${attrIndex}].FieldValue`, String(sanitizedValue));
                     attrIndex++;
                 });
 
@@ -575,21 +613,30 @@ const ReportLost = () => {
         // 2. If not found, check if it's a dynamic category from the database
         if (!config) {
             const dynamicType = itemTypes.find(t => t.name === selectedCategory);
+            const dynamicFields = dynamicType?.fields || dynamicType?.Fields || [];
             
             // If it has dynamic fields defined by admin, render them as text inputs
-            if (dynamicType && dynamicType.fields && dynamicType.fields.length > 0) {
-                return dynamicType.fields.map((field) => (
-                    <div key={field.id || field.fieldName} className="input-card mt-3">
-                        <label className="field-label">{field.fieldName.toUpperCase()}</label>
-                        <input
-                            type="text"
-                            className="custom-input"
-                            placeholder={`Enter ${field.fieldName.toLowerCase()}...`}
-                            value={formData.attributes[field.fieldName] || ""}
-                            onChange={(e) => handleAttributeChange(field.fieldName, e.target.value, "text")}
-                        />
+            if (dynamicFields.length > 0) {
+                return (
+                    <div className="dynamic-attributes-container animate-fade-in">
+                        <h4 className="column-title" style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '1.5rem', marginBottom: '0.5rem' }}>Forensic Attributes</h4>
+                        {dynamicFields.map((field) => {
+                            const fieldName = field.fieldName || field.FieldName;
+                            return (
+                                <div key={field.id || fieldName} className="input-card mt-3">
+                                    <label className="field-label">{fieldName.toUpperCase()}</label>
+                                    <input
+                                        type="text"
+                                        className="custom-input"
+                                        placeholder={`Enter ${fieldName.toLowerCase()}...`}
+                                        value={formData.attributes[fieldName] || ""}
+                                        onChange={(e) => handleAttributeChange(fieldName, e.target.value, "text")}
+                                    />
+                                </div>
+                            );
+                        })}
                     </div>
-                ));
+                );
             }
 
             // Fallback for types with no specific configuration
@@ -632,7 +679,7 @@ const ReportLost = () => {
         });
     };
 
-    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    const isAdmin_ref = isAdmin; // isAdmin already declared at top of component
 
     // ========================================== //
     // SECTION 7: PAGE LAYOUT AND HTML
@@ -759,7 +806,8 @@ const ReportLost = () => {
                                 <input type="date" name="dateLost"
                                     className="custom-input"
                                     value={formData.dateLost}
-                                    onChange={handleInputChange} />
+                                    onChange={handleInputChange}
+                                    max={new Date().toISOString().split('T')[0]} />
                                 <Calendar size={20} color="#718096" />
                             </div>
 

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
     Gavel, Box, Calendar, MapPin, Clock,
     ChevronRight, PlusCircle, AlertCircle,
-    CheckCircle2, TrendingUp, Info, Award, ShieldCheck, RefreshCw
+    CheckCircle2, TrendingUp, Info, Award, ShieldCheck, RefreshCw,
+    Smartphone, Wallet, Laptop, Briefcase, Watch, FileText, Gem, Headphones
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
@@ -21,6 +22,20 @@ const AdminAuctions = () => {
     const [startingAuctionItem, setStartingAuctionItem] = useState(null);
     const [startingPrice, setStartingPrice] = useState('500');
     const [durationHours, setDurationHours] = useState('24');
+    
+    // Icon Resolution Engine for professional nomenclature
+    const getIcon = (type) => {
+        const t = (type || "").toLowerCase();
+        if (t.includes('device') || t.includes('phone') || t.includes('mobile')) return <Smartphone size={22} />;
+        if (t.includes('wallet')) return <Wallet size={22} />;
+        if (t.includes('hardware') || t.includes('laptop') || t.includes('computing')) return <Laptop size={22} />;
+        if (t.includes('luggage') || t.includes('bag')) return <Briefcase size={22} />;
+        if (t.includes('timepiece') || t.includes('watch')) return <Watch size={22} />;
+        if (t.includes('documentation') || t.includes('passport') || t.includes('id')) return <FileText size={22} />;
+        if (t.includes('jewelry') || t.includes('valuables')) return <Gem size={22} />;
+        if (t.includes('audio') || t.includes('earphone') || t.includes('headphone')) return <Headphones size={22} />;
+        return <Box size={22} />;
+    };
 
     // Helper: Calculate remaining time in human-readable format
     const getTimeRemaining = (endDateStr) => {
@@ -286,8 +301,8 @@ const AdminAuctions = () => {
                                             gap: '1.25rem'
                                         }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-                                                <div style={{ width: '50px', height: '50px', borderRadius: '14px', background: '#f0f9ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                    <Box size={22} color="#0ea5e9" />
+                                                <div style={{ width: '50px', height: '50px', borderRadius: '14px', background: '#f0f9ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0ea5e9' }}>
+                                                    {getIcon(item.type)}
                                                 </div>
                                                 <div style={{ flex: 1 }}>
                                                     <h4 style={{ margin: 0, fontSize: '1.15rem', fontWeight: '900', color: '#1e293b' }}>{item.type || 'Unknown Asset'}</h4>

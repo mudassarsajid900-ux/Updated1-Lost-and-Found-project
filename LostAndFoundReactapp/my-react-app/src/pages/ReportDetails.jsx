@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
     ChevronLeft, Calendar, MapPin, Clock, Tag,
     Info, Smartphone, Laptop, Wallet, Folder,
-    CheckCircle2, AlertCircle, History, Package
+    CheckCircle2, AlertCircle, History, Package,
+    Briefcase, Watch, FileText, Gem, Headphones
 } from 'lucide-react';
 import api from '../api/axios';
 import Sidebar from '../components/Sidebar';
@@ -45,8 +46,10 @@ const ReportDetails = () => {
         if (!type) return <Package size={40} />;
         const t = type.toLowerCase();
         if (t.includes('wallet')) return <Wallet size={40} />;
-        if (t.includes('laptop')) return <Laptop size={40} />;
-        if (t.includes('phone') || t.includes('mobile')) return <Smartphone size={40} />;
+        if (t.includes('hardware') || t.includes('laptop') || t.includes('computing')) return <Laptop size={40} />;
+        if (t.includes('device') || t.includes('phone') || t.includes('mobile')) return <Smartphone size={40} />;
+        if (t.includes('jewelry') || t.includes('valuables')) return <Gem size={40} />;
+        if (t.includes('audio') || t.includes('earphone') || t.includes('headphone')) return <Headphones size={40} />;
         return <Package size={40} />;
     };
 

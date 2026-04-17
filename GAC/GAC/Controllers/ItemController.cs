@@ -1,3 +1,9 @@
+/**
+ * @file ItemController.cs
+ * @description Primary API Orchestrator for Lost and Found item reporting.
+ * Handles the orchestration between the UI and ItemService for creating, updating, 
+ * verifying, and retrieving reports.
+ */
 using GAC.Application.Extensions;
 using GAC.Application.Interfaces.Item;
 using GAC.Application.Services.Item.Dtos;
@@ -18,28 +24,35 @@ namespace GAC.API.Controllers
             _itemService = itemService;
         }
 
-        [HttpPost(ApiConstatnts.Create)]
+        /// <summary>
+        /// Registers a new item report (Lost or Found).
+        /// Supports multi-part form data for photo uploads.
+        /// </summary>
+        [HttpPost(ApiConstants.Create)]
         public async Task<IActionResult> Create([FromForm] CreateItemDto dto)
         {
             var response = await _itemService.CreateAsync(dto);
             return response.ToHttpResult(); 
         }
 
-        [HttpPut(ApiConstatnts.Update)]
+        /// <summary>
+        /// Updates an existing report. Uses JSON-based attribute synchronization.
+        /// </summary>
+        [HttpPut(ApiConstants.Update)]
         public async Task<IActionResult> Update([FromBody] UpdateItemDto dto)
         {
             var response = await _itemService.UpdateAsync(dto);
             return response.ToHttpResult();
         }
 
-        [HttpGet(ApiConstatnts.GetById)]
+        [HttpGet(ApiConstants.GetById)]
         public async Task<IActionResult> GetById(long id)
         {
             var response = await _itemService.GetByIdAsync(id);
             return response.ToHttpResult();
         }
 
-        [HttpGet(ApiConstatnts.GetAll)]
+        [HttpGet(ApiConstants.GetAll)]
         [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll(int start = 0, int length = 50, string tab = "all", string? search = null) 
             => Ok(await _itemService.GetAllAsync(start, length, tab, search));
@@ -67,7 +80,7 @@ namespace GAC.API.Controllers
             return response.ToHttpResult();
         }
 
-        [HttpDelete(ApiConstatnts.Delete)]
+        [HttpDelete(ApiConstants.Delete)]
         [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(long id)
         {

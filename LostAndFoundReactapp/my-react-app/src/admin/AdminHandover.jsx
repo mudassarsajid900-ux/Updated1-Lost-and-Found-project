@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
     CheckCircle, Camera, User, FileText, RefreshCw, 
     ArrowRight, ShieldCheck, Smartphone, Wallet, MapPin,
-    Laptop, Package, Info, Clock, AlertTriangle, Phone, Search, ExternalLink, Calendar, Tag, Box
+    Laptop, Package, Info, Clock, AlertTriangle, Phone, Search, ExternalLink, Calendar, Tag, Box,
+    Briefcase, Watch, Gem, Headphones
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';

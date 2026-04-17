@@ -1,4 +1,4 @@
-﻿using GAC.Application;
+using GAC.Application;
 using GAC.Application.Helper;
 using GAC.Application.Interfaces.Identity;
 using GAC.Application.Interfaces.Shared;
@@ -97,8 +97,8 @@ namespace GAC.API.Extensions
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = false, // Temporarily disabled to debug 401 mismatch
-                    ValidateAudience = false, // Temporarily disabled to debug 401 mismatch
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = jwtSettings.Issuer,

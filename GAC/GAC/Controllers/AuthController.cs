@@ -1,4 +1,10 @@
-﻿using GAC.Application.Interfaces.Identity;
+/**
+ * @file AuthController.cs
+ * @description Authentication and Identity Gatekeeper. 
+ * Provides endpoints for user registration, identity verification (login), 
+ * and credential management. Orchestrates with IdentityService for JWT issuance.
+ */
+using GAC.Application.Interfaces.Identity;
 using GAC.Application.Services.Identity.Dtos.Auth;
 using GAC.Application.Services.Identity.Dtos.User;
 using GAC.Core.Entities.Identity;
@@ -25,6 +31,9 @@ namespace GAC.Api.Controllers
             _configuration = configuration;
         }
 
+        /// <summary>
+        /// Registers a new student or administrator in the persistent store.
+        /// </summary>
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto model)
         {
@@ -36,6 +45,10 @@ namespace GAC.Api.Controllers
             return Ok(new { Message = "User registered successfully." });
         }
 
+        /// <summary>
+        /// Authenticates a user and generates a session token (JWT).
+        /// This is the primary entry point for both Mobile and Web clients.
+        /// </summary>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto model)
         {
@@ -50,6 +63,9 @@ namespace GAC.Api.Controllers
             return Ok(authResult);
         }
 
+        /// <summary>
+        /// Allows an authenticated user to update their security credentials.
+        /// </summary>
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto model)
         {

@@ -1,3 +1,9 @@
+/**
+ * @file ClaimService.cs
+ * @description Manages the lifecycle of ownership claims for found items.
+ * Implements a high-integrity verification protocol that automatically resolves 
+ * forensic matches and rejects conflicting claims upon an administrator's approval.
+ */
 using AutoMapper;
 using GAC.Application.Helper;
 using GAC.Application.Interfaces.ClaimRequests;
@@ -34,9 +40,14 @@ namespace GAC.Application.Services.ClaimRequests
             _userData = userData;
         }
 
+        /// <summary>
+        /// Submits a new ownership claim for a found item.
+        /// Includes validation to prevent duplicate claims and ensure the target item 
+        /// is still available for processing.
+        /// </summary>
         public async Task<Response<GetClaimDto>> SubmitClaimAsync(CreateClaimDto dto)
         {
-            // 1. Verify Item Status
+            // 1. Availability Guard: Verify the found item exists and is in the correct lifecycle state
             var foundItem = await _itemRepository.GetByIdAsync(dto.FoundItemId);
             if (foundItem == null) 
                 return Response<GetClaimDto>.NotFoundResponse();
@@ -49,7 +60,7 @@ namespace GAC.Application.Services.ClaimRequests
                 return Response<GetClaimDto>.SetCustomErrorResponse(message, StatusCodes.Status400BadRequest);
             }
 
-            // 2. Prevent Duplicate Claims
+            // 2. Integrity Guard: Prevent duplicate claims from the same student for the same pairing
             var existingClaim = await _claimRepository.AsQueryable()
                 .FirstOrDefaultAsync(x => x.LostItemId == dto.LostItemId && x.FoundItemId == dto.FoundItemId);
             
@@ -72,6 +83,14 @@ namespace GAC.Application.Services.ClaimRequests
             return Response<GetClaimDto>.SetSuccessResponse(result, "Claim submitted successfully", StatusCodes.Status201Created);
         }
 
+        /// <summary>
+        /// Transitions the status of a claim based on administrator verification.
+        /// Feature: Auto-Resolution Protocol. When a claim is approved (Succeeded), the system:
+        /// 1. Resolves the forensic match.
+        /// 2. Resolves all other potential matches for this found item to prevent 'Ghost Matches'.
+        /// 3. Rejects all other pending claims for this item with a professional notification.
+        /// 4. Moves both items into 'Handover' status for final release.
+        /// </summary>
         public async Task<Response<GetClaimDto>> UpdateClaimStatusAsync(UpdateClaimStatusDto dto)
         {
             var entity = await _claimRepository.GetByIdAsync(dto.ClaimId);
@@ -82,62 +101,77 @@ namespace GAC.Application.Services.ClaimRequests
             entity.RejectionReason = dto.RejectionReason;
             await _claimRepository.UpdateAsync(entity);
 
-            // AUTO-RESOLVE MATCH AND MOVE TO HANDOVER UPON ADMN DECISION
+            // Trigger the Auto-Resolution Protocol if a final decision (Pass/Fail) is reached
             if (dto.Status == ClaimStatus.VerificationSucceeded || dto.Status == ClaimStatus.VerificationFailed)
             {
-                // Resolve THE specific match that was just decided
-                var specificMatch = await _matchRepository.AsQueryable()
-                    .FirstOrDefaultAsync(m => (m.LostItemId == entity.LostItemId && m.FoundItemId == entity.FoundItemId));
-                
-                if (specificMatch != null)
+                // AUDIT: Using a dedicated transaction to ensure Step A-D happen atomically.
+                // This prevents race conditions where multiple claims could be "approved" simultaneously.
+                using var transaction = await _itemRepository.BeginTransactionAsync();
+                try
                 {
-                    specificMatch.IsMatchResolved = true;
-                    await _matchRepository.UpdateAsync(specificMatch);
-                }
-
-                // If approved, move items to Handover status AND resolve ALL OTHER matches
-                if (dto.Status == ClaimStatus.VerificationSucceeded)
-                {
-                    var otherMatches = await _matchRepository.AsQueryable()
-                        .Where(m => (m.FoundItemId == entity.FoundItemId || m.LostItemId == entity.FoundItemId) && !m.IsMatchResolved)
-                        .ToListAsync();
+                    // Protocol Step A: Resolve THE specific match that was just adjudicated
+                    var specificMatch = await _matchRepository.AsQueryable()
+                        .FirstOrDefaultAsync(m => (m.LostItemId == entity.LostItemId && m.FoundItemId == entity.FoundItemId));
                     
-                    foreach (var m in otherMatches)
+                    if (specificMatch != null)
                     {
-                        m.IsMatchResolved = true;
-                        await _matchRepository.UpdateAsync(m);
+                        specificMatch.IsMatchResolved = true;
+                        await _matchRepository.UpdateAsync(specificMatch);
                     }
 
-                    // PERFECTION: Automatically reject all OTHER pending claims for this Found item
-                    var otherClaims = await _claimRepository.AsQueryable()
-                        .Where(c => c.FoundItemId == entity.FoundItemId && c.Id != entity.Id && c.Status == ClaimStatus.VerificationPending)
-                        .ToListAsync();
-
-                    foreach (var otherClaim in otherClaims)
+                    if (dto.Status == ClaimStatus.VerificationSucceeded)
                     {
-                        otherClaim.Status = ClaimStatus.VerificationFailed;
-                        otherClaim.RejectionReason = "Item has been successfully reclaimed by another verified owner.";
-                        await _claimRepository.UpdateAsync(otherClaim);
+                        // Protocol Step B: Resolve ALL OTHER matches linked to this Found item (Cleanup)
+                        var otherMatches = await _matchRepository.AsQueryable()
+                            .Where(m => (m.FoundItemId == entity.FoundItemId || m.LostItemId == entity.LostItemId) && !m.IsMatchResolved)
+                            .ToListAsync();
+                        
+                        foreach (var m in otherMatches)
+                        {
+                            m.IsMatchResolved = true;
+                            await _matchRepository.UpdateAsync(m);
+                        }
+
+                        // Protocol Step C: Cascade Rejection. Formally reject other pending claims as the item is resolved.
+                        var otherClaims = await _claimRepository.AsQueryable()
+                            .Where(c => c.FoundItemId == entity.FoundItemId && c.Id != entity.Id && c.Status == ClaimStatus.VerificationPending)
+                            .ToListAsync();
+
+                        foreach (var otherClaim in otherClaims)
+                        {
+                            otherClaim.Status = ClaimStatus.VerificationFailed;
+                            otherClaim.RejectionReason = "Item has been successfully reclaimed by another verified owner.";
+                            await _claimRepository.UpdateAsync(otherClaim);
+                        }
+
+                        // Protocol Step D: Final Status Transition (Ready for Physical Handover)
+                        var foundItem = await _itemRepository.GetByIdAsync(entity.FoundItemId);
+                        var lostItem = await _itemRepository.GetByIdAsync(entity.LostItemId);
+
+                        if (foundItem == null || foundItem.Status == ItemStatus.Handover)
+                        {
+                            await transaction.RollbackAsync();
+                            return Response<GetClaimDto>.SetCustomErrorResponse("State Conflict: This item has already been handed over or is unavailable.", StatusCodes.Status400BadRequest);
+                        }
+
+                        if (foundItem != null)
+                        {
+                            foundItem.Status = ItemStatus.Handover;
+                            await _itemRepository.UpdateAsync(foundItem);
+                        }
+                        if (lostItem != null)
+                        {
+                            lostItem.Status = ItemStatus.Handover;
+                            await _itemRepository.UpdateAsync(lostItem);
+                        }
                     }
 
-                    var foundItem = await _itemRepository.GetByIdAsync(entity.FoundItemId);
-                    var lostItem = await _itemRepository.GetByIdAsync(entity.LostItemId);
-
-                    if (foundItem == null || foundItem.Status == ItemStatus.Handover)
-                    {
-                        return Response<GetClaimDto>.SetCustomErrorResponse("This item has already been handed over or is unavailable.", StatusCodes.Status400BadRequest);
-                    }
-
-                    if (foundItem != null)
-                    {
-                        foundItem.Status = ItemStatus.Handover;
-                        await _itemRepository.UpdateAsync(foundItem);
-                    }
-                    if (lostItem != null)
-                    {
-                        lostItem.Status = ItemStatus.Handover;
-                        await _itemRepository.UpdateAsync(lostItem);
-                    }
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw; // Propagate to global trace handler
                 }
             }
 
@@ -151,7 +185,7 @@ namespace GAC.Application.Services.ClaimRequests
             if (entity == null)
                 return Response<GetClaimDto>.NotFoundResponse();
 
-            // IDOR Protection: Students only see their own claim records (Admins see all)
+            // Privacy Guard (IDOR protection): Ensures students cannot view claim outcomes of other recipients.
             if (_userData != null && !_userData.Roles.Contains("Admin") && entity.CreatedBy != _userData.UserId)
             {
                 return Response<GetClaimDto>.SetCustomErrorResponse("Access Denied: You do not have permission to view this claim.", StatusCodes.Status403Forbidden);
