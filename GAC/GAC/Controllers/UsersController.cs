@@ -1,10 +1,12 @@
-﻿using GAC.Application.Interfaces.Identity;
+using GAC.Application.Interfaces.Identity;
 using GAC.Application.Services.Identity.Dtos.User;
 using GAC.Common.Pagination;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace GAC.CMS.Controllers.Api
+namespace GAC.API.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [ApiController]
     [Route("api/[controller]")]
     public class UsersController : ControllerBase

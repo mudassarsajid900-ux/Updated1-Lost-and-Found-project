@@ -13,6 +13,8 @@ namespace GAC.Application.Services.Item.Dtos
     {
         public long Id { get; set; }
         public string FieldName { get; set; }
+        public string FieldType { get; set; }
+        public string? Options { get; set; }
     }
 
     public class CreateItemTypeDto
@@ -24,5 +26,7 @@ namespace GAC.Application.Services.Item.Dtos
     public class CreateFieldDto
     {
         public string FieldName { get; set; } = string.Empty;
+        public string FieldType { get; set; } = "text";
+        public string? Options { get; set; }
     }
 }

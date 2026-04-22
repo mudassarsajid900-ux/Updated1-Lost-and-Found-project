@@ -62,6 +62,7 @@ namespace GAC.Application.Services.ClaimRequests
                 FoundItemId = dto.FoundItemId,
                 Status = ClaimStatus.VerificationPending,
                 Score = 0,
+                ClaimDescription = dto.Description, // NEW: Capture the user's proof narrative
                 CreatedBy = _userData.UserId,
                 CreatedOn = DateTime.UtcNow
             };
@@ -128,16 +129,8 @@ namespace GAC.Application.Services.ClaimRequests
                         return Response<GetClaimDto>.SetCustomErrorResponse("This item has already been handed over or is unavailable.", StatusCodes.Status400BadRequest);
                     }
 
-                    if (foundItem != null)
-                    {
-                        foundItem.Status = ItemStatus.Handover;
-                        await _itemRepository.UpdateAsync(foundItem);
-                    }
-                    if (lostItem != null)
-                    {
-                        lostItem.Status = ItemStatus.Handover;
-                        await _itemRepository.UpdateAsync(lostItem);
-                    }
+                    // Removed premature status updates. 
+                    // Item status should only change to Handover during the actual physical release process.
                 }
             }
 

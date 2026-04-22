@@ -10,5 +10,6 @@ namespace GAC.Application.Services.Item.Dtos
         public int LostCount { get; set; }
         public int FoundCount { get; set; }
         public int MatchCount { get; set; }
+        public int ReplacementCount { get; set; }
     }
 }

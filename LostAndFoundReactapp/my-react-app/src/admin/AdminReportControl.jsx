@@ -45,8 +45,11 @@ const AdminReportControl = () => {
                 setItem(mainItem);
                 
                 // Fetch the matched item details for SPLIT-SCREEN COMPARISON
+                // ONLY DO THIS IF A CLAIM HAS BEEN SUBMITTED!
                 const matchedId = mainItem.matchFoundItemId || mainItem.MatchFoundItemId;
-                if (matchedId) {
+                const claimId = mainItem.claimId || mainItem.ClaimId;
+                
+                if (matchedId && claimId) {
                     setMatchLoading(true);
                     try {
                         const mRes = await api.get(`Item/get-by-id/${matchedId}`);

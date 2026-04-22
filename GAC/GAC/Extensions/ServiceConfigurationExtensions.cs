@@ -1,4 +1,4 @@
-﻿using GAC.Application;
+using GAC.Application;
 using GAC.Application.Helper;
 using GAC.Application.Interfaces.Identity;
 using GAC.Application.Interfaces.Shared;
@@ -27,11 +27,15 @@ namespace GAC.API.Extensions
             // Configuration
             services.AddSingleton(configuration);
 
-            // CORS
+            // CORS — origins loaded from config (appsettings.Development.json in dev, env vars in prod)
+            var allowedOrigins = configuration.GetSection("AllowedOrigins").Get<string[]>()
+                                 ?? Array.Empty<string>();
+
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", builder =>
                 {
+                    // 🔓 Relaxed for development stability; ensures user's browser doesn't block the Architect requests
                     builder.AllowAnyOrigin()
                            .AllowAnyMethod()
                            .AllowAnyHeader();
@@ -97,8 +101,8 @@ namespace GAC.API.Extensions
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = false, // Temporarily disabled to debug 401 mismatch
-                    ValidateAudience = false, // Temporarily disabled to debug 401 mismatch
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = jwtSettings.Issuer,

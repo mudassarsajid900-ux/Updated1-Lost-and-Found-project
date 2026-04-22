@@ -1,3 +1,10 @@
+/**
+ * @file AdminInventory.jsx
+ * @description Administrative dashboard for managing Lost and Found records.
+ * Provides tab-based filtering (All, Lost, Found, Matching), server-side pagination, 
+ * and verified status management.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Shield, Search, Eye, Trash2, Hash, MapPin, CheckCircle2, AlertCircle, RefreshCw, User } from 'lucide-react';
 import { Box } from 'lucide-react';
@@ -19,6 +26,7 @@ const AdminInventory = () => {
     const [totalRecords, setTotalRecords] = useState(0);
     const [counts, setCounts] = useState({ lost: 0, found: 0, match: 0 });
 
+    // Fetch data whenever filters or pagination change
     const fetchItems = async () => {
         setLoading(true);
         try {
@@ -50,7 +58,6 @@ const AdminInventory = () => {
     }, [page, activeTab, searchTerm]);
 
     const isLostReport = (v) => v === 0 || String(v).toLowerCase() === 'lost' || String(v) === '0';
-    const isFoundReport = (v) => v === 1 || String(v).toLowerCase() === 'found' || String(v) === '1';
 
     const getStatusTheme = (item) => {
         const s = item.status ?? item.Status;
@@ -84,13 +91,6 @@ const AdminInventory = () => {
         }
     };
 
-    const filteredReports = reports.filter(item => {
-        const matchesSearch = (item.type || item.Type || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
-                              (item.reporterName || item.ReporterName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-                              (item.locationName || item.LocationName || "").toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesSearch;
-    });
-
     return (
         <div className="dashboard-container">
             <Sidebar isAdmin={true} />
@@ -115,7 +115,7 @@ const AdminInventory = () => {
                                     type="text" 
                                     placeholder="Search global records..." 
                                     value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onChange={(e) => { setSearchTerm(e.target.value); setPage(0); }}
                                     style={{ padding: '0.75rem 1rem 0.75rem 2.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', width: '300px', outline: 'none', transition: 'all 0.2s', fontSize: '0.9rem', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}
                                 />
                             </div>
@@ -181,7 +181,7 @@ const AdminInventory = () => {
                                 <div className="spinner"></div>
                                 <p style={{ color: '#64748b', fontWeight: '700', marginTop: '1rem' }}>Fetching Records...</p>
                             </div>
-                        ) : filteredReports.length === 0 ? (
+                        ) : reports.length === 0 ? (
                             <div style={{ padding: '5rem', textAlign: 'center' }}>
                                 <Box size={48} color="#cbd5e0" style={{ marginBottom: '1rem' }} />
                                 <h3 style={{ margin: 0, color: '#475569' }}>No reports matching criteria</h3>
@@ -199,16 +199,12 @@ const AdminInventory = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredReports.map((item, index) => {
+                                    {reports.map((item) => {
                                         const theme = getStatusTheme(item);
                                         const itemId = item.id || item.Id;
                                         
-                                        // SPECIAL RENDER FOR MATCHING TAB: Side-by-Side Pair View
                                         if (activeTab === 'matching') {
                                             const matchedWithId = item.matchFoundItemId || item.MatchFoundItemId;
-                                            
-                                            // Fallback fetching is an exercise for the frontend if the full object isn't in 'reports' 
-                                            // We will gently bypass the Searching bug by not crashing.
                                             let claimantName = item.matchReporterName || item.MatchReporterName || item.claimantName || "Student";
                                             let lostTypeText = item.matchItemType || item.MatchItemType || "Lost Item";
                                             
@@ -216,7 +212,6 @@ const AdminInventory = () => {
                                                 <tr key={itemId} style={{ borderBottom: '1px solid #f1f5f9', transition: 'all 0.2s' }} className="table-row-hover">
                                                     <td colSpan={5} style={{ padding: '1.25rem 1.5rem' }}>
                                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '2rem' }}>
-                                                            {/* FOUND ITEM (OFFICE SIDE) */}
                                                             <div style={{ flex: 1, display: 'flex', gap: '1rem', alignItems: 'center', background: '#f8fafc', padding: '1rem', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
                                                                 <div style={{ width: '50px', height: '50px', borderRadius: '12px', overflow: 'hidden', background: '#fff', border: '1px solid #cbd5e0' }}>
                                                                     {item.imageUrl ? (
@@ -228,39 +223,47 @@ const AdminInventory = () => {
                                                                 <div>
                                                                     <div style={{ fontSize: '0.75rem', fontWeight: '800', color: '#0d9488' }}>FOUND ITEM #{itemId}</div>
                                                                     <div style={{ fontWeight: '900', color: '#1e293b' }}>{item.type || item.Type}</div>
-                                                                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}><MapPin size={10} /> {item.locationName || "Campus Office"}</div>
+                                                                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}><MapPin size={10} /> {item.locationName || 'Campus Office'}</div>
+                                                                    <div style={{ fontSize: '0.75rem', color: '#1e293b', fontWeight: '700', marginTop: '2px' }}>
+                                                                        👤 {item.reporterName || item.ReporterName || 'Finder'}
+                                                                    </div>
+                                                                    <div style={{ fontSize: '0.7rem', color: '#64748b' }}>
+                                                                        ✉️ {item.reporterEmail || item.ReporterEmail || 'N/A'}
+                                                                    </div>
                                                                 </div>
                                                             </div>
 
-                                                            {/* MATCH STATUS BRIDGE */}
                                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', minWidth: '150px', position: 'relative' }}>
                                                                 <div style={{ padding: '4px 12px', background: (item.activeClaimCount > 1 || item.ActiveClaimCount > 1) ? '#f59e0b' : '#8b5cf6', color: '#fff', borderRadius: '100px', fontSize: '0.65rem', fontWeight: '900' }}>
                                                                     {(item.activeClaimCount > 1 || item.ActiveClaimCount > 1) ? 'VULNERABLE (MULTI-CLAIM)' : 'POTENTIAL MATCH'}
                                                                 </div>
-                                                                {(item.activeClaimCount > 1 || item.ActiveClaimCount > 1) && (
-                                                                    <div style={{ position: 'absolute', top: '-10px', right: '-10px', background: '#f59e0b', color: '#fff', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                                        <AlertCircle size={10} />
-                                                                    </div>
-                                                                )}
                                                                 <div style={{ width: '100%', height: '2px', background: 'linear-gradient(to right, #0d9488, #8b5cf6, #ef4444)', margin: '4px 0' }} />
                                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#64748b', fontSize: '0.7rem', fontWeight: '700' }}>
                                                                     <RefreshCw size={12} className="animate-spin" style={{ animationDuration: '3s' }} /> Verified by Admin
                                                                 </div>
                                                             </div>
 
-                                                            {/* LOST ITEM (CLAIMANT SIDE) */}
                                                             <div style={{ flex: 1, display: 'flex', gap: '1rem', alignItems: 'center', background: '#fef2f2', padding: '1rem', borderRadius: '16px', border: '1px solid #fee2e2' }}>
                                                                 <div style={{ flex: 1 }}>
-                                                                    <div style={{ fontSize: '0.75rem', fontWeight: '800', color: '#ef4444', textAlign: 'right' }}>LOST REPORT #{matchedWithId}</div>
+                                                                    <div style={{ fontSize: '0.75rem', fontWeight: '800', color: '#ef4444', textAlign: 'right' }}>LOST REPORT #{item.matchLostItemId || item.MatchLostItemId || matchedWithId}</div>
                                                                     <div style={{ fontWeight: '900', color: '#1e293b', textAlign: 'right' }}>{lostTypeText}</div>
-                                                                    <div style={{ fontSize: '0.75rem', color: '#64748b', textAlign: 'right' }}>Owner: <b>{claimantName}</b></div>
+                                                                    <div style={{ fontSize: '0.75rem', color: '#1e293b', textAlign: 'right', fontWeight: '700', marginTop: '2px' }}>
+                                                                        👤 {item.matchReporterName || item.MatchReporterName || claimantName}
+                                                                    </div>
+                                                                    <div style={{ fontSize: '0.7rem', color: '#64748b', textAlign: 'right' }}>
+                                                                        ✉️ {item.matchReporterEmail || item.MatchReporterEmail || 'N/A'}
+                                                                    </div>
+                                                                    {(item.matchConfidenceScore || item.MatchConfidenceScore) && (
+                                                                        <div style={{ fontSize: '0.65rem', fontWeight: '900', color: '#8b5cf6', textAlign: 'right', marginTop: '2px' }}>
+                                                                            🎯 {Math.round(item.matchConfidenceScore || item.MatchConfidenceScore)}% Match Confidence
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                                 <div style={{ width: '50px', height: '50px', borderRadius: '12px', background: '#fff', border: '1px solid #fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}>
                                                                     <User size={24} />
                                                                 </div>
                                                             </div>
 
-                                                            {/* ACTION BUTTONS */}
                                                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                                                                 <button 
                                                                     onClick={() => navigate(`/admin-report-control/${itemId}`)}
@@ -281,7 +284,6 @@ const AdminInventory = () => {
                                             );
                                         }
 
-                                        // STANDARD RENDER FOR LOST/FOUND TABS
                                         const eventDate = new Date(item.eventTime || item.EventTime).toLocaleDateString();
                                         const reportDate = new Date(item.createdOn || item.CreatedOn || Date.now()).toLocaleDateString();
 
@@ -364,7 +366,7 @@ const AdminInventory = () => {
                         {/* PAGINATION CONTROLS */}
                         <div style={{ padding: '1.5rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc' }}>
                             <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '600' }}>
-                                Showing <span style={{ color: '#1e293b' }}>{filteredReports.length}</span> of <span style={{ color: '#1e293b' }}>{totalRecords}</span> Cases
+                                Showing <span style={{ color: '#1e293b' }}>{reports.length}</span> of <span style={{ color: '#1e293b' }}>{totalRecords}</span> Cases
                             </div>
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                                 <button 

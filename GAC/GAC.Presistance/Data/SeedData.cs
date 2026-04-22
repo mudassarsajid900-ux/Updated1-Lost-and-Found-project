@@ -119,7 +119,8 @@ namespace GAC.Infrastructure.Data
          new ItemType { Id = 7, Name = "Passport / ID Card", CreatedBy = 1 },
          new ItemType { Id = 8, Name = "Jewelry", CreatedBy = 1 },
          new ItemType { Id = 9, Name = "Earphones / Headphones", CreatedBy = 1 },
-         new ItemType { Id = 10, Name = "Other", CreatedBy = 1 }
+         new ItemType { Id = 10, Name = "Other", CreatedBy = 1 },
+         new ItemType { Id = 11, Name = "Books / Notes", CreatedBy = 1 }
      );
 
             builder.Entity<Fields>().HasData(
@@ -182,7 +183,14 @@ namespace GAC.Infrastructure.Data
                 new Fields { Id = 90, ItemTypeId = 10, FieldName = "Main Color", CreatedBy = 1 },
                 new Fields { Id = 91, ItemTypeId = 10, FieldName = "Secondary Color", CreatedBy = 1 },
                 new Fields { Id = 92, ItemTypeId = 10, FieldName = "Size / Dimensions", CreatedBy = 1 },
-                new Fields { Id = 93, ItemTypeId = 10, FieldName = "Brand / Logo", CreatedBy = 1 }
+                new Fields { Id = 93, ItemTypeId = 10, FieldName = "Brand / Logo", CreatedBy = 1 },
+
+                // Books / Notes
+                new Fields { Id = 100, ItemTypeId = 11, FieldName = "Subject", FieldType = "dropdown", CreatedBy = 1, Options = "Computer Science,Mathematics,Physics,Business,English,Other" },
+                new Fields { Id = 101, ItemTypeId = 11, FieldName = "Book Title", FieldType = "text", CreatedBy = 1 },
+                new Fields { Id = 102, ItemTypeId = 11, FieldName = "Cover Color", FieldType = "radio", CreatedBy = 1, Options = "Black,Blue,Red,Green,Yellow,White,Other" },
+                new Fields { Id = 103, ItemTypeId = 11, FieldName = "Owner Name (Inside)", FieldType = "text", CreatedBy = 1 },
+                new Fields { Id = 104, ItemTypeId = 11, FieldName = "Pages Condition", FieldType = "dropdown", CreatedBy = 1, Options = "New,Used (Clean),Used (Marked),Tattered" }
             );
         }
 

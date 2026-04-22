@@ -112,7 +112,18 @@ const ReportLost = () => {
         },
 
         "Laptop": {
-            brand: { type: "dropdown", options: ["Apple", "Dell", "HP", "Lenovo", "Asus", "Other"] },
+            brand: { type: "dropdown", options: ["Apple", "Dell", "HP", "Lenovo", "Asus", "Acer", "Microsoft (Surface)", "Samsung", "Haier", "Other"] },
+            model: { type: "dropdown", options: [
+                "MacBook Air M1/M2", "MacBook Pro",
+                "Dell Latitude E7470", "Dell Latitude E5470", "Dell XPS 13/15", "Dell Inspiron",
+                "HP EliteBook 840", "HP ProBook 450", "HP Pavilion", "HP Spectre",
+                "ThinkPad T480/T490", "ThinkPad X1 Carbon", "Lenovo Yoga", "Lenovo IdeaPad",
+                "Haier 7G Series", "Haier Y11C",
+                "Asus ROG/TUF", "Asus Zenbook",
+                "Acer Aspire/Nitro",
+                "Surface Laptop/Pro",
+                "Other"
+            ] },
             screenSize: { type: "radio", options: ["13 inch", "14 inch", "15-16 inch", "Unknown"] },
             // RAM and ROM shown side-by-side as text inputs (reference image style)
             ramRom: {
@@ -122,7 +133,7 @@ const ReportLost = () => {
                     rom: { type: "text", label: "ROM", placeholder: "ROM" }
                 }
             },
-            colorOptions: { type: "radio", options: ["Black", "Blue", "Red", "Gold", "White", "Other"] },
+            colorOptions: { type: "radio", options: ["Black", "Blue", "Red", "Gold", "White", "Silver", "Grey", "Other"] },
             passwordLocked: { type: "radio", options: ["Yes", "No", "Unknown"] },
             sticker_OR_AnyMark: { type: "text", placeholder: "e.g. Apple sticker, Blue ink mark on corner" },
             chargerFound: { type: "radio", options: ["With Charger", "No Charger"] },
@@ -354,6 +365,21 @@ const ReportLost = () => {
             if (!formData.dateLost) {
                 throw new Error("Date is required. Please pick a date of the incident.");
             }
+
+            // CRITICAL GUARD: Validate that the selected category exists in the database
+            if (!typeEntity || !typeEntity.id) {
+                setSubmitStatus({ type: 'error', message: `The category "${selectedCategory}" is not registered in the system. Please select a different item type.` });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setIsSubmitting(false);
+                return;
+            }
+            // CRITICAL GUARD: Validate that the selected location exists in the database
+            if (!locationEntity || !locationEntity.id) {
+                setSubmitStatus({ type: 'error', message: `The selected location is not valid. Please re-select your location.` });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setIsSubmitting(false);
+                return;
+            }
             
             const isoDateTime = `${formData.dateLost}T${cleanTime}:00`;
 
@@ -403,8 +429,8 @@ const ReportLost = () => {
                 // CREATE LOGIC (Multipart Form Data)
                 const data = new FormData();
                 data.append('eventTime', isoDateTime);
-                data.append('locationId', locationEntity?.id || 0);
-                data.append('itemTypeId', typeEntity?.id || 0);
+                data.append('locationId', locationEntity.id);
+                data.append('itemTypeId', typeEntity.id);
                 data.append('status', 0);      // Enum: 0 = Lost
                 data.append('reportType', 0);  // Enum: 0 = Lost Report
 
@@ -574,22 +600,71 @@ const ReportLost = () => {
 
         // 2. If not found, check if it's a dynamic category from the database
         if (!config) {
-            const dynamicType = itemTypes.find(t => t.name === selectedCategory);
+            const dynamicType = itemTypes.find(t => (t.Name || t.name) === selectedCategory);
             
-            // If it has dynamic fields defined by admin, render them as text inputs
-            if (dynamicType && dynamicType.fields && dynamicType.fields.length > 0) {
-                return dynamicType.fields.map((field) => (
-                    <div key={field.id || field.fieldName} className="input-card mt-3">
-                        <label className="field-label">{field.fieldName.toUpperCase()}</label>
-                        <input
-                            type="text"
-                            className="custom-input"
-                            placeholder={`Enter ${field.fieldName.toLowerCase()}...`}
-                            value={formData.attributes[field.fieldName] || ""}
-                            onChange={(e) => handleAttributeChange(field.fieldName, e.target.value, "text")}
-                        />
-                    </div>
-                ));
+            // If it has dynamic fields defined by admin, render them based on their Type (Text, Toggle, Number, etc.)
+            const fields = dynamicType?.Fields || dynamicType?.fields || [];
+            if (fields.length > 0) {
+                return fields.map((field) => {
+                    const fName = field.FieldName || field.fieldName;
+                    const fType = field.FieldType || field.fieldType || 'text';
+                    
+                    return (
+                        <div key={field.Id || field.id || fName} className="input-card mt-3">
+                            <label className="field-label">{fName.toUpperCase()}</label>
+                            
+                            {fType === 'toggle' || fType === 'radio' ? (
+                                <div className="radio-group">
+                                    {(fType === 'toggle' ? "Yes, No" : (field.Options || field.options || "")).split(',').map(opt => opt.trim()).filter(x => x).map(option => (
+                                        <label key={option} className="custom-radio-label">
+                                            <input
+                                                type="radio"
+                                                name={fName}
+                                                checked={formData.attributes[fName] === option}
+                                                onChange={() => handleAttributeChange(fName, option, "radio")}
+                                            />
+                                            <span>{option}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            ) : fType === 'select' ? (
+                                <select 
+                                    className="custom-input"
+                                    value={formData.attributes[fName] || ""}
+                                    onChange={(e) => handleAttributeChange(fName, e.target.value, "select")}
+                                >
+                                    <option value="">-- Select {fName} --</option>
+                                    {(field.Options || field.options || "").split(',').map(opt => opt.trim()).filter(x => x).map(option => (
+                                        <option key={option} value={option}>{option}</option>
+                                    ))}
+                                </select>
+                            ) : fType === 'number' ? (
+                                <input
+                                    type="number"
+                                    className="custom-input"
+                                    placeholder={`Enter ${fName.toLowerCase()}...`}
+                                    value={formData.attributes[fName] || ""}
+                                    onChange={(e) => handleAttributeChange(fName, e.target.value, "number")}
+                                />
+                            ) : fType === 'date' ? (
+                                <input
+                                    type="date"
+                                    className="custom-input"
+                                    value={formData.attributes[fName] || ""}
+                                    onChange={(e) => handleAttributeChange(fName, e.target.value, "date")}
+                                />
+                            ) : (
+                                <input
+                                    type="text"
+                                    className="custom-input"
+                                    placeholder={`Enter ${fName.toLowerCase()}...`}
+                                    value={formData.attributes[fName] || ""}
+                                    onChange={(e) => handleAttributeChange(fName, e.target.value, "text")}
+                                />
+                            )}
+                        </div>
+                    );
+                });
             }
 
             // Fallback for types with no specific configuration
@@ -683,8 +758,9 @@ const ReportLost = () => {
                                     value={selectedCategory}
                                     onChange={handleCategoryChange}>
                                     <option value="" disabled>Select item type...</option>
-                                    {itemTypes.map(cat => (
-                                        <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                    {/* Merge hardcoded and live items for the dropdown */}
+                                    {[...new Set([...Object.keys(itemConfigurations), ...itemTypes.map(t => t.Name || t.name)])].map(catName => (
+                                        <option key={catName} value={catName}>{catName}</option>
                                     ))}
                                 </select>
                             </div>

@@ -131,32 +131,39 @@ namespace GAC.Presistance.Repositories
         }
 
         // CRUD Operations with Audit Logging
+        // CRUD Operations with Audit Logging
         public async Task AddAsync(TEntity entity)
         {
             try
             {
+                var userId = _userData?.UserId ?? 0;
+                var now = DateTime.UtcNow;
+
+                // Sync parent and children audit fields
                 if (entity is BaseEntity b)
                 {
-                    var userId = _userData?.UserId ?? 0;
-                    var now = DateTime.Now;
-                    if (userId > 0)
-                    {
-                         if (b.CreatedBy == 0) b.CreatedBy = userId;
-                         b.LastModifiedBy = userId;
-                    }
-                    else
-                    {
-                         // System Job Context Fallback (Prevents AspNetUsers FK crash for ID 0)
-                         if (b.CreatedBy == 0) b.CreatedBy = 1;
-                         b.LastModifiedBy = 1;
-                    }
                     b.CreatedOn = now;
                     b.LastModifiedOn = now;
-                    b.IsDeleted = false;
+                    if (b.CreatedBy == 0) b.CreatedBy = userId > 0 ? userId : 1;
+                    b.LastModifiedBy = userId > 0 ? userId : 1;
                     b.IsActive = true;
+                    b.IsDeleted = false;
                 }
 
                 await _dbSet.AddAsync(entity);
+
+                // ✅ RECURSIVE AUDIT: Also handle any child entities in the graph (like category attributes)
+                foreach (var entry in _context.ChangeTracker.Entries<BaseEntity>()
+                    .Where(e => e.State == EntityState.Added))
+                {
+                    entry.Entity.CreatedOn = now;
+                    entry.Entity.LastModifiedOn = now;
+                    if (entry.Entity.CreatedBy == 0) entry.Entity.CreatedBy = userId > 0 ? userId : 1;
+                    entry.Entity.LastModifiedBy = userId > 0 ? userId : 1;
+                    entry.Entity.IsActive = true;
+                    entry.Entity.IsDeleted = false;
+                }
+
                 await _context.SaveChangesAsync();
 
                 // Save audit log after successful save (separate transaction)
@@ -209,11 +216,26 @@ namespace GAC.Presistance.Repositories
                         // Optimization: Perform Soft Delete instead of hard delete
                         // to prevent Foreign Key constraint conflicts.
                         var userId = _userData?.UserId ?? 0;
+                        var now = DateTime.UtcNow;
+                        
                         b.IsDeleted = true;
                         b.IsActive = false;
-                        b.DeletedOn = DateTime.Now;
+                        b.DeletedOn = now;
                         b.DeletedBy = userId;
                         _dbSet.Update(entity);
+
+                        // 🧹 Recursive Soft Delete: Clear out any children in the database graph
+                        foreach (var entry in _context.ChangeTracker.Entries<BaseEntity>()
+                            .Where(e => e.State == EntityState.Modified || e.State == EntityState.Unchanged))
+                        {
+                            if (entry.Entity is BaseEntity child && child != b)
+                            {
+                                child.IsDeleted = true;
+                                child.IsActive = false;
+                                child.DeletedOn = now;
+                                child.DeletedBy = userId;
+                            }
+                        }
                     }
                     else
                     {

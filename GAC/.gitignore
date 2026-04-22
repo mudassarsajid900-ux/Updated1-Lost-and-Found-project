@@ -362,3 +362,8 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /GAC.sln
+
+# ── Security: Never commit local secrets to GitHub ───────────────────────────
+# Real DB credentials and JWT keys live in appsettings.Development.json only.
+# Use environment variables or Azure Key Vault in production.
+**/appsettings.Development.json

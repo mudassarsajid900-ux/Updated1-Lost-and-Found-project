@@ -1,4 +1,11 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * @file ReportFound.jsx
+ * @description Comprehensive dynamic form for reporting found items. 
+ * Handles category-specific attributes, image uploads, and multi-step verification.
+ * Supports both 'Create' and 'Edit' modes for report management.
+ */
+
+import React, { useState, useEffect, useMemo } from 'react';
 import { Camera, Search, Gavel, Home, Folder, PlusCircle, Settings, User, LogOut, ChevronLeft, Calendar, MapPin, UploadCloud, Sliders, Clock } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -102,7 +109,7 @@ const ReportFound = () => {
                     rom: { type: "text", label: "ROM", placeholder: "ROM" }
                 }
             },
-            colorOptions: { type: "radio", options: ["Black", "Blue", "Red", "Gold", "White", "Other"] },
+            colorOptions: { type: "radio", options: ["Black", "Blue", "Red", "Gold", "White", "Silver", "Grey", "Other"] },
             approximateSize: { type: "radio", options: ["Small (Mini)", "Medium (Standard)", "Large (Pro Max/Plus)"] },
             isLocked: { type: "radio", options: ["Yes (Locked)", "No (Unlocked)", "Unknown"] },
             simCardPresent: { type: "radio", options: ["Yes", "No", "Unknown"] },
@@ -111,7 +118,18 @@ const ReportFound = () => {
         },
 
         "Laptop": {
-            brand: { type: "dropdown", options: ["Apple", "Dell", "HP", "Lenovo", "Asus", "Other"] },
+            brand: { type: "dropdown", options: ["Apple", "Dell", "HP", "Lenovo", "Asus", "Acer", "Microsoft (Surface)", "Samsung", "Haier", "Other"] },
+            model: { type: "dropdown", options: [
+                "MacBook Air M1/M2", "MacBook Pro",
+                "Dell Latitude E7470", "Dell Latitude E5470", "Dell XPS 13/15", "Dell Inspiron",
+                "HP EliteBook 840", "HP ProBook 450", "HP Pavilion", "HP Spectre",
+                "ThinkPad T480/T490", "ThinkPad X1 Carbon", "Lenovo Yoga", "Lenovo IdeaPad",
+                "Haier 7G Series", "Haier Y11C",
+                "Asus ROG/TUF", "Asus Zenbook",
+                "Acer Aspire/Nitro",
+                "Surface Laptop/Pro",
+                "Other"
+            ] },
             screenSize: { type: "radio", options: ["13 inch", "14 inch", "15-16 inch", "Unknown"] },
             ramRom: {
                 type: "row",
@@ -181,8 +199,12 @@ const ReportFound = () => {
         }
     };
 
-    // Get the list of main categories (Phone, Laptop, etc) from the object above
-    const categories = Object.keys(itemConfigurations);
+    // ✅ SYNCED: Merging hardcoded categories with dynamic categories from Admin Architect
+    const categories = useMemo(() => {
+        const hardcoded = Object.keys(itemConfigurations);
+        const dynamic = itemTypes.map(it => it.name || it.Name).filter(n => !hardcoded.includes(n));
+        return [...hardcoded, ...dynamic];
+    }, [itemTypes]);
 
 
     // ========================================== //
@@ -562,22 +584,71 @@ const ReportFound = () => {
 
         // 2. If not found, check if it's a dynamic category from the database
         if (!config) {
-            const dynamicType = itemTypes.find(t => t.name === selectedCategory);
+            const dynamicType = itemTypes.find(t => (t.Name || t.name) === selectedCategory);
             
-            // If it has dynamic fields defined by admin, render them as text inputs
-            if (dynamicType && dynamicType.fields && dynamicType.fields.length > 0) {
-                return dynamicType.fields.map((field) => (
-                    <div key={field.id || field.fieldName} className="input-card mt-3">
-                        <label className="field-label">{field.fieldName.toUpperCase()}</label>
-                        <input
-                            type="text"
-                            className="custom-input"
-                            placeholder={`Enter ${field.fieldName.toLowerCase()}...`}
-                            value={formData.attributes[field.fieldName] || ""}
-                            onChange={(e) => handleAttributeChange(field.fieldName, e.target.value, "text")}
-                        />
-                    </div>
-                ));
+            // If it has dynamic fields defined by admin, render them based on their Type (Text, Toggle, Number, etc.)
+            const fields = dynamicType?.Fields || dynamicType?.fields || [];
+            if (fields.length > 0) {
+                return fields.map((field) => {
+                    const fName = field.FieldName || field.fieldName;
+                    const fType = field.FieldType || field.fieldType || 'text';
+                    
+                    return (
+                        <div key={field.Id || field.id || fName} className="input-card mt-3">
+                            <label className="field-label">{fName.toUpperCase()}</label>
+                            
+                            {fType === 'toggle' || fType === 'radio' ? (
+                                <div className="radio-group">
+                                    {(fType === 'toggle' ? "Yes, No" : (field.Options || field.options || "")).split(',').map(opt => opt.trim()).filter(x => x).map(option => (
+                                        <label key={option} className="custom-radio-label">
+                                            <input
+                                                type="radio"
+                                                name={fName}
+                                                checked={formData.attributes[fName] === option}
+                                                onChange={() => handleAttributeChange(fName, option, "radio")}
+                                            />
+                                            <span>{option}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            ) : fType === 'select' ? (
+                                <select 
+                                    className="custom-input"
+                                    value={formData.attributes[fName] || ""}
+                                    onChange={(e) => handleAttributeChange(fName, e.target.value, "select")}
+                                >
+                                    <option value="">-- Select {fName} --</option>
+                                    {(field.Options || field.options || "").split(',').map(opt => opt.trim()).filter(x => x).map(option => (
+                                        <option key={option} value={option}>{option}</option>
+                                    ))}
+                                </select>
+                            ) : fType === 'number' ? (
+                                <input
+                                    type="number"
+                                    className="custom-input"
+                                    placeholder={`Enter ${fName.toLowerCase()}...`}
+                                    value={formData.attributes[fName] || ""}
+                                    onChange={(e) => handleAttributeChange(fName, e.target.value, "number")}
+                                />
+                            ) : fType === 'date' ? (
+                                <input
+                                    type="date"
+                                    className="custom-input"
+                                    value={formData.attributes[fName] || ""}
+                                    onChange={(e) => handleAttributeChange(fName, e.target.value, "date")}
+                                />
+                            ) : (
+                                <input
+                                    type="text"
+                                    className="custom-input"
+                                    placeholder={`Enter ${fName.toLowerCase()}...`}
+                                    value={formData.attributes[fName] || ""}
+                                    onChange={(e) => handleAttributeChange(fName, e.target.value, "text")}
+                                />
+                            )}
+                        </div>
+                    );
+                });
             }
 
             // Fallback for types with no specific configuration
@@ -669,17 +740,17 @@ const ReportFound = () => {
                                 <label className="section-label">Item Type</label>
                                 <div className="input-card">
                                     <label className="field-label">What did you find?</label>
-                                    <select
-                                        className="custom-select"
-                                        value={selectedCategory}
-                                        onChange={handleCategoryChange}
-                                        style={{ width: '100%' }}
-                                    >
-                                        <option value="" disabled>Select item type...</option>
-                                        {itemTypes.map(cat => (
-                                            <option key={cat.id} value={cat.name}>{cat.name}</option>
-                                        ))}
-                                    </select>
+                                        <select className="custom-select"
+                                            value={selectedCategory}
+                                            onChange={handleCategoryChange}
+                                            style={{ width: '100%' }}
+                                        >
+                                            <option value="" disabled>Select item type...</option>
+                                            {/* Merge hardcoded and live items for the dropdown */}
+                                            {[...new Set([...Object.keys(itemConfigurations), ...itemTypes.map(t => t.Name || t.name)])].map(catName => (
+                                                <option key={catName} value={catName}>{catName}</option>
+                                            ))}
+                                        </select>
                                 </div>
                             </div>
 
@@ -709,6 +780,7 @@ const ReportFound = () => {
                                         type="date"
                                         name="dateFound"
                                         className="custom-input"
+                                        value={formData.dateFound}
                                         onChange={handleInputChange}
                                     />
                                     <Calendar size={20} color="#718096" />

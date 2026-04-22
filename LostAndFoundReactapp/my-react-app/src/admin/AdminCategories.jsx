@@ -38,7 +38,7 @@ const AdminCategories = () => {
     const handleAddAttribute = () => {
         setNewCategory({
             ...newCategory,
-            fields: [...newCategory.fields, { fieldName: '', type: 'text' }]
+            fields: [...newCategory.fields, { fieldName: '', fieldType: 'text', options: '' }]
         });
     };
 
@@ -48,9 +48,9 @@ const AdminCategories = () => {
         setNewCategory({ ...newCategory, fields: updatedFields });
     };
 
-    const handleAttributeChange = (index, value) => {
+    const handleAttributeChange = (index, property, value) => {
         const updatedFields = [...newCategory.fields];
-        updatedFields[index].fieldName = value;
+        updatedFields[index][property] = value;
         setNewCategory({ ...newCategory, fields: updatedFields });
     };
 
@@ -74,7 +74,11 @@ const AdminCategories = () => {
         try {
             const payload = {
                 name: newCategory.name,
-                fields: newCategory.fields.map(f => ({ fieldName: f.fieldName.trim() }))
+                fields: newCategory.fields.map(f => ({ 
+                    fieldName: f.fieldName.trim(),
+                    fieldType: f.fieldType || 'text',
+                    options: f.options || ''
+                }))
             };
             
             const response = await api.post('ItemType/create', payload);
@@ -210,25 +214,54 @@ const AdminCategories = () => {
 
                                     <div style={{ maxHeight: '200px', overflowY: 'auto', paddingRight: '10px' }}>
                                         {newCategory.fields.map((field, idx) => (
-                                            <div key={idx} style={{ display: 'flex', gap: '10px', marginBottom: '10px', animation: 'fadeInRight 0.2s ease-out' }}>
-                                                <div style={{ flex: 1, position: 'relative' }}>
-                                                    <Tag size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '12px' }} />
-                                                    <input 
-                                                        required
-                                                        placeholder="Attribute Name (e.g. Brand, Color)"
-                                                        value={field.fieldName}
-                                                        onChange={(e) => handleAttributeChange(idx, e.target.value)}
-                                                        style={{ width: '100%', padding: '10px 10px 10px 40px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '0.9rem', fontWeight: '700' }}
-                                                    />
+                                            <React.Fragment key={idx}>
+                                                <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', animation: 'fadeInRight 0.2s ease-out' }}>
+                                                    <div style={{ flex: 1, position: 'relative' }}>
+                                                        <Tag size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                                                        <input 
+                                                            required
+                                                            placeholder="Name (e.g. Color)"
+                                                            value={field.fieldName}
+                                                            onChange={(e) => handleAttributeChange(idx, 'fieldName', e.target.value)}
+                                                            style={{ width: '100%', padding: '10px 10px 10px 40px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '0.9rem', fontWeight: '700' }}
+                                                        />
+                                                    </div>
+                                                    <div style={{ width: '140px' }}>
+                                                        <select
+                                                            value={field.fieldType}
+                                                            onChange={(e) => handleAttributeChange(idx, 'fieldType', e.target.value)}
+                                                            style={{ width: '100%', padding: '10px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '0.8rem', fontWeight: '700', background: '#f8fafc', outline: 'none' }}
+                                                        >
+                                                            <option value="text">Text Box</option>
+                                                            <option value="toggle">Yes/No Toggle</option>
+                                                            <option value="radio">Radio Buttons</option>
+                                                            <option value="select">Dropdown Menu</option>
+                                                            <option value="number">Number</option>
+                                                            <option value="date">Date</option>
+                                                        </select>
+                                                    </div>
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => handleRemoveAttribute(idx)}
+                                                        style={{ color: '#ef4444', background: '#fef2f2', border: 'none', padding: '10px', borderRadius: '12px', cursor: 'pointer' }}
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
                                                 </div>
-                                                <button 
-                                                    type="button"
-                                                    onClick={() => handleRemoveAttribute(idx)}
-                                                    style={{ color: '#ef4444', background: '#fef2f2', border: 'none', padding: '10px', borderRadius: '12px', cursor: 'pointer' }}
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
+                                                
+                                                {/* Dynamic Configuration for Options (Dropdown/Radio) */}
+                                                {(field.fieldType === 'select' || field.fieldType === 'radio') && (
+                                                    <div style={{ marginLeft: '40px', marginBottom: '15px', padding: '10px', background: '#f1f5f9', borderRadius: '12px', border: '1px solid #e2e8f0', animation: 'fadeIn 0.3s ease-out' }}>
+                                                        <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: '800', color: '#475569', marginBottom: '5px' }}>CONFIGURE LABELS (COMMA SEPARATED)</label>
+                                                        <input 
+                                                            placeholder="e.g. Apple, Samsung, Huawei"
+                                                            value={field.options}
+                                                            onChange={(e) => handleAttributeChange(idx, 'options', e.target.value)}
+                                                            style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: '600' }}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </React.Fragment>
                                         ))}
 
                                         {newCategory.fields.length === 0 && (

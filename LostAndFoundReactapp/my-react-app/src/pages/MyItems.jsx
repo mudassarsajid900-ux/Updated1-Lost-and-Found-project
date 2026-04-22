@@ -127,7 +127,7 @@ const MyItems = ({ isAdmin = false }) => {
         if (isHandover) return { text: 'Returned', color: '#10b981', bg: '#ecfdf5' };
         
         // Match: Only show match if NOT already handed over
-        if (hasPotentialMatch && isVerifiedByAdmin) return { text: 'Potential Match Found!', color: '#0ea5e9', bg: '#e0f2fe' };
+        if (hasPotentialMatch) return { text: 'Match Found!', color: '#0ea5e9', bg: '#e0f2fe' };
         
         if (isReplacementSt) return { text: 'Replacement Requested', color: '#6366f1', bg: '#e0e7ff' };
         if (isAuctionSt) return { text: 'In Auction', color: '#f59e0b', bg: '#fffbeb' };
@@ -135,8 +135,11 @@ const MyItems = ({ isAdmin = false }) => {
         if (isLostRep && isLostSt) return { text: 'Searching...', color: '#718096', bg: '#f7fafc' };
         if (isLostRep && isFoundSt) return { text: 'Found (Verified)', color: '#319795', bg: '#e6fffa' };
         
-        // Found items: If it's in Handover type FoundItemToAdmin or status is 1, it's safe at the office
-        if (!isLostRep && isFoundSt) return { text: 'In Office', color: '#319795', bg: '#e6fffa' };
+        // Found items: Check if they are actually in the office yet
+        if (!isLostRep && isFoundSt) {
+            if (!isVerifiedByAdmin) return { text: 'Handover Required', color: '#b45309', bg: '#fffbeb' };
+            return { text: 'In Office', color: '#319795', bg: '#e6fffa' };
+        }
 
         return { text: 'Processing', color: '#4a5568', bg: '#edf2f7' };
     };
@@ -155,7 +158,7 @@ const MyItems = ({ isAdmin = false }) => {
             if (status === 2 || status === 'Replacement') return 3;
 
             // Priority 3: Verified Match (Step 3)
-            if (hasPotentialMatch && isVerifiedByAdmin) return 3;
+            if (hasPotentialMatch) return 3;
 
             // Standard: Searching (Step 2)
             return 2;
@@ -167,7 +170,7 @@ const MyItems = ({ isAdmin = false }) => {
             if (status === 3 || status === 'Auction') return 3;
 
             // Priority 3: Verified Match (Step 3)
-            if (hasPotentialMatch && isVerifiedByAdmin) return 3;
+            if (hasPotentialMatch) return 3;
 
             // For found items: Received(1) -> Stored(2) -> Processed(3) -> Handover(4)
             return (status === 1 || status === 'Found' || status === 0) ? 2 : 3;
@@ -176,6 +179,7 @@ const MyItems = ({ isAdmin = false }) => {
 
     const renderTimeline = (apiItem) => {
         const isLost = isLostReport(apiItem.reportType ?? apiItem.ReportType);
+        const isVerifiedByAdmin = apiItem.isVerifiedByAdmin ?? apiItem.IsVerifiedByAdmin;
         const state = getTimelineState(apiItem);
         
         return (
@@ -188,13 +192,13 @@ const MyItems = ({ isAdmin = false }) => {
                 
                 <div className={`timeline-step ${state >= 2 ? 'completed' : ''} ${state === 2 ? 'active' : ''}`}>
                     <div className="step-circle"></div>
-                    <span className="step-label">{isLost ? 'Searching' : 'Stored'}</span>
+                    <span className="step-label">{isLost ? 'Searching' : (isVerifiedByAdmin ? 'In Office' : 'Handover')}</span>
                 </div>
                 <div className={`timeline-line ${state >= 3 ? 'completed' : ''}`}></div>
                 
                 <div className={`timeline-step ${state >= 3 ? 'completed' : ''} ${state === 3 ? 'active' : ''}`}>
                     <div className="step-circle"></div>
-                    <span className="step-label">{isLost ? 'Match Found' : 'Processed'}</span>
+                    <span className="step-label">{isLost ? 'Match Found' : 'Stored Safe'}</span>
                 </div>
                 <div className={`timeline-line ${state >= 4 ? 'completed' : ''}`}></div>
                 
@@ -294,12 +298,16 @@ const MyItems = ({ isAdmin = false }) => {
                              <button className="action-btn secondary" style={{ background: '#ecfdf5', color: '#059669', border: '1px solid #10b981' }} onClick={() => navigate(`/report-details/${apiItem.id}`)}>
                                 <CheckCircle size={16} /> Review Successfully
                             </button>
-                        ) : ((apiItem.hasPotentialMatch || apiItem.HasPotentialMatch) && (apiItem.isVerifiedByAdmin || apiItem.IsVerifiedByAdmin)) ? (
+                        ) : (apiItem.latestClaimStatus === 0 || apiItem.LatestClaimStatus === 0) ? (
+                            // Claim already submitted and pending admin review — block re-submission
+                            <button className="action-btn secondary" disabled style={{ background: '#fef9c3', color: '#92400e', border: '1px solid #fde68a', cursor: 'not-allowed', opacity: 0.9 }}>
+                                <ShieldCheck size={16} /> Claim Submitted — Pending Review
+                            </button>
+                        ) : ((apiItem.hasPotentialMatch || apiItem.HasPotentialMatch) && isLostReport(apiItem.reportType ?? apiItem.ReportType)) ? (
+                            // Only Lost item owners can view & claim a match — Found item reporters have no action here
                             <button className="action-btn match-btn" onClick={() => {
-                                const isLost = isLostReport(apiItem.reportType ?? apiItem.ReportType);
-                                const lostId = isLost ? apiItem.id : (apiItem.matchFoundItemId || apiItem.MatchFoundItemId);
-                                const foundId = isLost ? (apiItem.matchFoundItemId || apiItem.MatchFoundItemId) : apiItem.id;
-                                navigate(`/match-details/${lostId}/${foundId}`);
+                                const foundId = apiItem.matchFoundItemId || apiItem.MatchFoundItemId;
+                                navigate(`/match-details/${apiItem.id}/${foundId}`);
                             }}>
                                 View Potential Match
                             </button>
@@ -308,9 +316,42 @@ const MyItems = ({ isAdmin = false }) => {
                                 <ExternalLink size={16} /> Details
                             </button>
                         )}
-                        <button className="delete-btn-minimal" onClick={() => handleDeleteItem(apiItem.id)}>
-                            <Trash2 size={16} />
-                        </button>
+                        {/* 
+                          * Smart Delete Guard: Block deletion once timeline has progressed.
+                          * - Lost item: blocked if match found OR any claim submitted
+                          * - Found item: blocked if Admin has verified (item is now in the system)
+                          */}
+                        {(() => {
+                            const isLost = isLostReport(apiItem.reportType ?? apiItem.ReportType);
+                            const hasMatch = apiItem.hasPotentialMatch || apiItem.HasPotentialMatch;
+                            const hasClaim = apiItem.latestClaimStatus !== null && apiItem.latestClaimStatus !== undefined;
+                            const isVerified = apiItem.isVerifiedByAdmin || apiItem.IsVerifiedByAdmin;
+
+                            const canDelete = isLost
+                                ? (!hasMatch && !hasClaim)   // Lost: only deletable if no match and no claim
+                                : !isVerified;               // Found: only deletable if not yet verified by Admin
+
+                            return canDelete ? (
+                                <button
+                                    className="delete-btn-minimal"
+                                    onClick={() => handleDeleteItem(apiItem.id)}
+                                    title="Delete this report"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            ) : (
+                                <button
+                                    className="delete-btn-minimal"
+                                    disabled
+                                    title={isLost
+                                        ? "Cannot delete — this item is currently being processed (match found or claim submitted)"
+                                        : "Cannot delete — this item has been received by the Admin"}
+                                    style={{ opacity: 0.3, cursor: 'not-allowed' }}
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            );
+                        })()}
                     </div>
             </div>
         );

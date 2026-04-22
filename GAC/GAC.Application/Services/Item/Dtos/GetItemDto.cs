@@ -22,8 +22,11 @@ namespace GAC.Application.Services.Item.Dtos
 
         public bool HasPotentialMatch { get; set; } = false;
         public long? MatchFoundItemId { get; set; }
+        public long? MatchLostItemId { get; set; }
+        public double? MatchConfidenceScore { get; set; }
         public string? MatchItemType { get; set; }
         public string? MatchReporterName { get; set; }
+        public string? MatchReporterEmail { get; set; }
         public bool IsVerifiedByAdmin { get; set; } = false;
 
         public long? ClaimId { get; set; }

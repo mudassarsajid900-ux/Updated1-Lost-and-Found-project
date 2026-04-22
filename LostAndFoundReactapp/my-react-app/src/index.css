@@ -932,3 +932,50 @@ input[type=range]::-webkit-slider-thumb:hover {
     opacity: 1;
   }
 }
+
+/* ============================ */
+/*   Premium Toggle Card Styles  */
+/* ============================ */
+.toggle-container {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 0;
+}
+
+.toggle-option {
+  flex: 1;
+  min-width: 120px;
+  padding: 14px 20px;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  color: #64748b;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.toggle-option:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  transform: translateY(-2px);
+}
+
+.toggle-option.active {
+  background: transparent;
+  background-image: linear-gradient(135deg, #319795 0%, #2c7a7b 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 10px 15px -3px rgba(49, 151, 149, 0.3);
+}
+
+.toggle-option.active:hover {
+  transform: translateY(-2px) scale(1.02);
+}

@@ -64,7 +64,6 @@ namespace GAC.API.Controllers
         }
 
         [HttpDelete(ApiConstatnts.Delete)]
-        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(long id)
         {
             var response = await _itemService.DeleteAsync(id);

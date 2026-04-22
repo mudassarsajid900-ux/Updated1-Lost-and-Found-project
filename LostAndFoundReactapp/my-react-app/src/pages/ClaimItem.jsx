@@ -99,6 +99,7 @@ const ClaimItem = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccessfullySubmitted, setIsSuccessfullySubmitted] = useState(false);
+    const [alreadySubmitted, setAlreadySubmitted] = useState(false); // NEW: duplicate guard
     const [errorMessage, setErrorMessage] = useState(null);
     const [claimDescription, setClaimDescription] = useState('');
 
@@ -122,6 +123,20 @@ const ClaimItem = () => {
                 // Store results safely checking casing variations
                 setLostItemData(lostResponse.data?.data || lostResponse.data?.Data);
                 setFoundItemData(foundResponse.data?.data || foundResponse.data?.Data);
+
+                // CHECK: Has user already submitted a claim for this exact pair?
+                try {
+                    const myClaimsRes = await api.get('Claim/my-claims');
+                    const myClaims = myClaimsRes.data?.data || myClaimsRes.data?.Data || [];
+                    const duplicate = myClaims.find(
+                        c => (c.lostItemId == lostItemId || c.LostItemId == lostItemId) &&
+                             (c.foundItemId == foundItemId || c.FoundItemId == foundItemId)
+                    );
+                    if (duplicate) setAlreadySubmitted(true);
+                } catch (claimCheckError) {
+                    // Non-critical: just skip the check if it fails
+                    console.warn('Could not check existing claims:', claimCheckError);
+                }
 
             } catch (backendError) {
                 console.error('ClaimItem fetch error:', backendError);
@@ -166,6 +181,35 @@ const ClaimItem = () => {
             <Sidebar />
             <main className="main-content ci-main">
                 <div className="ci-center"><div className="ci-spinner" /><p>Loading claim details…</p></div>
+            </main>
+        </div>
+    );
+
+    // ========================================================================
+    // Conditional Rendering: ALREADY SUBMITTED STATE
+    // Shown when the user has already submitted a claim for this exact pair.
+    // ========================================================================
+    if (alreadySubmitted) return (
+        <div className="dashboard-container">
+            <Sidebar />
+            <main className="main-content ci-main">
+                <Header title="Claim Already Submitted" subtitle="You have already submitted a claim for this item." />
+                <div className="ci-center">
+                    <div style={{ width: '80px', height: '80px', background: '#fef9c3', borderRadius: '22px', border: '2px solid #fde047', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.5rem' }}>
+                        <ShieldCheck size={40} color="#ca8a04" />
+                    </div>
+                    <h2 style={{ margin: 0, fontWeight: 900, color: '#1e293b' }}>Already Submitted!</h2>
+                    <p style={{ color: '#64748b', textAlign: 'center', maxWidth: '360px', lineHeight: 1.6, margin: 0 }}>
+                        You have already submitted a claim for this item. The Admin is reviewing your request. 
+                        Please wait for their decision.
+                    </p>
+                    <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                        <button className="ci-pill-btn" onClick={() => navigate('/my-items')}>
+                            Back to My Items <ArrowRight size={16} />
+                        </button>
+                    </div>
+                </div>
+                <ComponentStyles />
             </main>
         </div>
     );
