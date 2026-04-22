@@ -6,8 +6,10 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Shield, Search, Eye, Trash2, Hash, MapPin, CheckCircle2, AlertCircle, RefreshCw, User } from 'lucide-react';
-import { Box } from 'lucide-react';
+import { 
+    Shield, Search, Eye, Trash2, Hash, MapPin, CheckCircle2, AlertCircle, RefreshCw, User, 
+    Smartphone, Wallet, Laptop, Briefcase, Watch, FileText, Gem, Headphones, Box 
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import api from '../api/axios';
@@ -58,6 +60,19 @@ const AdminInventory = () => {
     }, [page, activeTab, searchTerm]);
 
     const isLostReport = (v) => v === 0 || String(v).toLowerCase() === 'lost' || String(v) === '0';
+
+    const getIcon = (type) => {
+        const t = (type || "").toLowerCase();
+        if (t.includes('device') || t.includes('phone') || t.includes('mobile')) return <Smartphone size={20} />;
+        if (t.includes('wallet')) return <Wallet size={20} />;
+        if (t.includes('hardware') || t.includes('laptop') || t.includes('computing')) return <Laptop size={20} />;
+        if (t.includes('luggage') || t.includes('bag')) return <Briefcase size={20} />;
+        if (t.includes('timepiece') || t.includes('watch')) return <Watch size={20} />;
+        if (t.includes('documentation') || t.includes('passport') || t.includes('id')) return <FileText size={20} />;
+        if (t.includes('jewelry') || t.includes('valuables')) return <Gem size={20} />;
+        if (t.includes('audio') || t.includes('earphone') || t.includes('headphone')) return <Headphones size={20} />;
+        return <Box size={20} />;
+    };
 
     const getStatusTheme = (item) => {
         const s = item.status ?? item.Status;
@@ -217,7 +232,7 @@ const AdminInventory = () => {
                                                                     {item.imageUrl ? (
                                                                         <img src={`${API_BASE_URL}${item.imageUrl}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                                     ) : (
-                                                                        <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}><Box size={24} /></div>
+                                                                        <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#319795' }}>{getIcon(item.type)}</div>
                                                                     )}
                                                                 </div>
                                                                 <div>
@@ -291,8 +306,8 @@ const AdminInventory = () => {
                                             <tr key={itemId} style={{ borderBottom: '1px solid #f1f5f9', transition: 'all 0.2s' }} className="table-row-hover">
                                                 <td style={{ padding: '1.25rem 1.5rem' }}>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                                        <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
-                                                            <Hash size={18} />
+                                                        <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#f0fdfa', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#319795' }}>
+                                                            {getIcon(item.type)}
                                                         </div>
                                                         <div>
                                                             <div style={{ fontWeight: '800', color: '#1e293b' }}>{item.type || item.Type}</div>

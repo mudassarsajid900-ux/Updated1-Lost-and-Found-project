@@ -1,6 +1,6 @@
-﻿namespace GAC.Common.Constants
+namespace GAC.Common.Constants
 {
-    public static class ApiConstatnts
+    public static class ApiConstants
     {
         public const string ApiRoutePrefix = "api/";
 

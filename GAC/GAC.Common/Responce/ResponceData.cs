@@ -1,12 +1,19 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 
 namespace GAC.Common.Responce
 {
     public class Response<T>
     {
+        [System.Text.Json.Serialization.JsonPropertyName("isSucceeded")]
         public bool IsSucceeded { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("statusCode")]
         public int StatusCode { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("message")]
         public string Message { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("data")]
         public T Data { get; set; }
 
 

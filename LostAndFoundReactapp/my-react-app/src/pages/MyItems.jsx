@@ -101,8 +101,10 @@ const MyItems = ({ isAdmin = false }) => {
         if (!type) return <Folder size={24} />;
         const t = type.toLowerCase();
         if (t.includes('wallet')) return <Wallet size={24} />;
-        if (t.includes('laptop')) return <Laptop size={24} />;
-        if (t.includes('phone') || t.includes('mobile')) return <Smartphone size={24} />;
+        if (t.includes('hardware') || t.includes('laptop') || t.includes('computing')) return <Laptop size={24} />;
+        if (t.includes('device') || t.includes('phone') || t.includes('mobile')) return <Smartphone size={24} />;
+        if (t.includes('jewelry') || t.includes('valuables')) return <Gem size={24} />;
+        if (t.includes('audio') || t.includes('earphone') || t.includes('headphone')) return <Headphones size={24} />;
         return <Folder size={24} />;
     };
 

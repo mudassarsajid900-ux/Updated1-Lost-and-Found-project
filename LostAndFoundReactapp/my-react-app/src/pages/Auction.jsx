@@ -26,10 +26,10 @@ const Auction = () => {
         const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
         const days = Math.floor(total / (1000 * 60 * 60 * 24));
 
-        if (days > 0) return `${days}d ${hours}h left`;
-        if (hours > 0) return `${hours}h ${minutes}m left`;
-        if (minutes > 0) return `${minutes}m ${seconds}s left`;
-        return `${seconds}s left`;
+        if (days > 0) return <span style={{ color: '#475569' }}>{days}d {hours}h left</span>;
+        if (hours > 0) return <span style={{ color: '#ea580c', fontWeight: '800' }}>{hours}h {minutes}m left</span>;
+        if (minutes > 0) return <span style={{ color: '#ef4444', fontWeight: '900', animation: 'pulse-fast 1.5s infinite' }}>{minutes}m {seconds}s left</span>;
+        return <span style={{ color: '#dc2626', fontWeight: '900', animation: 'pulse-fast 0.8s infinite' }}>{seconds}s left</span>;
     };
 
     // Helper: Dynamic Bid Increment based on current price
@@ -616,32 +616,33 @@ const Auction = () => {
                                         </div>
                                     ) : auctions.length > 0 ? (
                                         auctions.map(item => (
-                                            <div key={item.id} className="auction-card">
-                                                <div className="card-image-box" onClick={() => handleItemClick(item)} style={{ cursor: 'pointer' }}>
+                                            <div key={item.id} id={`auction-card-${item.id}`} className="auction-card premium-hover">
+                                                <div className="card-image-box" onClick={() => handleItemClick(item)} style={{ cursor: 'pointer', position: 'relative', overflow: 'hidden' }}>
                                                     <img src={item.itemImageUrl ? `${API_BASE_URL}/${item.itemImageUrl}` : "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500"} alt={item.itemTitle} />
                                                     <div className="holding-tag">Unclaimed</div>
+                                                    <div className="glass-overlay"></div>
                                                 </div>
                                                 <div className="card-content">
                                                     <div className="item-info">
-                                                        <h3 onClick={() => handleItemClick(item)} style={{ cursor: 'pointer' }}>{item.itemTitle}</h3>
-                                                        <div className="bid-info-highlight">
-                                                            <span className="label">CURRENT BID:</span>
-                                                            <span className="value">Rs. {Number(item.highestBid || 0).toLocaleString()}</span>
+                                                        <h3 onClick={() => handleItemClick(item)} style={{ cursor: 'pointer', fontSize: '1.2rem', fontWeight: '900', color: '#1e293b' }}>{item.itemTitle}</h3>
+                                                        <div className="bid-info-highlight" style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', borderRadius: '12px', padding: '10px' }}>
+                                                            <span className="label" style={{ fontSize: '0.65rem', letterSpacing: '1px' }}>CURRENT BID:</span>
+                                                            <span className="value" style={{ color: '#0d9488', fontSize: '1.25rem' }}>Rs. {Number(item.highestBid || 0).toLocaleString()}</span>
                                                         </div>
-                                                        <div className="time-info" style={{ display: 'flex', gap: '10px' }}>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        <div className="time-info" style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#f0fdfa', padding: '4px 10px', borderRadius: '8px' }}>
                                                                 <Clock size={14} className="icon-teal" />
-                                                                <span style={{ color: '#0d9488', fontWeight: 'bold' }}>{getTimeRemaining(item.endDate || item.EndDate)}</span>
+                                                                <span style={{ fontSize: '0.85rem' }}>{getTimeRemaining(item.endDate || item.EndDate)}</span>
                                                             </div>
                                                             {Number(item.highestBid || 0) > 0 && (
-                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ea580c', background: '#ffedd5', padding: '2px 8px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                                                                    <Flame size={12} fill="#ea580c" /> HOT
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ea580c', background: '#ffedd5', padding: '4px 10px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                                                                    <Flame size={12} fill="#ea580c" className="animate-bounce-slow" /> HOT
                                                                 </div>
                                                             )}
                                                         </div>
                                                     </div>
-                                                    <button className="bid-btn" onClick={() => handlePlaceBidClick(item)}>
-                                                        Place Bid
+                                                    <button className="bid-btn-premium" onClick={() => handlePlaceBidClick(item)}>
+                                                        <Gavel size={16} /> Place Bid
                                                     </button>
                                                 </div>
                                             </div>
@@ -752,8 +753,46 @@ const Auction = () => {
                 __html: `
                 .animate-fade-in { animation: fadeIn 0.4s ease-out; }
                 .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+                .animate-bounce-slow { animation: bounceSlow 3s infinite; }
                 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
                 @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+                @keyframes bounceSlow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+                @keyframes pulse-fast { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(0.98); } 100% { opacity: 1; transform: scale(1); } }
+                
+                .pulse { animation: pulse-shadow 2s infinite; }
+                @keyframes pulse-shadow {
+                    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+                    70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+                }
+
+                .premium-hover {
+                    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+                .premium-hover:hover {
+                    transform: translateY(-8px);
+                    box-shadow: 0 20px 40px -12px rgba(0,0,0,0.15);
+                    border-color: #0d9488;
+                }
+                .premium-hover:hover img {
+                    transform: scale(1.05);
+                }
+                .premium-hover img { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+
+                .glass-overlay {
+                    position: absolute; inset: 0;
+                    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+                    opacity: 0; transition: opacity 0.4s;
+                }
+                .premium-hover:hover .glass-overlay { opacity: 1; }
+
+                .bid-btn-premium {
+                    width: 100%; padding: 12px; border-radius: 12px;
+                    background: #1e293b; color: white; border: none;
+                    font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px;
+                    cursor: pointer; transition: all 0.3s;
+                }
+                .bid-btn-premium:hover { background: #0d9488; transform: scale(1.02); box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.3); }
 
                 .modal-overlay {
                     position: fixed; top: 0; left: 0; right: 0; bottom: 0;

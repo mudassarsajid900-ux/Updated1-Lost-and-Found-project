@@ -19,6 +19,7 @@ namespace GAC.API.Controllers
             _handoverService = handoverService;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] CreateHandoverDto dto)
         {
